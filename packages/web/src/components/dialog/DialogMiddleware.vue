@@ -1,0 +1,139 @@
+<template>
+	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
+		<q-card class="card-continer">
+			<terminus-dialog-bar
+				:label="title"
+				icon=""
+				titAlign="text-left"
+				@close="onDialogCancel"
+			/>
+
+			<div class="dialog-desc">
+				<q-form @submit="submit" @reset="onDialogCancel">
+					<div class="form-item row">
+						<div class="form-item-key text-subtitle2 text-grey-10">
+							Username *
+						</div>
+						<div class="form-item-value">
+							<q-input
+								dense
+								borderless
+								no-error-icon
+								v-model="selfMiddleware.username"
+								lazy-rules
+								:rules="[
+									(val) =>
+										(val && val.length > 0) ||
+										`Please input the required username`
+								]"
+								color="teal-4"
+								class="form-item-input"
+								counter
+								maxlength="128"
+							>
+							</q-input>
+						</div>
+					</div>
+
+					<div class="form-item row">
+						<div class="form-item-key text-subtitle2 text-grey-10">
+							Password
+						</div>
+						<div class="form-item-value">
+							<q-input
+								dense
+								borderless
+								no-error-icon
+								v-model="selfMiddleware.password"
+								placeholder="Leave empty to generate a 16-bit random password"
+								lazy-rules
+								color="teal-4"
+								class="form-item-input"
+							>
+							</q-input>
+						</div>
+					</div>
+
+					<TerminusFormFooter />
+				</q-form>
+			</div>
+		</q-card>
+	</q-dialog>
+</template>
+
+<script lang="ts" setup>
+import { ref, defineProps, computed } from 'vue';
+import { useDialogPluginComponent } from 'quasar';
+import { useDevelopingApps } from '../../stores/app';
+
+import TerminusDialogBar from '../common/TerminusDialogBar.vue';
+import TerminusFormFooter from '../common/TerminusFormFooter.vue';
+
+const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
+
+const store = useDevelopingApps();
+const show = ref(true);
+
+const props = defineProps({
+	data: {
+		type: Object,
+		required: false,
+		default: () => ({})
+	},
+	mode: {
+		type: String,
+		required: false,
+		default: 'create'
+	}
+});
+
+const selfMiddleware = ref(JSON.parse(JSON.stringify(props.data)));
+
+const title = computed(() => {
+	if (props.mode === 'create') {
+		return `Add ${props.data.name}`;
+	} else {
+		return `Edit ${props.data.name}`;
+	}
+});
+
+const submit = () => {
+	if (!store.cfg.middleware) {
+		store.cfg.middleware = {};
+	}
+	store.cfg.middleware[props.data.name] = {
+		username: selfMiddleware.value.username,
+		password: selfMiddleware.value.password,
+		databases: selfMiddleware.value.databases || null
+	};
+
+	onDialogOK();
+};
+</script>
+
+<style lang="scss" scoped>
+.card-dialog {
+	.card-continer {
+		width: 720px;
+		border-radius: 12px;
+
+		.dialog-desc {
+			padding-left: 32px;
+			padding-right: 32px;
+		}
+	}
+}
+
+.form-item {
+	margin-top: 20px;
+	margin-bottom: 40px;
+	.form-item-key {
+		width: 140px;
+		height: 40px;
+		line-height: 40px;
+	}
+	.form-item-value {
+		flex: 1;
+	}
+}
+</style>

@@ -1,0 +1,47 @@
+FROM node:20-bookworm
+
+ARG USERNAME=node
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+
+ARG NPM_GLOBAL=/usr/local/share/npm-global
+
+# Add NPM global to PATH.
+ENV PATH=${NPM_GLOBAL}/bin:${PATH}
+
+# [Temporal] Bump npm version due to GHSA-c2qf-rxjj-qqgw
+RUN npm install -g npm@9.8.1
+
+RUN \
+    # Configure global npm install location, use group to adapt to UID/GID changes
+    if ! cat /etc/group | grep -e "^npm:" > /dev/null 2>&1; then groupadd -r npm; fi \
+    && usermod -a -G npm ${USERNAME} \
+    && umask 0002 \
+    && mkdir -p ${NPM_GLOBAL} \
+    && touch /usr/local/etc/npmrc \
+    && chown ${USERNAME}:npm ${NPM_GLOBAL} /usr/local/etc/npmrc \
+    && chmod g+s ${NPM_GLOBAL} \
+    && npm config -g set prefix ${NPM_GLOBAL} \
+    && su ${USERNAME} -c "npm config -g set prefix ${NPM_GLOBAL}" \
+    # Install eslint
+    && rm -rf /root/.npm/_cacache \
+    && npm cache clean --force 2>&1 \
+    && su ${USERNAME} -c "umask 0002 && npm install -g eslint" 
+
+RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --prefix=/usr/local --version=4.12.0
+
+RUN apt-get update && apt-get install -y nginx gh
+
+RUN mkdir -p /opt/html
+RUN mkdir -p /etc/nginx/conf.d/dev
+COPY containers/root/. /opt/html/.
+COPY containers/conf/. /etc/nginx/conf.d/.
+
+RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log
+
+EXPOSE 8080
+
+CMD [ "/bin/sh", "-c", "nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
+
+

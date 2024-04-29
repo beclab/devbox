@@ -1,0 +1,27 @@
+ARG VARIANT=3-bookworm
+FROM python:${VARIANT}
+
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    # Remove imagemagick due to https://security-tracker.debian.org/tracker/CVE-2019-10131
+    && apt-get purge -y imagemagick imagemagick-6-common 
+
+# Temporary: Upgrade python packages due to https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-40897
+# They are installed by the base image (python) which does not have the patch.
+RUN python3 -m pip install --upgrade setuptools
+
+RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --prefix=/usr/local --version=4.12.0
+
+RUN apt-get update && apt-get install -y nginx gh
+
+RUN mkdir -p /opt/html
+RUN mkdir -p /etc/nginx/conf.d/dev
+COPY containers/root/. /opt/html/.
+COPY containers/conf/. /etc/nginx/conf.d/.
+
+RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log
+
+EXPOSE 8080
+
+CMD [ "/bin/sh", "-c", "nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
+
+

@@ -1,0 +1,45 @@
+// app global css in SCSS form
+html,
+body {
+	font-family: Roboto;
+}
+
+.form-item-input {
+	border: 1px solid rgba(235, 235, 235, 1);
+	border-radius: 8px;
+	padding: 0 10px;
+}
+
+.form-btn-create {
+	border-radius: 8px;
+}
+
+.form-btn-cancel {
+	border-radius: 8px;
+	color: rgba(31, 24, 20, 1) !important;
+	border: 1px solid rgba(235, 235, 235, 1);
+}
+
+.capitalize {
+	text-transform: Capitalize;
+}
+
+.material-symbols-rounded {
+	font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+}
+
+.q-dialog__inner--maximized > div,
+.q-dialog__inner--minimized > div {
+	max-width: none !important;
+	max-height: none !important;
+	height: auto !important;
+	overflow: hidden;
+}
+
+.menu-wrap {
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: none;
+	box-shadow: 0px 4px 10px 0px rgba(0, 0, 0, 0.2);
+	overflow: hidden;
+}
