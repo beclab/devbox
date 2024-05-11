@@ -74,7 +74,12 @@
 						:data="item"
 					></document-link>
 					<div class="link-more text-body1 text-grey-5">
-						Visit <span>Terminus developer community</span> for more documents
+						Visit
+						<a
+							href="https://docs.jointerminus.com/overview/introduction/what-is-terminus.html"
+							>docs.jointerminus.com</a
+						>
+						for more information.
 					</div>
 				</div>
 			</div>
@@ -245,8 +250,9 @@ async function upload_dev_file(
 
 		.link-more {
 			margin-top: 32px;
-			span {
+			a {
 				color: #00967d;
+				text-decoration: none;
 			}
 		}
 	}
