@@ -61,33 +61,33 @@ export const useMenuStore = defineStore('menu', {
 			documentList: [
 				{
 					id: 1,
-					message: 'Quick start',
-					link: 'https://www.baidu.com/'
+					message: 'DevBox Tutorial',
+					link: 'https://docs.jointerminus.com/developer/develop/tutorial/devbox.html'
 				},
 				{
 					id: 2,
-					message: 'Application chart specification guideline',
-					link: 'https://www.baidu.com/'
+					message: 'Introduction to Basic Concepts of Terminus Application',
+					link: 'https://docs.jointerminus.com/overview/terminus/application.html'
 				},
 				{
 					id: 3,
-					message: 'Learn about submission process',
-					link: 'https://www.baidu.com/'
+					message: 'Learn about Terminus Application Chart',
+					link: 'https://docs.jointerminus.com/developer/develop/package/chart.html'
 				},
 				{
 					id: 4,
-					message: 'How to submit application to the App Market',
-					link: 'https://www.baidu.com/'
+					message: 'Configuration Guideline for TerminusManifest',
+					link: 'https://docs.jointerminus.com/developer/develop/package/manifest.html'
 				},
 				{
 					id: 5,
-					message: 'How to manage and maintain application in the App Market',
-					link: 'https://www.baidu.com/'
+					message: 'Terminus Market protocol overview',
+					link: 'https://docs.jointerminus.com/overview/protocol/market.html'
 				},
 				{
 					id: 6,
-					message: 'About helm charts format',
-					link: 'https://www.baidu.com/'
+					message: 'How to sbmit an application to the Terminus Market',
+					link: 'https://docs.jointerminus.com/developer/develop/submit/'
 				}
 			]
 		} as DataState;
