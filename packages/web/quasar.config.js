@@ -39,7 +39,7 @@ module.exports = configure(function (ctx) {
 		boot: ["monacoplugin", "markdown", "axios", "bytetrade-ui"],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
-		css: ["app.scss"],
+		css: ["app.scss", ctx.dev ? "font.dev.scss" : "font.pro.scss"],
 
 		// https://github.com/quasarframework/quasar/tree/dev/extras
 		extras: [
@@ -50,14 +50,13 @@ module.exports = configure(function (ctx) {
 			// 'themify',
 			// 'line-awesome',
 			// 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-
-			"roboto-font", // optional, you are not bound to it
-			"material-icons", // optional, you are not bound to it
-			"bootstrap-icons",
-			"themify",
+			// "roboto-font", // optional, you are not bound to it
+			// "material-icons", // optional, you are not bound to it
+			// "bootstrap-icons",
+			// "themify",
 			"material-icons",
-			"material-symbols-outlined",
-			"material-symbols-rounded",
+			// "material-symbols-outlined",
+			// "material-symbols-rounded",
 		],
 
 		// Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
