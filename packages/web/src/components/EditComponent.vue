@@ -46,7 +46,7 @@
 							/>
 						</q-icon>
 
-						<q-icon rounded clickable name="bi-three-dots" size="18px">
+						<q-icon rounded clickable name="sym_r_more_horiz" size="18px">
 							<PopupMenu
 								:items="oprateMenu"
 								:path="nod.path"
