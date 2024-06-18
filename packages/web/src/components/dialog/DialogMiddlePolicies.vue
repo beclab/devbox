@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">Name *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -31,7 +31,7 @@
 					</div>
 
 					<div class="form-item row" v-if="name === 'postgres'">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Distributed *
 						</div>
 						<div class="form-item-value">

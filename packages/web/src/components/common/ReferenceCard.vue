@@ -1,19 +1,21 @@
 <template>
 	<div class="resources-item row items-center justify-between">
 		<div class="resources-left row items-center justify-start">
-			<q-icon name="sym_r_assignment" color="text-grey-10" size="16px" />
-			<span class="text-grey-10 text-h6 q-ml-sm">{{ name }}</span>
+			<q-icon name="sym_r_assignment" color="textink-1" size="16px" />
+			<span class="textink-1 text-h6 q-ml-sm">{{ name }}</span>
 		</div>
-		<div class="resources-right row items-center justify-end text-grey-8">
+		<div class="resources-right row items-center justify-end">
 			<q-icon
 				class="cursor-pointer"
 				name="sym_r_edit_square"
+				color="ink-2"
 				size="16px"
 				@click="editDependencie"
 			/>
 			<q-icon
 				class="q-ml-md cursor-pointer"
 				name="sym_r_delete"
+				color="ink-2"
 				size="16px"
 				@click="deleteDependencie"
 			/>

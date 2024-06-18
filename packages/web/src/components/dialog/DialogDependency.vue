@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="mode === 'create' ? 'Add Entrance' : 'Edit Entrance'"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">Type *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Type *</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -19,15 +19,14 @@
 								no-error-icon
 								v-model="selfDependency.type"
 								disable
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 							>
 							</q-input>
 						</div>
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">Name *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -46,17 +45,14 @@
 										/^[a-z][a-z0-9]*$/.test(val) ||
 										'must contain only lowercase alphanumeric characters.'
 								]"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 							>
 							</q-input>
 						</div>
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
-							Version *
-						</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Version *</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -68,8 +64,7 @@
 								:rules="[
 									(val) => (val && val.length > 0) || 'Please input the version'
 								]"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 							>
 							</q-input>
 						</div>

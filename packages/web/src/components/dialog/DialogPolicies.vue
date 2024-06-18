@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="mode === 'create' ? 'Add Sub Policies' : 'Edit Sub Policies'"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Policy Scope *
 						</div>
 						<div class="form-item-value">
@@ -28,15 +28,14 @@
 										(val && val.length > 0) ||
 										'Please input the effected domain'
 								]"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 							>
 							</q-input>
 						</div>
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							MFA Level *
 						</div>
 						<div class="form-item-value">
@@ -46,9 +45,10 @@
 								:options="mfaLevelOptions"
 								v-model="selfEntrance.level"
 								class="form-item-input q-mt-md"
+								input-class="text-ink-2"
 							>
 							</q-select>
-							<div class="text-body3 text-grey-5">
+							<div class="text-body3 text-ink-2">
 								Two-Factor requires additional credentials with an OTP (One-Time
 								Password) to access the entrance.
 							</div>
@@ -56,7 +56,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							One Time Valid
 						</div>
 						<div class="form-item-value">
@@ -66,16 +66,17 @@
 								:options="visiblityOptions"
 								v-model="oneTimeValid"
 								class="form-item-input q-mt-md"
+								input-class="text-ink-2"
 							>
 							</q-select>
-							<div class="text-body3 text-grey-5">
+							<div class="text-body3 text-ink-2">
 								Authentication is required every time to access this entrance.
 							</div>
 						</div>
 					</div>
 
 					<div class="form-item row" v-if="selfEntrance.oneTime === false">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Valid Duration
 						</div>
 
@@ -87,8 +88,8 @@
 								v-model.number="validDurationValue"
 								hint="Set the time period (in seconds) before a user is asked to MFA again. Leave empty for one time valid."
 								lazy-rules
-								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 								:rules="[
 									(val) => val > 0 || 'must be a number greater than 0.'
 								]"
@@ -108,7 +109,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Description
 						</div>
 						<div class="form-item-value">
@@ -120,8 +121,7 @@
 								v-model="selfEntrance.description"
 								hint="A brief description of this policy."
 								lazy-rules
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 								counter
 								maxlength="512"
 							>

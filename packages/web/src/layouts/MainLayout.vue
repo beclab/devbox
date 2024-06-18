@@ -1,9 +1,9 @@
 <template>
 	<q-layout class="main-layout" view="lHh Lpr lFf">
-		<q-drawer behavior="desktop" show-if-above bordered :width="240">
+		<q-drawer class="my-drawer" behavior="desktop" show-if-above :width="240">
 			<q-scroll-area style="height: calc(100vh)">
 				<bt-menu
-					active-class="my-active-link"
+					active-class="text-body1 bg-teal-soft text-teal-pressed"
 					:items="menuStore.menuList"
 					expand-separator
 					v-model="menuStore.currentItem"
@@ -69,18 +69,22 @@ const changeItemMenu = (data: any): void => {
 };
 </script>
 
+<style lang="scss">
+.my-drawer {
+	border-right: 1px solid $separator;
+}
+</style>
+
 <style lang="scss" scoped>
+.main-layout {
+	background-color: $background-1;
+}
 .edit-view {
 	height: 32px;
 	width: calc(100% - 30px);
 	margin-top: 20px;
 	margin-left: 15px;
 	margin-right: 15px;
-}
-
-.main-layout::v-deep .my-active-link {
-	background-color: rgba(210, 247, 241, 1);
-	color: rgba(0, 150, 125, 1);
 }
 
 .noApp {

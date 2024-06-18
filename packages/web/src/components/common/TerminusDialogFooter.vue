@@ -68,15 +68,15 @@ const onOK = (e: any) => {
 	border-radius: 8px;
 	font-weight: 500;
 	font-size: 12px;
-	background: rgba(0, 190, 158, 1);
+	background: $teal-default;
 	color: #ffffff;
 }
 .but-cancel {
 	border-radius: 8px;
 	font-weight: 500;
 	font-size: 12px;
-	border: 1px solid #e0e0e0;
-	color: #4d4742;
+	border: 1px solid $separator;
+	color: $ink-1;
 }
 
 .card-action {

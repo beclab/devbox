@@ -17,7 +17,7 @@
 						}"
 					></span>
 				</div>
-				<span class="text-grey-10 text-h4 nameText">
+				<span class="text-ink-1 text-h4 nameText">
 					{{
 						mode === 'application'
 							? container.containerName
@@ -36,7 +36,7 @@
 					@click="unbindContainer"
 				>
 					<q-icon name="sym_r_link_off" size="16px" />
-					<span class="text-body2 text-grey-8 q-ml-sm">Unbind</span>
+					<span class="text-body2 text-ink-2 q-ml-sm">Unbind</span>
 				</div>
 				<div
 					class="bind row items-center justify-center"
@@ -44,7 +44,7 @@
 					@click="bindContainer"
 				>
 					<q-icon name="sym_r_link" size="16px" />
-					<span class="text-body2 text-grey-8 q-ml-sm">Bind</span>
+					<span class="text-body2 text-ink-2 q-ml-sm">Bind</span>
 				</div>
 				<div
 					class="openIde row items-center justify-center"
@@ -67,7 +67,7 @@
 					<q-menu class="menu-wrap">
 						<q-list dense padding>
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onRenameModel"
@@ -78,7 +78,7 @@
 							</q-item>
 
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onUnbind"
@@ -90,7 +90,7 @@
 							</q-item>
 
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onDelete"
@@ -109,17 +109,17 @@
 		<div class="item-content">
 			<div class="content-1 row">
 				<div class="col-6">
-					<div class="row items-center justify-start text-grey-5">
+					<div class="row items-center justify-start text-ink-2">
 						<q-icon class="q-mr-xs" name="sym_r_code_blocks" size="16px" />
 						<span>Env</span>
 					</div>
-					<div class="text-grey-10 text-subtitle2" style="padding-left: 20px">
+					<div class="text-ink-1 text-subtitle2" style="padding-left: 20px">
 						{{ container.devEnv || '-' }}
 					</div>
 				</div>
 
 				<div class="col-6">
-					<div class="items-center justify-start text-grey-5">
+					<div class="items-center justify-start text-ink-2">
 						<q-icon class="q-mr-xs" name="sym_r_deployed_code" size="16px" />
 						<span>{{
 							mode === 'application'
@@ -127,7 +127,7 @@
 								: 'Binding App Container'
 						}}</span>
 					</div>
-					<div class="text-grey-10 text-subtitle2" style="padding-left: 20px">
+					<div class="text-ink-1 text-subtitle2" style="padding-left: 20px">
 						{{
 							mode === 'application'
 								? container.devContainerName || '-'
@@ -138,12 +138,12 @@
 			</div>
 
 			<div class="content-2 row" style="margin: 20px 0">
-				<div class="col-12 items-center justify-start text-grey-5">
+				<div class="col-12 items-center justify-start text-ink-2">
 					<q-icon class="q-mr-xs" name="sym_r_package_2" size="16px" />
 					<span>Pod Selector</span>
 				</div>
 				<div
-					class="col-12 text-grey-10 text-subtitle2 podSelector"
+					class="col-12 text-ink-1 text-subtitle2 podSelector"
 					style="padding-left: 20px"
 				>
 					{{ container.podSelector || '-' }}
@@ -151,12 +151,12 @@
 			</div>
 
 			<div class="content-3 row">
-				<div class="col-12 row items-center justify-start text-grey-5">
+				<div class="col-12 row items-center justify-start text-ink-2">
 					<q-icon class="q-mr-xs" name="sym_r_schedule" size="16px" />
 					<span>Update Time</span>
 				</div>
 				<div
-					class="col-12 text-grey-10 text-subtitle2"
+					class="col-12 text-ink-1 text-subtitle2"
 					style="padding-left: 20px"
 				>
 					{{ container.updateTime || '-' }}
@@ -173,7 +173,7 @@
 				<img v-if="container.appId" :src="container.icon" />
 				<span v-else class="img-empty"></span>
 				<span v-if="container.appId">{{ container.appName }}</span>
-				<span v-else class="text-grey-5">Application</span>
+				<span v-else class="text-ink-2">Application</span>
 			</div>
 			<div class="text-teal-6 text-subtitle3" v-if="container.appId">
 				Binding
@@ -343,7 +343,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .container-item {
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	border-radius: 12px;
 	padding: 0 32px 32px 32px;
 	.item-header {
@@ -352,7 +352,7 @@ onMounted(() => {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		border-bottom: 1px solid rgba(235, 235, 235, 1);
+		border-bottom: 1px solid $separator;
 		.container-name {
 			.nameText {
 				display: inline-block;
@@ -393,7 +393,7 @@ onMounted(() => {
 		.bind {
 			padding: 6px 12px;
 			border-radius: 8px;
-			border: 1px solid #ebebeb;
+			border: 1px solid $separator;
 			cursor: pointer;
 		}
 	}
@@ -415,7 +415,7 @@ onMounted(() => {
 		padding: 0 20px;
 		margin-top: 32px;
 		border-radius: 12px;
-		border: 1px dashed rgba(235, 235, 235, 1);
+		border: 1px dashed $separator;
 		img {
 			width: 32px;
 			height: 32px;
@@ -439,7 +439,7 @@ onMounted(() => {
 				rgba(214, 249, 243, 0.8) 49.97%,
 				rgba(210, 247, 241, 0.6) 73.52%
 			);
-			border: 1px solid rgba(235, 235, 235, 1);
+			border: 1px solid $separator;
 		}
 	}
 }
@@ -452,7 +452,7 @@ onMounted(() => {
 	align-items: center;
 	justify-content: center;
 	box-sizing: border-box;
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	cursor: pointer;
 	&:hover {
 		background: rgba(0, 0, 0, 0.05);

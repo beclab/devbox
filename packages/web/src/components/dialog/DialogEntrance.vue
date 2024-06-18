@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<q-scroll-area style="height: 600px">
 				<terminus-dialog-bar
 					:label="mode === 'create' ? 'Add Entrances' : 'Edit Entrances'"
@@ -12,7 +12,7 @@
 				<div class="dialog-desc">
 					<q-form @submit="submit" @reset="onCancel">
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Entrance Name *
 							</div>
 							<div class="form-item-value">
@@ -31,8 +31,7 @@
 											/^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(val) ||
 											'must contain only lowercase alphanumeric characters and hyphens.'
 									]"
-									color="teal-4"
-									input-class="form-item-input"
+									input-class="form-item-input text-ink-2"
 									counter
 									maxlength="63"
 								>
@@ -41,7 +40,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Entrance Title *
 							</div>
 							<div class="form-item-value">
@@ -57,8 +56,7 @@
 											(val && val.length > 0) ||
 											'Please input the entrance title'
 									]"
-									color="teal-4"
-									input-class="form-item-input"
+									input-class="form-item-input text-ink-2"
 									counter
 									maxlength="30"
 								>
@@ -67,7 +65,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Entrance Icon
 							</div>
 							<div class="form-item-value">
@@ -80,14 +78,14 @@
 									@uploaded="uploaded"
 								/>
 
-								<div class="text-grey-7 q-mt-sm" style="font-size: 11px">
+								<div class="text-ink-2 q-mt-sm" style="font-size: 11px">
 									Icon that appears in the Terminus desktop after installed.
 								</div>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Host Name *
 							</div>
 							<div class="form-item-value">
@@ -105,9 +103,8 @@
 											/^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(val) ||
 											'must contain only lowercase alphanumeric characters and hyphens.'
 									]"
-									color="teal-4"
 									counter
-									input-class="form-item-input"
+									input-class="form-item-input text-ink-2"
 									maxlength="63"
 								>
 								</q-input>
@@ -115,9 +112,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
-								Port *
-							</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">Port *</div>
 							<div class="form-item-value">
 								<q-input
 									dense
@@ -125,8 +120,7 @@
 									no-error-icon
 									v-model.number="selfEntrance.port"
 									lazy-rules
-									color="teal-4"
-									input-class="form-item-input"
+									input-class="form-item-input text-ink-2"
 									hint="Port for this entrance."
 								>
 								</q-input>
@@ -134,9 +128,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
-								Visible
-							</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">Visible</div>
 							<div class="form-item-value">
 								<q-select
 									dense
@@ -145,14 +137,14 @@
 									v-model="invisibleSelf"
 									dropdown-icon="sym_r_keyboard_arrow_down"
 									hint="Show entrance icon and title on the Terminus desktop."
-									class="form-item-input"
+									class="form-item-input text-ink-2"
 								>
 								</q-select>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Auth Level
 							</div>
 							<div class="form-item-value">
@@ -163,14 +155,14 @@
 									:options="authLevelOptions"
 									dropdown-icon="sym_r_keyboard_arrow_down"
 									hint="A private entrance requires activating Tailscale for access."
-									class="form-item-input q-mt-md"
+									class="form-item-input q-mt-md text-ink-2"
 								>
 								</q-select>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Open Method:
 							</div>
 							<div class="form-item-value">
@@ -183,7 +175,7 @@
 									map-options
 									dropdown-icon="sym_r_keyboard_arrow_down"
 									hint="Show entrance icon and title on the Terminus desktop."
-									class="form-item-input"
+									class="form-item-input text-ink-2"
 								>
 								</q-select>
 							</div>

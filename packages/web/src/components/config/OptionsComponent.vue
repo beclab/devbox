@@ -1,37 +1,35 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-grey-10">Options</div>
+		<div class="text-h6 text-ink-1">Options</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Cluster Scoped
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Cluster Scoped</div>
 			<div class="form-item-value">
 				<q-toggle
 					color="teal-6"
 					v-model="store.cfg.options.appScope.clusterScoped"
 				/>
-				<div class="text-body3 text-grey-5">
+				<div class="text-body3 text-ink-2">
 					Whether this app is installed for all users in a Terminus cluster.
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row" v-if="store.cfg.options.appScope.clusterScoped">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Client Reference
 			</div>
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
-					<div class="text-subtitle2 text-grey-8">
+					<div class="text-subtitle2 text-ink-2">
 						Specify the client apps that need to access this cluster app.
 					</div>
 					<q-btn
+						class="add-btn"
 						borderless
 						flat
 						no-caps
 						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
 						label="Add"
 						@click="addReference"
 					/>
@@ -46,7 +44,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Enable Analytics
 			</div>
 			<div class="form-item-value">
@@ -54,14 +52,14 @@
 					color="teal-6"
 					v-model="store.cfg.options.analytics.enabled"
 				/>
-				<div class="text-body3 text-grey-5">
+				<div class="text-body3 text-ink-2">
 					Enable website analytics for your app.
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Enable Websocket
 			</div>
 			<div class="form-item-value">
@@ -70,17 +68,16 @@
 					v-model="websocketToggle"
 					@update:model-value="updateWebsocket"
 				/>
-				<div class="text-body3 text-grey-5">Enable websocket for your app.</div>
+				<div class="text-body3 text-ink-2">Enable websocket for your app.</div>
 
 				<template v-if="websocketToggle">
-					<div class="text-body3 text-grey-10 q-mt-md q-mb-sm">Port *</div>
+					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">Port *</div>
 					<q-input
 						dense
 						borderless
 						no-error-icon
 						lazy-rules
-						color="teal-4"
-						input-class="form-item-input"
+						input-class="form-item-input text-ink-2"
 						v-model.number="websocket.port"
 						:rules="[
 							(val) =>
@@ -89,15 +86,14 @@
 						@update:model-value="updatePort"
 					>
 					</q-input>
-					<div class="text-body3 text-grey-10 q-mt-md q-mb-sm">URL *</div>
+					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">URL *</div>
 					<q-input
 						dense
 						borderless
 						no-error-icon
 						lazy-rules
-						color="teal-4"
 						v-model="websocket.url"
-						input-class="form-item-input"
+						input-class="form-item-input text-ink-2"
 						placeholder="/ws/"
 						@update:model-value="updateUrl"
 					>
@@ -257,5 +253,10 @@ onMounted(() => {
 	.form-item-value {
 		flex: 1;
 	}
+}
+
+.add-btn {
+	border: 1px solid $separator;
+	border-radius: 8px;
 }
 </style>

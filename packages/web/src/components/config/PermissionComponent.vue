@@ -1,34 +1,34 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-grey-10">Permissions</div>
+		<div class="text-h6 text-ink-1">Permissions</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Require App Data *
 			</div>
 			<div class="form-item-value">
 				<q-toggle color="teal-6" v-model="store.cfg.permission.appData" />
-				<div class="text-body3 text-grey-5">
+				<div class="text-body3 text-ink-2">
 					Requires read and write permissions to appdata directory.
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Require System Data
 			</div>
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
-					<div class="text-subtitle2 text-grey-8">
+					<div class="text-subtitle2 text-ink-2">
 						Require permissions to access system data through service providers.
 					</div>
 					<q-btn
+						class="add-btn"
 						borderless
 						flat
 						no-caps
 						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
 						label="Add"
 						@click="addProvider"
 					/>
@@ -176,5 +176,10 @@ function deletePermission(index: number) {
 	.form-item-value {
 		flex: 1;
 	}
+}
+
+.add-btn {
+	border: 1px solid $separator;
+	border-radius: 8px;
 }
 </style>

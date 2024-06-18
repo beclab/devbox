@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="`Edit ${data.label}`"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row" v-if="selfEntrance.name === 'gpu'">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							GPU Required *
 						</div>
 						<div class="form-item-value">
@@ -20,7 +20,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Required {{ selfEntrance.label }}
 							{{ selfEntrance.require ? '*' : '' }}
 						</div>
@@ -33,8 +33,8 @@
 								:hint="`Minimum ${selfEntrance.label} required for the app.`"
 								lazy-rules
 								:disable="selfEntrance.require ? false : true"
-								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 							>
 								<template v-slot:append>
 									<q-select
@@ -55,7 +55,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Limited {{ selfEntrance.label }}
 							{{ selfEntrance.require ? '*' : '' }}
 						</div>
@@ -70,6 +70,7 @@
 								:disable="selfEntrance.require ? false : true"
 								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 							>
 								<template v-slot:append>
 									<q-select

@@ -21,7 +21,7 @@
 					v-if="scope.files && scope.files.length <= 0 && !showDefaultImg"
 				>
 					<img src="../../assets/default-img.png" />
-					<div class="tips text-grey-10 text-subtitle">
+					<div class="tips text-ink-1 text-subtitle">
 						{{ message || 'Drag and drop a PNG or WEBP files here to upload' }}
 					</div>
 					<div class="upload-btn text-teal-8">
@@ -194,7 +194,7 @@ const deleteDefaultImg = () => {
 	height: 276px;
 	border-radius: 12px;
 	overflow: hidden;
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	position: relative;
 
 	.upload-default {

@@ -16,7 +16,7 @@
 					:key="node.key"
 					v-slot:[`extra-${node.key}`]
 				>
-					<q-icon size="xs" name="sym_r_add_circle">
+					<q-icon size="xs" name="sym_r_add_circle" color="ink-2">
 						<PopupMenu
 							:items="fileMenu"
 							:path="node.path"
@@ -424,8 +424,8 @@ const deletefile = async (path: string) => {
 </script>
 <style lang="scss">
 .my-code-link {
-	background: rgba(246, 246, 246, 1);
-	color: rgba(50, 47, 45, 1);
+	background: $background-hover;
+	color: $ink-1;
 }
 ::-webkit-scrollbar {
 	width: 0px !important;
@@ -443,6 +443,42 @@ const deletefile = async (path: string) => {
 	border-radius: 10px;
 	background: rgba(57, 177, 255, 0.16);
 }
+.monaco-editor .margin {
+	background-color: $background-2 !important;
+}
+
+.lines-content.monaco-editor-background {
+	background-color: $background-2 !important;
+}
+
+.minimap.slider-mouseover {
+	background-color: $background-2 !important;
+}
+.minimap-decorations-layer {
+	background-color: $background-2 !important;
+}
+.decorationsOverviewRuler {
+	width: 0px !important;
+}
+
+.inputarea.monaco-mouse-cursor-text {
+	background-color: $ink-1 !important;
+	caret-color: red !important;
+}
+.monaco-editor .inputarea {
+	background-color: $ink-1 !important;
+	z-index: 1 !important;
+	caret-color: red !important;
+}
+
+.view-lines .view-line {
+	span {
+		color: $ink-1 !important;
+	}
+	.mtk1 {
+		color: $ink-1 !important;
+	}
+}
 </style>
 <style lang="scss" scoped>
 .files {
@@ -450,20 +486,21 @@ const deletefile = async (path: string) => {
 	margin-top: 32px;
 	.files-left {
 		width: 240px;
+		background-color: $background-1;
 	}
 	.files-right {
 		flex: 1;
 		border-radius: 12px;
-		border: 1px solid var(--Grey-02-, #ebebeb);
+		border: 1px solid $separator;
 		overflow: hidden;
-		background: var(--Grey-01-, #f6f6f6);
+		background: $background-3;
 		.files-right-header {
 			width: 100%;
 			height: 32px;
 			line-height: 32px;
 			padding: 0 12px;
-			border-bottom: 1px solid var(--Grey-02-, #ebebeb);
-			background: var(--Grey-01-, #f6f6f6);
+			border-bottom: 1px solid $separator;
+			background: $background-3;
 			.statusIcon {
 				width: 6px;
 				height: 6px;
@@ -474,7 +511,8 @@ const deletefile = async (path: string) => {
 		.files-right-content {
 			height: calc(100% - 32px);
 			padding: 12px;
-			background: rgba(246, 246, 246, 1);
+			background: $background-3;
+
 			.files-monaco {
 				height: 100%;
 				border-radius: 12px;

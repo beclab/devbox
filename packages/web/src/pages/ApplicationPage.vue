@@ -8,15 +8,15 @@
 							v-if="store.cfg && store.cfg.metadata"
 							:src="store.cfg.metadata.icon"
 						/>
-						<span class="q-ml-sm text-h5 text-grey-10">{{ app.appName }}</span>
+						<span class="q-ml-sm text-h6 text-ink-1">{{ app.appName }}</span>
 					</div>
 					<q-tabs
 						v-model="menuStore.appCurrentItem"
 						dense
 						no-caps
-						class="text-grey-8"
-						indicator-color="teal-8"
-						active-color="teal-8"
+						class="text-ink-2"
+						indicator-color="teal-pressed"
+						active-color="teal-pressed"
 						align="justify"
 						narrow-indicator
 					>
@@ -117,11 +117,11 @@
 				/>
 
 				<div class="oprate-more">
-					<q-icon name="sym_r_more_vert" />
-					<q-menu class="rounded-borders">
+					<q-icon name="sym_r_more_vert" color="ink-1" />
+					<q-menu class="rounded-borders" flat>
 						<q-list dense padding>
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onUploadChart"
@@ -132,7 +132,7 @@
 							</q-item>
 
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onDownload"
@@ -143,7 +143,7 @@
 							</q-item>
 
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								v-close-popup
@@ -155,7 +155,7 @@
 							</q-item>
 
 							<q-item
-								class="row items-center justify-start text-grey-8"
+								class="row items-center justify-start text-ink-2"
 								clickable
 								v-ripple
 								@click="onDeleteApplication"
@@ -497,14 +497,14 @@ async function upload_dev_file(
 			text-algin: center;
 			display: inline-block;
 			border-radius: 8px;
-			border: 1px solid rgba(235, 235, 235, 1);
+			border: 1px solid $btn-stroke;
 			overflow: hidden;
 
 			span {
 				margin-left: 4px;
 			}
 			&:hover {
-				background: rgba(0, 0, 0, 0.05);
+				background: $background-hover;
 			}
 			&.oprate-disabled {
 				opacity: 0.5;
@@ -515,7 +515,7 @@ async function upload_dev_file(
 				height: 100%;
 				line-height: 32px;
 				padding: 0 8px;
-				color: #5c5551;
+				color: $ink-1;
 				font-size: 12px;
 				line-height: 100%;
 				text-algin: center;
@@ -547,10 +547,10 @@ async function upload_dev_file(
 			align-items: center;
 			justify-content: center;
 			box-sizing: border-box;
-			border: 1px solid rgba(235, 235, 235, 1);
+			border: 1px solid $btn-stroke;
 			cursor: pointer;
 			&:hover {
-				background: rgba(0, 0, 0, 0.05);
+				background: $background-hover;
 			}
 		}
 		.status {
