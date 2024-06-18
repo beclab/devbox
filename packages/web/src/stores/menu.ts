@@ -104,7 +104,7 @@ export const useMenuStore = defineStore('menu', {
 				this.applicationMenu[0].children.push({
 					label: app.appName,
 					key: `/app/${app.id}`,
-					icon: 'sym_o_grid_view'
+					icon: 'sym_r_grid_view'
 				});
 			}
 		}

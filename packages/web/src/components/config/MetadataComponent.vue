@@ -1,9 +1,9 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-grey-10">Metadata</div>
+		<div class="text-h6 text-ink-1">Metadata</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Icon *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Icon *</div>
 			<div class="form-item-value">
 				<upload-icon
 					:default-img="store.cfg.metadata.icon"
@@ -14,7 +14,7 @@
 					@uploaded="uploaded"
 				/>
 				<div
-					class="text-grey-7 q-mt-sm"
+					class="text-ink-2 q-mt-sm"
 					style="font-size: 11px; text-indent: 10px; line-height: 1"
 				>
 					Your app icon appears in the Terminus Market. The app's icon must be
@@ -24,7 +24,7 @@
 		</div>
 
 		<div class="form-item row" style="margin-top: 20px">
-			<div class="form-item-key text-subtitle2 text-grey-10">App Title *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">App Title *</div>
 			<div class="form-item-value">
 				<q-input
 					dense
@@ -36,17 +36,15 @@
 					:rules="[
 						(val) => (val && val.length > 0) || 'Please input the app title'
 					]"
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 				>
 				</q-input>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Version Name *
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Version Name *</div>
 			<div class="form-item-value">
 				<q-input
 					dense
@@ -58,15 +56,15 @@
 					:rules="[
 						(val) => (val && val.length > 0) || 'Please input the version name'
 					]"
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 				>
 				</q-input>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Categories *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Categories *</div>
 			<div class="form-item-value">
 				<q-select
 					dense
@@ -114,7 +112,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Short Description *
 			</div>
 			<div class="form-item-value">
@@ -129,8 +127,8 @@
 						(val) =>
 							(val && val.length > 0) || 'Please input the short description'
 					]"
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					counter
 					maxlength="100"
 				>
@@ -139,7 +137,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Full Description *
 			</div>
 			<div class="form-item-value">
@@ -156,8 +154,8 @@
 						(val) =>
 							(val && val.length > 0) || 'Please input the full description'
 					]"
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					counter
 					maxlength="4000"
 				>
@@ -212,8 +210,8 @@ const uploaded = (url) => {
 	.tagChip {
 		margin-right: 4px;
 		border-radius: 10px;
-		background: rgba(246, 246, 246, 1);
-		color: rgba(31, 24, 20, 1);
+		background: $background-hover;
+		color: $ink-2;
 		font-size: 12px;
 	}
 }

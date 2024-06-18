@@ -1,17 +1,18 @@
 <template>
 	<div class="entrances-item">
 		<div class="item-header">
-			<div class="entrances-name row items-center justify-center text-grey-10">
+			<div class="entrances-name row items-center justify-center text-ink-1">
 				<q-icon name="sym_r_data_table" size="20px" />
 				<span class="text-h6 q-ml-md q-mr-lg">
 					{{ data.group }}/{{ data.dataType }}
 				</span>
 			</div>
 
-			<div class="row items-center justify-center text-grey-8">
+			<div class="row items-center justify-center">
 				<q-icon
 					class="cursor-pointer"
 					name="sym_r_edit_square"
+					color="ink-2"
 					size="16px"
 					@click="editProvider"
 				/>
@@ -26,7 +27,7 @@
 
 		<div class="item-content">
 			<template v-for="op in data.ops" :key="op">
-				<span class="q-ml-md text-grey-8 text-caption ops">{{ op }}</span>
+				<span class="q-ml-md text-ink-2 text-caption ops">{{ op }}</span>
 			</template>
 		</div>
 	</div>

@@ -18,10 +18,10 @@ defineProps({
 
 <style lang="scss" scoped>
 .item {
-	color: rgba(0, 150, 125, 1);
+	color: $teal-pressed;
 	margin-top: 12px;
 	a {
-		color: rgba(0, 150, 125, 1);
+		color: $teal-pressed;
 		text-decoration: none;
 	}
 }

@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				label="Bind a dev container"
 				icon=""
@@ -9,7 +9,7 @@
 			/>
 
 			<div class="dialog-desc">
-				<div class="text-grey-5 text-body3">Dev Env</div>
+				<div class="text-ink-2 text-body3">Dev Env</div>
 				<q-select
 					dense
 					options-dense
@@ -25,14 +25,14 @@
 				>
 					<template v-slot:option="{ itemProps, opt }">
 						<q-item dense v-bind="itemProps" class="select-item">
-							<q-item-section class="select-section">
+							<q-item-section class="select-section text-ink-2">
 								<q-item-label>{{ opt.label }}</q-item-label>
 							</q-item-section>
 						</q-item>
 					</template>
 				</q-select>
 
-				<div class="text-grey-5 text-body3 q-mt-md">Select dev containers</div>
+				<div class="text-ink-2 text-body3 q-mt-md">Select dev containers</div>
 				<q-select
 					dense
 					options-dense
@@ -48,14 +48,14 @@
 				>
 					<template v-slot:option="{ itemProps, opt }">
 						<q-item dense v-bind="itemProps" class="select-item">
-							<q-item-section class="select-section">
+							<q-item-section class="select-section text-ink-2">
 								<q-item-label>{{ opt.label }}</q-item-label>
 							</q-item-section>
 						</q-item>
 					</template>
 				</q-select>
 
-				<div class="text-grey-5 text-body3 q-mt-md">Container Name</div>
+				<div class="text-ink-2 text-body3 q-mt-md">Container Name</div>
 				<q-input
 					dense
 					borderless

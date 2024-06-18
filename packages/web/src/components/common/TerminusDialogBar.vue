@@ -5,7 +5,7 @@
 			{{ label }}
 		</div>
 		<q-space />
-		<q-btn dense flat icon="close" @click="onCancel">
+		<q-btn dense flat icon="close" @click="onCancel" color="ink-3">
 			<q-tooltip>Close</q-tooltip>
 		</q-btn>
 	</q-bar>
@@ -46,11 +46,11 @@ const onCancel = () => {
 	margin: 20px 0;
 }
 .bar {
-	background-color: #f8f8f8;
+	background-color: $background-3;
 	.title {
 		height: 18px;
 		line-height: 18px;
-		color: #322f2d;
+		color: $ink-1;
 		font-size: 14px;
 	}
 }

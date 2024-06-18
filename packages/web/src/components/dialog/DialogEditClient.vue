@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="title"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">URL *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">URL *</div>
 						<div class="form-item-value q-mb-lg">
 							<q-input
 								dense
@@ -19,8 +19,8 @@
 								no-error-icon
 								hint="URL of the client."
 								v-model="selfSupportData.url"
-								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 								@update:model-value="updateSupportClient"
 								placeholder="https://"
 								:rules="[
@@ -72,6 +72,7 @@ const title = computed(() => {
 });
 
 const submit = () => {
+	console.log('submitsubmit', selfSupportData.value);
 	onDialogOK(selfSupportData.value);
 };
 </script>

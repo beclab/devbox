@@ -3,25 +3,25 @@
 		<div class="item-header">
 			<div class="entrances-name row items-center justify-center">
 				<img src="../../assets/icon-docker.svg" />
-				<span class="text-grey-10 text-h6 q-ml-md q-mr-lg">{{
-					data.name
-				}}</span>
+				<span class="text-ink-1 text-h6 q-ml-md q-mr-lg">{{ data.name }}</span>
 				<span class="text-green text-subtitle3 status">{{
 					data.authLevel
 				}}</span>
 			</div>
 
-			<div class="row items-center justify-center text-grey-8">
+			<div class="row items-center justify-center">
 				<q-icon
 					class="cursor-pointer"
 					name="sym_r_edit_square"
 					size="16px"
+					color="ink-2"
 					@click="editEntrance"
 				/>
 				<q-icon
 					class="q-ml-md cursor-pointer"
 					name="sym_r_delete"
 					size="16px"
+					color="ink-2"
 					@click="deleteEntrance"
 					v-if="!disabledRemove"
 				/>
@@ -29,6 +29,7 @@
 					class="q-ml-md cursor-pointer"
 					name="sym_r_delete"
 					size="16px"
+					color="ink-2"
 					disabled
 					v-else
 				/>
@@ -37,11 +38,12 @@
 
 		<div class="item-content">
 			<div class="content-hearder row items-center justify-between">
-				<span class="q-ml-md">Policies</span>
+				<span class="q-ml-md text-ink-2">Policies</span>
 				<q-icon
-					class="cursor-pointer text-grey-8 q-mr-md"
+					class="cursor-pointer q-mr-md"
 					name="sym_r_add_box"
 					size="16px"
+					color="ink-2"
 					@click="addPolicies"
 				/>
 			</div>
@@ -63,29 +65,31 @@
 						</div>
 						<div>
 							<div>
-								<span class="text-grey-10 text-subtitle3 q-mr-md">{{
+								<span class="text-ink-1 text-subtitle3 q-mr-md">{{
 									policy.uriRegex
 								}}</span>
-								<span class="text-grey-8 text-caption q-px-md q-py-xs label">{{
+								<span class="text-ink-2 text-caption q-px-md q-py-xs label">{{
 									policy.level
 								}}</span>
 							</div>
-							<div class="text-overline text-grey-5 q-mt-xs">
+							<div class="text-overline text-ink-2 q-mt-xs">
 								{{ policy.description }}
 							</div>
 						</div>
 					</div>
 
-					<div class="row items-center justify-center text-grey-8">
+					<div class="row items-center justify-center">
 						<q-icon
 							class="cursor-pointer"
 							name="sym_r_edit_square"
+							color="ink-2"
 							size="16px"
 							@click="editPolicie(policy)"
 						/>
 						<q-icon
 							class="q-ml-md cursor-pointer"
 							name="sym_r_delete"
+							color="ink-2"
 							size="16px"
 							@click="deletePolicie(policy)"
 						/>
@@ -240,7 +244,7 @@ const deletePolicie = (policy) => {
 
 <style lang="scss" scoped>
 .entrances-item {
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	border-radius: 12px;
 	margin-top: 20px;
 	.item-header {
@@ -249,7 +253,7 @@ const deletePolicie = (policy) => {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		border-bottom: 1px solid rgba(235, 235, 235, 1);
+		border-bottom: 1px solid $separator;
 		padding: 0 24px 0 20px;
 		.entrances-name {
 			img {
@@ -259,7 +263,7 @@ const deletePolicie = (policy) => {
 			.status {
 				padding: 4px 12px;
 				border-radius: 20px;
-				background: var(--Grey-01-, #f6f6f6);
+				background: $background-hover;
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 <template>
 	<div class="dev-container">
-		<!-- <div class="text-h3 text-grey-10">Dev Container List</div> -->
+		<!-- <div class="text-h3 text-ink-1">Dev Container List</div> -->
 		<div class="container" v-if="containers && containers.length > 0">
 			<container-card
 				v-for="(container, index) in containers"

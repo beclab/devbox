@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="title"
 				icon=""
@@ -10,7 +10,7 @@
 
 			<div class="dialog-desc">
 				<div class="form-item row">
-					<div class="form-item-key text-subtitle2 text-grey-10">Name *</div>
+					<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
 					<div class="form-item-value">
 						<q-input
 							dense
@@ -18,8 +18,7 @@
 							no-error-icon
 							hint="The app name of the client app."
 							v-model="selfSupportData"
-							color="teal-4"
-							input-class="form-item-input"
+							input-class="form-item-input text-ink-2"
 							counter
 							maxlength="30"
 							@update:model-value="updateSupportClient"

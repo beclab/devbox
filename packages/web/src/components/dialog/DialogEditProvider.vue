@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="title"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onCancle">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Data Group *
 						</div>
 						<div class="form-item-value">
@@ -21,8 +21,7 @@
 								no-error-icon
 								hint="Group of required data."
 								v-model="selfSupportData.group"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 								:rules="[
 									(val) =>
 										(val && val.length > 0) || 'Please input the data group'
@@ -33,7 +32,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Data type *
 						</div>
 						<div class="form-item-value">
@@ -43,8 +42,7 @@
 								no-error-icon
 								hint="Type of required data."
 								v-model="selfSupportData.dataType"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 								:rules="[
 									(val) =>
 										(val && val.length > 0) || 'Please input the data type'
@@ -55,9 +53,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
-							Version *
-						</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Version *</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -65,8 +61,7 @@
 								no-error-icon
 								hint="Version of required data."
 								v-model="selfSupportData.version"
-								color="teal-4"
-								input-class="form-item-input"
+								input-class="form-item-input text-ink-2"
 								:rules="[
 									(val) => (val && val.length > 0) || 'Please input the version'
 								]"
@@ -76,7 +71,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Operations *
 						</div>
 						<div class="form-item-value">
@@ -92,6 +87,7 @@
 								input-debounce="0"
 								@new-value="createPort"
 								class="form-item-input"
+								input-class="text-ink-2"
 								hint="Specify required service provider operations."
 								:rules="[
 									(val) =>

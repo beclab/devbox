@@ -2,10 +2,10 @@
 	<div class="entrances-item">
 		<div class="item-header">
 			<div class="entrances-name row items-center justify-center">
-				<span class="text-grey-10 text-h6 q-ml-md q-mr-lg capitalize">{{
+				<span class="text-ink-1 text-h6 q-ml-md q-mr-lg capitalize">{{
 					name
 				}}</span>
-				<span class="text-grey-8 text-subtitle3 q-mr-md">{{
+				<span class="text-ink-2 text-subtitle3 q-mr-md">{{
 					data.username
 				}}</span>
 				<span
@@ -14,7 +14,7 @@
 				>
 					<i v-for="(c, i) in data.password.length" :key="i" />
 				</span>
-				<span class="text-grey-8 text-subtitle3 password" v-else>
+				<span class="text-ink-2 text-subtitle3 password" v-else>
 					{{ data.password }}
 				</span>
 				<q-icon
@@ -33,10 +33,11 @@
 				/>
 			</div>
 
-			<div class="row items-center justify-center text-grey-8">
+			<div class="row items-center justify-center">
 				<q-icon
 					class="cursor-pointer"
 					name="sym_r_edit_square"
+					color="ink-2"
 					size="16px"
 					@click="editMiddle"
 				/>
@@ -52,8 +53,9 @@
 			<div class="content-hearder row items-center justify-between">
 				<span class="q-ml-md">Databases</span>
 				<q-icon
-					class="cursor-pointer text-grey-8 q-mr-md"
+					class="cursor-pointer q-mr-md"
 					name="sym_r_add_box"
+					color="ink-2"
 					size="16px"
 					@click="addPolicie"
 				/>
@@ -70,11 +72,11 @@
 						</div>
 						<div>
 							<div>
-								<span class="text-grey-10 text-subtitle3 q-mr-md">{{
+								<span class="text-ink-1 text-subtitle3 q-mr-md">{{
 									database.name
 								}}</span>
 								<span
-									class="text-grey-8 text-caption q-px-md q-py-xs label"
+									class="text-ink-2 text-caption q-px-md q-py-xs label"
 									v-if="database.distributed"
 									>distributed</span
 								>
@@ -82,16 +84,18 @@
 						</div>
 					</div>
 
-					<div class="row items-center justify-center text-grey-8">
+					<div class="row items-center justify-center">
 						<q-icon
 							class="cursor-pointer"
 							name="sym_r_edit_square"
+							color="ink-2"
 							size="16px"
 							@click="editPolicie(database)"
 						/>
 						<q-icon
 							class="q-ml-md cursor-pointer"
 							name="sym_r_delete"
+							color="ink-2"
 							size="16px"
 							@click="deletePolicie(database)"
 						/>

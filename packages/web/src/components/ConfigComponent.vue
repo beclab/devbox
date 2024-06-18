@@ -3,7 +3,7 @@
 		<div class="config-right-header row items-center justify-between">
 			<div class="row items-center justify-start">
 				<img class="q-mr-sm" src="../assets/icon-txt.svg" style="width: 12px" />
-				<span>App Configuration</span>
+				<span class="text-ink-1">App Configuration</span>
 				<span
 					class="statusIcon q-ml-sm"
 					:style="{
@@ -26,11 +26,11 @@
 					v-model="tab"
 					dense
 					vertical
-					class="text-grey-5"
+					class="text-ink-2"
 					active-class="my-menu-class"
 					active-color="teal-8"
-					indicator-color="white"
-					active-bg-color="grey-1"
+					indicator-color="transparent"
+					active-bg-color="background-selected"
 					no-caps
 				>
 					<q-tab
@@ -228,6 +228,9 @@ const __onSave = async () => {
 .my-menu-class {
 	border-radius: 8px;
 }
+.q-tab-panels {
+	background-color: $background-1;
+}
 </style>
 
 <style lang="scss" scoped>
@@ -235,9 +238,9 @@ const __onSave = async () => {
 	height: calc(100vh - 110px);
 	flex: 1;
 	border-radius: 12px;
-	border: 1px solid var(--Grey-02-, #ebebeb);
+	border: 1px solid $separator;
 	overflow: hidden;
-	background: var(--Grey-01-, #f6f6f6);
+	background: $background-3;
 	margin-top: 16px;
 
 	.config-right-header {
@@ -245,8 +248,8 @@ const __onSave = async () => {
 		height: 32px;
 		line-height: 32px;
 		padding: 0 12px;
-		border-bottom: 1px solid var(--Grey-02-, #ebebeb);
-		background: var(--Grey-01-, #f6f6f6);
+		border-bottom: 1px solid $separator;
+		background: $background-3;
 		.statusIcon {
 			width: 6px;
 			height: 6px;
@@ -256,7 +259,7 @@ const __onSave = async () => {
 	}
 	.config-right-content {
 		height: calc(100% - 56px);
-		background: #ffffff;
+		background: $background-2;
 		margin: 12px;
 		padding: 32px;
 		border-radius: 8px;

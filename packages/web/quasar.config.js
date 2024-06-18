@@ -42,22 +42,7 @@ module.exports = configure(function (ctx) {
 		css: ["app.scss", ctx.dev ? "font.dev.scss" : "font.pro.scss"],
 
 		// https://github.com/quasarframework/quasar/tree/dev/extras
-		extras: [
-			// 'ionicons-v4',
-			// 'mdi-v5',
-			// 'fontawesome-v6',
-			// 'eva-icons',
-			// 'themify',
-			// 'line-awesome',
-			// 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-			// "roboto-font", // optional, you are not bound to it
-			// "material-icons", // optional, you are not bound to it
-			// "bootstrap-icons",
-			// "themify",
-			"material-icons",
-			// "material-symbols-outlined",
-			// "material-symbols-rounded",
-		],
+		extras: ["material-icons"],
 
 		// Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
 		build: {

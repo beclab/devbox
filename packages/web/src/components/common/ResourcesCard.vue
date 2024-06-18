@@ -2,20 +2,20 @@
 	<div class="resources-item row items-center justify-between">
 		<div class="resources-left row items-center justify-start">
 			<img src="../../assets/icon-cpu.svg" />
-			<span class="text-grey-10 text-h6"
+			<span class="text-ink-2 text-h6"
 				>{{ data.label }} {{ data.require ? ' *' : '' }}</span
 			>
 		</div>
-		<div class="resources-right row items-center justify-end text-grey-8 col-6">
+		<div class="resources-right row items-center justify-end col-6">
 			<span
-				class="text-body2 q-mr-lg resource-text"
+				class="text-body2 text-ink-2 q-mr-lg resource-text"
 				v-if="data.required || data.limited"
 			>
 				Requests {{ data.required }}{{ data.requiredUnit }}, Limits{{
 					data.limited
 				}}{{ data.limitUnit }}
 			</span>
-			<span class="text-body2 text-grey-5 q-mr-lg resource-text" v-else>
+			<span class="text-body2 text-ink-2 q-mr-lg resource-text" v-else>
 				{{ data.label }} requirement not specified
 			</span>
 			<q-icon
@@ -67,7 +67,7 @@ const editResource = () => {
 
 <style lang="scss" scoped>
 .resources-item {
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	border-radius: 8px;
 	margin-top: 12px;
 	padding: 14px 20px;

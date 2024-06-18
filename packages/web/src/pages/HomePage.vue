@@ -2,14 +2,14 @@
 	<div class="wrap">
 		<div class="container">
 			<div class="header">
-				<div class="text-h3 title">Welcome to DevBox</div>
-				<div class="text-subtitle1 text-grey-6 q-mt-sm subtitle">
+				<div class="text-h3 text-ink-1">Welcome to DevBox</div>
+				<div class="text-subtitle1 text-ink-3 q-mt-sm subtitle">
 					An easy way to develop in Terminus
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-6 q-pr-lg" style="padding-right: 40px">
-					<div class="text-h5 text-grey-10">Start</div>
+					<div class="text-h5 text-ink-1">Start</div>
 
 					<div
 						class="text-subtitle1 text-white create-btn create-applation-btn row items-center justify-start"
@@ -28,20 +28,20 @@
 						@change="uploadFile"
 					/>
 					<div
-						class="text-subtitle1 text-grey-6 create-btn create-con-btn row items-center justify-start"
+						class="text-subtitle1 text-ink-1 create-btn create-con-btn row items-center justify-start"
 						@click="uploadChat"
 					>
-						<span class="add_wrap">
-							<q-icon name="sym_r_add" size="20px" color="grey-5" />
+						<span class="add_wrap bg-background-3">
+							<q-icon name="sym_r_upgrade" size="20px" color="grey-5" />
 						</span>
-						<span> Upload Chart </span>
+						<span> Upload a chart package </span>
 					</div>
 
-					<div class="text-h5 text-grey-10">Recent</div>
+					<div class="text-h5 text-ink-1">Recent</div>
 
 					<div class="recent-app column items-center justify-center">
 						<img src="../assets/recent-icon.png" />
-						<p class="text-grey-5 text-body1">
+						<p class="text-ink-3 text-body1">
 							The application you recently<br />
 							developed will be displayed here.
 						</p>
@@ -53,8 +53,8 @@
             <div class="app-content row items-center justify-start">
               <img src="../assets/app-1.png" />
               <div>
-                <div class="text-subtitle2 text-grey-10">Agora</div>
-                <div class="text-body3 text-grey-5">
+                <div class="text-subtitle2 text-ink-1">Agora</div>
+                <div class="text-body3 text-ink-2">
                   Last opened at 2023-03-02 12:11:23
                 </div>
               </div>
@@ -62,18 +62,18 @@
 
             <div class="app-status row items-center justify-center">
               <i></i>
-              <span class="text-grey-8">Running</span>
+              <span class="text-ink-2">Running</span>
             </div>
           </div> -->
 				</div>
 				<div class="col-6" style="padding-left: 40px">
-					<div class="text-h5 text-grey-10">Documents</div>
+					<div class="text-h5 text-ink-1">Documents</div>
 					<document-link
 						v-for="(item, index) in menuStore.documentList"
 						:key="index"
 						:data="item"
 					></document-link>
-					<div class="link-more text-body1 text-grey-5">
+					<div class="link-more text-body1 text-ink-2">
 						Visit
 						<a
 							href="https://docs.jointerminus.com/overview/introduction/what-is-terminus.html"
@@ -176,7 +176,7 @@ async function upload_dev_file(
 			margin-top: 56px;
 			margin-bottom: 20px;
 			padding-bottom: 32px;
-			border-bottom: 1px solid #ebebeb;
+			border-bottom: 1px solid $separator;
 		}
 		.create-btn {
 			width: 100%;
@@ -189,10 +189,12 @@ async function upload_dev_file(
 				width: 32px;
 				height: 32px;
 				line-height: 32px;
-				display: inline-block;
 				text-align: center;
 				border-radius: 16px;
 				margin-right: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
 			}
 
 			.app-content {
@@ -223,8 +225,7 @@ async function upload_dev_file(
 		}
 		.create-con-btn {
 			margin-top: 20px;
-			background-color: white;
-			border: 1px solid rgba(235, 235, 235, 1);
+			border: 1px solid $separator;
 			margin-bottom: 32px;
 			.add_wrap {
 				background-color: rgba(246, 246, 246, 1);

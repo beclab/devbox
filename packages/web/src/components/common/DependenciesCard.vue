@@ -1,22 +1,24 @@
 <template>
 	<div class="resources-item row items-center justify-between">
 		<div class="resources-left row items-center justify-start">
-			<q-icon name="sym_r_work_alert" color="text-grey-10" size="16px" />
-			<span class="text-grey-10 text-h6 q-ml-sm">{{ data.name }}</span>
+			<q-icon name="sym_r_work_alert" color="text-ink-1" size="16px" />
+			<span class="text-ink-1 text-h6 q-ml-sm">{{ data.name }}</span>
 			<span class="text-blue-6 text-subtitle2 q-mx-sm">{{ data.version }}</span>
 			<span class="text-subtitle3 status">{{ data.type }}</span>
 		</div>
-		<div class="resources-right row items-center justify-end text-grey-8">
+		<div class="resources-right row items-center justify-end">
 			<q-icon
 				class="cursor-pointer"
 				name="sym_r_edit_square"
 				size="16px"
+				color="ink-2"
 				@click="editDependencie"
 			/>
 			<q-icon
 				class="q-ml-md cursor-pointer"
 				name="sym_r_delete"
 				size="16px"
+				color="ink-2"
 				@click="deleteDependencie"
 			/>
 		</div>
@@ -90,7 +92,7 @@ const deleteDependencie = () => {
 
 <style lang="scss" scoped>
 .resources-item {
-	border: 1px solid rgba(235, 235, 235, 1);
+	border: 1px solid $separator;
 	border-radius: 8px;
 	margin-top: 12px;
 	padding: 14px 20px;
@@ -99,7 +101,7 @@ const deleteDependencie = () => {
 			color: rgba(51, 119, 255, 1);
 			padding: 4px 12px;
 			border-radius: 20px;
-			background: var(--Grey-01-, #f6f6f6);
+			background: $background-hover;
 		}
 	}
 }

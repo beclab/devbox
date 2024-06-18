@@ -1,9 +1,9 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-grey-10">Details</div>
+		<div class="text-h6 text-ink-1">Details</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
+			<div class="form-item-key text-subtitle2 text-ink-1">
 				Upgrade Description
 			</div>
 			<div class="form-item-value">
@@ -19,8 +19,7 @@
 						(val) =>
 							(val && val.length > 0) || 'Please input the upgrade description'
 					]"
-					color="teal-4"
-					input-class="form-item-input"
+					input-class="form-item-input text-ink-2"
 					counter
 					maxlength="4000"
 				>
@@ -29,7 +28,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Developer *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Developer *</div>
 			<div class="form-item-value">
 				<q-input
 					dense
@@ -41,8 +40,7 @@
 					:rules="[
 						(val) => (val && val.length > 0) || 'Please input the developer'
 					]"
-					color="teal-4"
-					input-class="form-item-input"
+					input-class="form-item-input text-ink-2"
 					counter
 					maxlength="30"
 				>
@@ -51,7 +49,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Submitter *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Submitter *</div>
 			<div class="form-item-value">
 				<q-input
 					dense
@@ -63,8 +61,7 @@
 					:rules="[
 						(val) => (val && val.length > 0) || 'Please input the submitter'
 					]"
-					color="teal-4"
-					input-class="form-item-input"
+					input-class="form-item-input text-ink-2"
 					counter
 					maxlength="30"
 				>
@@ -73,9 +70,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Featured Image
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Featured Image</div>
 			<div class="form-item-value">
 				<upload-icon
 					:default-img="store.cfg.spec.featuredImage"
@@ -87,7 +82,7 @@
 					@uploaded="uploaded"
 				/>
 				<div
-					class="text-grey-7 q-mt-sm"
+					class="text-ink-2 q-mt-sm"
 					style="font-size: 11px; text-indent: 10px; line-height: 1"
 				>
 					Upload a featured image for the app. The image must be in JPEG, PNG or
@@ -97,9 +92,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Promote Image *
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Promote Image *</div>
 			<div class="form-item-value">
 				<upload-files
 					:default-imgs="store.cfg.spec.promoteImage"
@@ -111,7 +104,7 @@
 					@uploaded="uploaded"
 					@deleteDefaultImg="deleteDefaultImg"
 				/>
-				<div class="text-grey-7 q-mt-sm" style="font-size: 11px">
+				<div class="text-ink-2 q-mt-sm" style="font-size: 11px">
 					Upload 2-8 app screenshots for promotion. Screenshots must be in JPEG,
 					PNG or WEBP format, up to 8MB each, with a size of 1440x900 px.
 				</div>
@@ -119,7 +112,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Document</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Document</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
@@ -128,8 +121,8 @@
 					hint="Add a link to the documents or user manual for your app."
 					v-model="store.cfg.spec.doc"
 					lazy-rules
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					placeholder="https://"
 				>
 				</q-input>
@@ -137,7 +130,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Website</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Website</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
@@ -146,8 +139,8 @@
 					hint="Add a link to your official website, if you have one."
 					v-model="store.cfg.spec.website"
 					lazy-rules
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					placeholder="https://"
 				>
 				</q-input>
@@ -155,7 +148,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Legal Note</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Legal Note</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
@@ -164,8 +157,8 @@
 					hint="Add a link to the legal notes that you want to display on the app market."
 					v-model="store.cfg.spec.legal"
 					lazy-rules
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					placeholder="https://"
 				>
 				</q-input>
@@ -173,7 +166,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">License</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">License</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
@@ -182,8 +175,8 @@
 					hint="Add a link to your app's license agreement."
 					v-model="store.cfg.spec.license"
 					lazy-rules
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					placeholder="https://"
 				>
 				</q-input>
@@ -191,7 +184,7 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Source Code</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Source Code</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
@@ -200,8 +193,8 @@
 					hint="Add a link to your app's source code."
 					v-model="store.cfg.spec.sourceCode"
 					lazy-rules
-					color="teal-4"
 					class="form-item-input"
+					input-class="text-ink-2"
 					placeholder="https://"
 				>
 				</q-input>
@@ -209,25 +202,23 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Support Client
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Support Client</div>
 
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
-					<div class="text-subtitle2 text-grey-8">
+					<div class="text-subtitle2 text-ink-2">
 						Add links to your app clients on other platforms.
 					</div>
 					<q-btn-dropdown
+						class="client-dropdown"
 						borderless
 						flat
 						no-caps
-						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
+						color="teal-pressed"
 						label="Add Clients"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
-						<q-list>
+						<q-list flat>
 							<q-item
 								clickable
 								v-close-popup
@@ -237,7 +228,9 @@
 								:disable="option.url ? true : false"
 							>
 								<q-item-section>
-									<q-item-label>{{ option.label }}</q-item-label>
+									<q-item-label class="text-ink-2">{{
+										option.label
+									}}</q-item-label>
 								</q-item-section>
 							</q-item>
 						</q-list>
@@ -366,6 +359,13 @@ const addClient = (option) => {
 	})
 		.onOk((data) => {
 			console.log('OK', data);
+			console.log('supportClient', supportClient.value);
+			console.log('store.cfg.spec', store.cfg.spec);
+
+			if (!store.cfg.spec.supportClient) {
+				store.cfg.spec.supportClient = {};
+			}
+
 			for (let i = 0; i < supportClient.value.length; i++) {
 				const element = supportClient.value[i];
 				if (element.name === data.name) {
@@ -426,5 +426,10 @@ onMounted(() => {
 	.form-item-value {
 		flex: 1;
 	}
+}
+
+.client-dropdown {
+	border: 1px solid $separator;
+	border-radius: 8px;
 }
 </style>

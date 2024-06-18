@@ -1,6 +1,6 @@
 <template>
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
-		<q-card class="card-continer">
+		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="title"
 				icon=""
@@ -11,7 +11,7 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
+						<div class="form-item-key text-subtitle2 text-ink-1">
 							Username *
 						</div>
 						<div class="form-item-value">
@@ -26,8 +26,8 @@
 										(val && val.length > 0) ||
 										`Please input the required username`
 								]"
-								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 								counter
 								maxlength="128"
 							>
@@ -36,9 +36,7 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-grey-10">
-							Password
-						</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">Password</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -47,8 +45,8 @@
 								v-model="selfMiddleware.password"
 								placeholder="Leave empty to generate a 16-bit random password"
 								lazy-rules
-								color="teal-4"
 								class="form-item-input"
+								input-class="text-ink-2"
 							>
 							</q-input>
 						</div>

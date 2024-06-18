@@ -2,12 +2,12 @@
 	<div class="wrap">
 		<div class="container row">
 			<div class="col-sm-12 col-md-6 q-pr-lg">
-				<div class="text-h3 text-grey-10">Create a new application</div>
+				<div class="text-h3 text-ink-1">Create a new application</div>
 
 				<div>
 					<q-form @submit="onSubmit">
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								App Name *
 							</div>
 							<div class="form-item-value">
@@ -28,8 +28,8 @@
 											/^[a-z][a-z0-9]*$/.test(val) ||
 											'must contain only lowercase alphanumeric characters.'
 									]"
-									color="teal-4"
 									class="form-item-input"
+									input-class="text-ink-2"
 									counter
 									maxlength="30"
 								>
@@ -38,7 +38,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								App Type *
 							</div>
 							<div class="form-item-value">
@@ -49,14 +49,21 @@
 									:options="ApplicationTypeOptions"
 									dropdown-icon="sym_r_keyboard_arrow_down"
 									hint="Choose application type."
+									color="text-ink-2"
+									:dark="true"
 									class="form-item-input q-mt-md"
 								>
+									<template v-slot:selected-item="scope">
+										<span class="text-ink-2">
+											{{ scope.opt.label || config.type }}
+										</span>
+									</template>
 								</q-select>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Main Entrance Port *
 							</div>
 							<div class="form-item-value">
@@ -75,17 +82,15 @@
 											(val > 0 && val <= 65535) ||
 											'must be an int from 0 to 65535'
 									]"
-									color="teal-4"
 									class="form-item-input"
+									input-class="text-ink-2"
 								>
 								</q-input>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
-								Image *
-							</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">Image *</div>
 							<div class="form-item-value">
 								<q-input
 									dense
@@ -97,17 +102,15 @@
 									:rules="[
 										(val) => (val && val.length > 0) || 'Please input the image'
 									]"
-									color="teal-4"
 									class="form-item-input"
+									input-class="text-ink-2"
 								>
 								</q-input>
 							</div>
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
-								Port *
-							</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">Port *</div>
 							<div class="form-item-value">
 								<q-select
 									dense
@@ -145,7 +148,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Required Memory *
 							</div>
 							<div class="form-item-value">
@@ -159,8 +162,8 @@
 									:rules="[
 										(val) => val > 0 || 'must be a number greater than 0.'
 									]"
-									color="teal-4"
 									class="form-item-input"
+									input-class="text-ink-2"
 								>
 									<template v-slot:append>
 										<q-select
@@ -177,7 +180,7 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-grey-10">
+							<div class="form-item-key text-subtitle2 text-ink-1">
 								Required GPU
 							</div>
 							<div class="form-item-value">
@@ -188,8 +191,9 @@
 									v-model.number="config.requiredGpu"
 									lazy-rules
 									hint="Requested GPU memory resources for the app."
-									color="teal-4"
+									color="ink-2"
 									class="form-item-input"
+									input-class="text-ink-2"
 									placeholder="Leave empty if no GPU required."
 								>
 									<template v-slot:append>
@@ -379,8 +383,8 @@ const cancel = () => {
 		.tagChip {
 			margin-right: 4px;
 			border-radius: 10px;
-			background: rgba(246, 246, 246, 1);
-			color: rgba(31, 24, 20, 1);
+			background: $background-hover;
+			color: $ink-2;
 			font-size: 12px;
 		}
 		.form-btn {

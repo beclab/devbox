@@ -1,21 +1,21 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-grey-10">Specs</div>
+		<div class="text-h6 text-ink-1">Specs</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Entrances *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Entrances *</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
-					<span class="text-subtitle2 text-grey-8"
+					<span class="text-subtitle2 text-ink-2"
 						>Specify how to access this app, at least 1 required.
 					</span>
 					<q-btn
+						class="add-btn"
 						borderless
 						flat
 						no-caps
 						@click="addEntrance"
-						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
+						color="teal-pressed"
 						label="Add Entrance"
 					/>
 				</div>
@@ -30,10 +30,10 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Resources *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Resources *</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
-					<span class="text-subtitle2 text-grey-8"
+					<span class="text-subtitle2 text-ink-2"
 						>Specify requested and limited resources for your app.
 					</span>
 				</div>
@@ -48,19 +48,19 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">Middleware</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Middleware</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
-					<span class="text-subtitle2 text-grey-8"
+					<span class="text-subtitle2 text-ink-2"
 						>Add the necessary middleware for your app.
 					</span>
 
 					<q-btn-dropdown
+						class="add-btn"
 						borderless
 						flat
 						no-caps
-						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
+						color="teal-pressed"
 						label="Add"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
@@ -97,22 +97,20 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-grey-10">
-				Dependencies *
-			</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">Dependencies *</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
-					<span class="text-subtitle2 text-grey-8" style="flex: 1"
+					<span class="text-subtitle2 text-ink-2" style="flex: 1"
 						>Indicate if your app depends on other apps or requires a specific
 						OS version.
 					</span>
 
 					<q-btn
+						class="add-btn"
 						borderless
 						flat
 						no-caps
-						color="teal-8"
-						style="border: 1px solid rgba(235, 235, 235, 1); border-radius: 8px"
+						color="teal-pressed"
 						label="Add Dependencies"
 						@click="addDependency"
 					/>
@@ -345,5 +343,10 @@ onMounted(() => {
 	.form-item-value {
 		flex: 1;
 	}
+}
+
+.add-btn {
+	border: 1px solid $separator;
+	border-radius: 8px;
 }
 </style>
