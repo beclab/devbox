@@ -1,12 +1,23 @@
 FROM golang:1.20.2 AS builder
+ARG CHECK_CHART_VERSION=0.0.2
 
-RUN apt-get update && apt-get install -y gcc git musl-dev musl-tools
+RUN apt-get update && apt-get install -y gcc git musl-dev musl-tools wget
 
 WORKDIR /workspace
 COPY . .
 
+RUN case `uname -m` in \
+    x86_64) ARCH=amd64; ;; \
+    armv7l) ARCH=arm; ;; \
+    aarch64) ARCH=arm64; ;; \
+    ppc64le) ARCH=ppc64le; ;; \
+    s390x) ARCH=s390x; ;; \
+    *) echo "un-supported arch, exit ..."; exit 1; ;; \
+    esac && \
+    wget https://github.com/beclab/check-chart/releases/download/v${CHECK_CHART_VERSION}/check-chart_${CHECK_CHART_VERSION}_linux_${ARCH}.tar.gz -O - | tar -xz 
+
 RUN go mod download
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=musl-gcc CGO_LDFLAGS="-static" go build -ldflags="-s -w" -a -o devbox cmd/devbox/main.go
+RUN CGO_ENABLED=1 CC=musl-gcc CGO_LDFLAGS="-static" go build -ldflags="-s -w" -a -o devbox cmd/devbox/main.go
 
 
 FROM alpine:latest as builder2
