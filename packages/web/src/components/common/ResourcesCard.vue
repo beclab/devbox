@@ -11,12 +11,11 @@
 				class="text-body2 text-ink-2 q-mr-lg resource-text"
 				v-if="data.required || data.limited"
 			>
-				Requests {{ data.required }}{{ data.requiredUnit }}, Limits{{
-					data.limited
-				}}{{ data.limitUnit }}
+				{{ t('required') }} {{ data.required }}{{ data.requiredUnit }},
+				{{ t('limits') }}{{ data.limited }}{{ data.limitUnit }}
 			</span>
 			<span class="text-body2 text-ink-2 q-mr-lg resource-text" v-else>
-				{{ data.label }} requirement not specified
+				{{ data.label }} {{ t('requirementNotSpecified') }}
 			</span>
 			<q-icon
 				class="cursor-pointer"
@@ -31,9 +30,11 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 
 import DialogEditResource from '../dialog/DialogEditResource.vue';
 
+const { t } = useI18n();
 const $q = useQuasar();
 const props = defineProps({
 	data: {

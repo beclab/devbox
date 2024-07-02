@@ -2,14 +2,14 @@
 	<div class="wrap">
 		<div class="container">
 			<div class="header">
-				<div class="text-h3 text-ink-1">Welcome to DevBox</div>
+				<div class="text-h3 text-ink-1">{{ t('home_welcome') }}</div>
 				<div class="text-subtitle1 text-ink-3 q-mt-sm subtitle">
-					An easy way to develop in Terminus
+					{{ t('home_desc') }}
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-6 q-pr-lg" style="padding-right: 40px">
-					<div class="text-h5 text-ink-1">Start</div>
+					<div class="text-h5 text-ink-1">{{ t('home_start') }}</div>
 
 					<div
 						class="text-subtitle1 text-white create-btn create-applation-btn row items-center justify-start"
@@ -18,7 +18,7 @@
 						<span class="add_wrap">
 							<q-icon name="sym_r_add" size="20px" color="green" />
 						</span>
-						<span> Create a new application </span>
+						<span> {{ t('home_create') }} </span>
 					</div>
 					<input
 						ref="uploadInput"
@@ -34,16 +34,16 @@
 						<span class="add_wrap bg-background-3">
 							<q-icon name="sym_r_upgrade" size="20px" color="grey-5" />
 						</span>
-						<span> Upload a chart package </span>
+						<span> {{ t('home_update') }}</span>
 					</div>
 
-					<div class="text-h5 text-ink-1">Recent</div>
+					<div class="text-h5 text-ink-1">{{ t('home_recent') }}</div>
 
 					<div class="recent-app column items-center justify-center">
 						<img src="../assets/recent-icon.png" />
 						<p class="text-ink-3 text-body1">
-							The application you recently<br />
-							developed will be displayed here.
+							{{ t('home_recent_resc_1') }}<br />
+							{{ t('home_recent_resc_2') }}
 						</p>
 					</div>
 
@@ -67,19 +67,19 @@
           </div> -->
 				</div>
 				<div class="col-6" style="padding-left: 40px">
-					<div class="text-h5 text-ink-1">Documents</div>
+					<div class="text-h5 text-ink-1">{{ t('home_documents') }}</div>
 					<document-link
 						v-for="(item, index) in menuStore.documentList"
 						:key="index"
 						:data="item"
 					></document-link>
 					<div class="link-more text-body1 text-ink-2">
-						Visit
+						{{ t('home_visit_1') }}
 						<a
 							href="https://docs.jointerminus.com/overview/introduction/what-is-terminus.html"
 							>docs.jointerminus.com</a
 						>
-						for more information.
+						{{ t('home_visit_2') }}
 					</div>
 				</div>
 			</div>
@@ -91,11 +91,13 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../stores/app';
 import { useMenuStore } from '../stores/menu';
 
 import DocumentLink from '../components/common/DocumentLink.vue';
 
+const { t } = useI18n();
 const $q = useQuasar();
 const router = useRouter();
 const store = useDevelopingApps();

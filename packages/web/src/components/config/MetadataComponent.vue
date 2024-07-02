@@ -1,9 +1,11 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">Metadata</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.METADATA') }}</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Icon *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_metadata_icon') }} *
+			</div>
 			<div class="form-item-value">
 				<upload-icon
 					:default-img="store.cfg.metadata.icon"
@@ -17,24 +19,26 @@
 					class="text-ink-2 q-mt-sm"
 					style="font-size: 11px; text-indent: 10px; line-height: 1"
 				>
-					Your app icon appears in the Terminus Market. The app's icon must be
-					in PNG or WEBP format, up to 512 KB, with a size of 256x256 px.
+					{{ t('config_metadata_icon_hint') }}
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row" style="margin-top: 20px">
-			<div class="form-item-key text-subtitle2 text-ink-1">App Title *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_metadata_apptitle') }} *
+			</div>
 			<div class="form-item-value">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Your app title appears in the app market."
+					:hint="t('config_metadata_apptitle_hint')"
 					v-model="store.cfg.metadata.title"
 					lazy-rules
 					:rules="[
-						(val) => (val && val.length > 0) || 'Please input the app title'
+						(val) =>
+							(val && val.length > 0) || t('config_metadata_apptitle_rules')
 					]"
 					class="form-item-input"
 					input-class="text-ink-2"
@@ -44,17 +48,20 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Version Name *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_metadata_versionname') }} *
+			</div>
 			<div class="form-item-value">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Your app's version displayed in the Terminus Market. Please specify in the SemVer 2.0.0 format."
+					:hint="t('config_metadata_versionname_hint')"
 					v-model="store.cfg.metadata.versionName"
 					lazy-rules
 					:rules="[
-						(val) => (val && val.length > 0) || 'Please input the version name'
+						(val) =>
+							(val && val.length > 0) || t('config_metadata_versionname_rules')
 					]"
 					class="form-item-input"
 					input-class="text-ink-2"
@@ -64,7 +71,9 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Categories *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_metadata_categories') }} *
+			</div>
 			<div class="form-item-value">
 				<q-select
 					dense
@@ -80,9 +89,10 @@
 					input-debounce="0"
 					@new-value="createPort"
 					class="form-item-input"
-					hint="Used to display your app on different category pages in the Terminus Market."
+					:hint="t('config_metadata_categories_hint')"
 					:rules="[
-						(val) => (val && val.length > 0) || 'Please input categories'
+						(val) =>
+							(val && val.length > 0) || t('config_metadata_categories_rules')
 					]"
 				>
 					<template v-slot:selected-item="scope">
@@ -113,19 +123,19 @@
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Short Description *
+				{{ t('config_metadata_shortdesc') }} *
 			</div>
 			<div class="form-item-value">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="A short description appears below app title in the Terminus Market."
+					:hint="t('config_metadata_shortdesc_hint')"
 					v-model="store.cfg.metadata.description"
 					lazy-rules
 					:rules="[
 						(val) =>
-							(val && val.length > 0) || 'Please input the short description'
+							(val && val.length > 0) || t('config_metadata_shortdesc_rules')
 					]"
 					class="form-item-input"
 					input-class="text-ink-2"
@@ -138,7 +148,7 @@
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Full Description *
+				{{ t('config_metadata_fulldesc') }} *
 			</div>
 			<div class="form-item-value">
 				<q-input
@@ -147,12 +157,12 @@
 					no-error-icon
 					autogrow
 					type="textarea"
-					hint="A full description of your app."
+					:hint="t('config_metadata_fulldesc_hint')"
 					v-model="store.cfg.spec.fullDescription"
 					lazy-rules
 					:rules="[
 						(val) =>
-							(val && val.length > 0) || 'Please input the full description'
+							(val && val.length > 0) || t('config_metadata_fulldesc_rules')
 					]"
 					class="form-item-input"
 					input-class="text-ink-2"
@@ -166,21 +176,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, PropType } from 'vue';
-import { useQuasar } from 'quasar';
-import axios from 'axios';
-import { useRoute } from 'vue-router';
 import { useDevelopingApps } from '../../stores/app';
-import { ApplicationInfo, AppCfg } from '@devbox/core';
+import { useI18n } from 'vue-i18n';
 
 import UploadIcon from '../common/UploadIcon.vue';
-
-// const props = defineProps({
-//   app: {
-//     type: Object as PropType<ApplicationInfo>,
-//     required: true,
-//   },
-// });
 
 const categoryOptions = [
 	'Productivity',
@@ -190,6 +189,7 @@ const categoryOptions = [
 	'Blockchain'
 ];
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 const uploaded = (url) => {

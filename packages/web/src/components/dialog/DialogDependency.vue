@@ -2,7 +2,11 @@
 	<q-dialog class="card-dialog" v-model="show" ref="dialogRef">
 		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
-				:label="mode === 'create' ? 'Add Entrance' : 'Edit Entrance'"
+				:label="
+					mode === 'create'
+						? t('dialog.title.addEntrance')
+						: t('dialog.title.editEntrance')
+				"
 				icon=""
 				titAlign="text-left"
 				@close="onDialogCancel"
@@ -11,7 +15,9 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Type *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('type') }} *
+						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -26,24 +32,27 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('name') }} *
+						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
 								borderless
 								no-error-icon
 								v-model="selfDependency.name"
-								hint="The app name of dependent app."
+								:hint="t('config_space_addentrance_name_hint')"
 								lazy-rules
 								:rules="[
 									(val) =>
-										(val && val.length > 0) || 'Please input the app name.',
+										(val && val.length > 0) ||
+										t('config_space_addentrance_name_rules1'),
 									(val) =>
 										/^[a-z]/.test(val) ||
-										'must start with an alphabetic character.',
+										t('config_space_addentrance_name_rules2'),
 									(val) =>
 										/^[a-z][a-z0-9]*$/.test(val) ||
-										'must contain only lowercase alphanumeric characters.'
+										t('config_space_addentrance_name_rules3')
 								]"
 								input-class="form-item-input text-ink-2"
 							>
@@ -52,17 +61,21 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Version *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('version') }} *
+						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
 								borderless
 								no-error-icon
 								v-model="selfDependency.version"
-								hint="Required version."
+								:hint="t('config_space_addentrance_version_hint')"
 								lazy-rules
 								:rules="[
-									(val) => (val && val.length > 0) || 'Please input the version'
+									(val) =>
+										(val && val.length > 0) ||
+										t('config_space_addentrance_version_rules')
 								]"
 								input-class="form-item-input text-ink-2"
 							>
@@ -78,6 +91,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 
@@ -88,6 +102,7 @@ const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
 const store = useDevelopingApps();
 const show = ref(true);
+const { t } = useI18n();
 
 const props = defineProps({
 	data: {

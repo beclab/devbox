@@ -12,7 +12,7 @@
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row" v-if="selfEntrance.name === 'gpu'">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							GPU Required *
+							{{ t('config_space_gpu_required') }} *
 						</div>
 						<div class="form-item-value">
 							<q-toggle v-model="selfEntrance.require" />
@@ -21,7 +21,7 @@
 
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Required {{ selfEntrance.label }}
+							{{ t('config_space_required', { type: selfEntrance.label }) }}
 							{{ selfEntrance.require ? '*' : '' }}
 						</div>
 						<div class="form-item-value">
@@ -30,7 +30,9 @@
 								borderless
 								no-error-icon
 								v-model="selfEntrance.required"
-								:hint="`Minimum ${selfEntrance.label} required for the app.`"
+								:hint="
+									t('config_space_required_hint', { type: selfEntrance.label })
+								"
 								lazy-rules
 								:disable="selfEntrance.require ? false : true"
 								class="form-item-input"
@@ -56,7 +58,7 @@
 
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Limited {{ selfEntrance.label }}
+							{{ t('config_space_limited', { type: selfEntrance.label }) }}
 							{{ selfEntrance.require ? '*' : '' }}
 						</div>
 						<div class="form-item-value">
@@ -65,7 +67,9 @@
 								borderless
 								no-error-icon
 								v-model="selfEntrance.limited"
-								:hint="`${selfEntrance.label} limit for the app. The app will be suspended if the resource limit is exceeded.`"
+								:hint="
+									t('config_space_limited_hint', { type: selfEntrance.label })
+								"
 								lazy-rules
 								:disable="selfEntrance.require ? false : true"
 								color="teal-4"
@@ -98,6 +102,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 import { requiredCpuOptions, requiredOptions } from '../../types/constants';
@@ -107,6 +112,7 @@ import TerminusFormFooter from '../common/TerminusFormFooter.vue';
 
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 const show = ref(true);
 

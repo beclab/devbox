@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { Notify } from 'quasar';
 import axios from 'axios';
+import { CONFIG_TAB } from './../types/constants';
 import {
 	CreateApplicationConfig,
 	ApplicationInfo,
@@ -29,23 +30,28 @@ export const useDevelopingApps = defineStore('app', {
 			cfg: null,
 			configMenu: [
 				{
-					name: 'Metadata',
+					name: CONFIG_TAB.METADATA,
+					label: 'Metadata',
 					status: 0
 				},
 				{
-					name: 'Details',
+					name: CONFIG_TAB.DETAILS,
+					label: 'Details',
 					status: 0
 				},
 				{
-					name: 'Specs',
+					name: CONFIG_TAB.SPACE,
+					label: 'Specs',
 					status: 0
 				},
 				{
-					name: 'Permissions',
+					name: CONFIG_TAB.PERMISSIONS,
+					label: 'Permissions',
 					status: 0
 				},
 				{
-					name: 'Options',
+					name: CONFIG_TAB.OPTIONS,
+					label: 'Options',
 					status: 0
 				}
 			],

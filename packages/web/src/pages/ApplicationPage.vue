@@ -22,19 +22,19 @@
 					>
 						<!-- <q-tab
 							name="config"
-							label="Config"
+							:label="t('app_config')"
 							content-class="my-tab-class"
 							class="my-active-class"
 						/> -->
 						<q-tab
 							name="files"
-							label="Files"
+							:label="t('app_files')"
 							content-class="my-tab-class"
 							class="my-active-class"
 						/>
 						<q-tab
 							name="containers"
-							label="Containers"
+							:label="t('app_containers')"
 							content-class="my-tab-class"
 							class="my-active-class"
 						/>
@@ -62,7 +62,7 @@
 					@mouseleave="handleMouseLeave"
 				>
 					<div class="oprate-btn-install" v-if="!appState" @click="onInstall">
-						Install
+						{{ t('btn_install') }}
 					</div>
 
 					<div
@@ -70,6 +70,7 @@
 						v-if="appState === 'processing' && !showCancel"
 					>
 						Installing
+						{{ t('btn_installing') }}
 					</div>
 
 					<div
@@ -77,7 +78,7 @@
 						v-if="appState === 'completed' && !showCancel"
 						@click="onUpgrade"
 					>
-						Upgrade
+						{{ t('btn_upgrade') }}
 					</div>
 
 					<div
@@ -92,7 +93,7 @@
 						v-if="appState !== 'completed' && showCancel"
 						@click="onCancel"
 					>
-						Cancel
+						{{ t('btn_cancel') }}
 					</div>
 				</div>
 
@@ -101,11 +102,11 @@
 					@click="onPreview"
 					v-if="appState === 'completed'"
 				>
-					<div class="oprate-btn-install">Preview</div>
+					<div class="oprate-btn-install">{{ t('btn_preview') }}</div>
 				</div>
 
 				<div class="oprate-btn oprate-disabled q-mr-sm" v-else>
-					<div class="oprate-btn-install">Preview</div>
+					<div class="oprate-btn-install">{{ t('btn_preview') }}</div>
 				</div>
 
 				<input
@@ -128,7 +129,7 @@
 								v-close-popup
 							>
 								<q-icon class="q-mr-xs" name="sym_r_upload" size="20px" />
-								Upload
+								{{ t('btn_upload') }}
 							</q-item>
 
 							<q-item
@@ -139,7 +140,7 @@
 								v-close-popup
 							>
 								<q-icon class="q-mr-xs" name="sym_r_download" size="20px" />
-								Download
+								{{ t('btn_download') }}
 							</q-item>
 
 							<q-item
@@ -151,7 +152,7 @@
 								@click="onUninstall"
 							>
 								<q-icon class="q-mr-xs" name="sym_r_reset_tv" size="20px" />
-								Uninstall
+								{{ t('btn_uninstall') }}
 							</q-item>
 
 							<q-item
@@ -162,7 +163,7 @@
 								v-close-popup
 							>
 								<q-icon class="q-mr-xs" name="sym_r_delete" size="20px" />
-								Delete
+								{{ t('btn_delete') }}
 							</q-item>
 						</q-list>
 					</q-menu>
@@ -198,12 +199,14 @@ import axios from 'axios';
 import { ApplicationInfo } from '@devbox/core';
 import { BtNotify } from '@bytetrade/ui';
 import { statusStyle } from '../types/constants';
+import { useI18n } from 'vue-i18n';
 
-import ConfigComponent from '../components/ConfigComponent.vue';
+// import ConfigComponent from '../components/ConfigComponent.vue';
 import ContainerComponent from '../components/ContainerComponent.vue';
 import EditComponent from '../components/EditComponent.vue';
 import DialogConfirm from '../components/dialog/DialogConfirm.vue';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const store = useDevelopingApps();

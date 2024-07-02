@@ -105,6 +105,7 @@ import { ApplicationInfo } from '@devbox/core';
 import { OPERATE_ACTION } from '../types/constants';
 import { FilesSelectType } from '../types/types';
 import { BtDialog } from '@bytetrade/ui';
+import { useI18n } from 'vue-i18n';
 
 import PopupMenu from './common/PopupMenu.vue';
 
@@ -117,6 +118,7 @@ const props = defineProps({
 	}
 });
 
+const { t } = useI18n();
 const $q = useQuasar();
 const appName = ref(props.app.appName);
 const chartNodes = ref<any>([]);
@@ -132,10 +134,12 @@ const fileInfo = reactive({
 
 const fileMenu = ref([
 	{
+		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.ADD_FOLDER}`),
 		name: OPERATE_ACTION.ADD_FOLDER,
 		icon: 'sym_r_create_new_folder'
 	},
 	{
+		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.ADD_FILE}`),
 		name: OPERATE_ACTION.ADD_FILE,
 		icon: 'sym_r_note_add'
 	}
@@ -143,10 +147,12 @@ const fileMenu = ref([
 
 const oprateMenu = ref([
 	{
+		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.RENAME}`),
 		name: OPERATE_ACTION.RENAME,
 		icon: 'sym_r_edit_square'
 	},
 	{
+		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.DELETE}`),
 		name: OPERATE_ACTION.DELETE,
 		icon: 'sym_r_delete'
 	}
@@ -330,11 +336,14 @@ const createDialg = (path: string, action: OPERATE_ACTION) => {
 			background: '#00BE9E',
 			color: '#ffffff'
 		},
-		title: action === OPERATE_ACTION.ADD_FILE ? 'Create File' : 'Create Folder',
+		title:
+			action === OPERATE_ACTION.ADD_FILE
+				? t('dialog_create_file')
+				: t('dialog_create_folder'),
 		prompt: {
 			isValid: (val) => val.length > 2,
 			type: 'text',
-			name: 'Name',
+			name: t('dialog_create_title'),
 			placeholder: ''
 		}
 	})

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { MenuLabelType, DocumenuType } from '@devbox/core';
 import { useDevelopingApps } from './app';
+import { i18n } from '../boot/i18n';
 
 const store = useDevelopingApps();
 
@@ -25,17 +26,17 @@ export const useMenuStore = defineStore('menu', {
 		return {
 			homeMenu: [
 				{
-					label: MenuLabel.DEVBOX,
+					label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.DEVBOX}`),
 					key: MenuLabel.DEVBOX,
 					icon: '',
 					children: [
 						{
-							label: MenuLabel.HOME,
+							label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.HOME}`),
 							key: MenuLabel.HOME,
 							icon: 'sym_r_home'
 						},
 						{
-							label: MenuLabel.CONTAINERS,
+							label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.CONTAINERS}`),
 							key: MenuLabel.CONTAINERS,
 							icon: 'sym_r_deployed_code'
 						}
@@ -49,7 +50,7 @@ export const useMenuStore = defineStore('menu', {
 			],
 			applicationMenu: [
 				{
-					label: MenuLabel.APPLICATIONS,
+					label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.APPLICATIONS}`),
 					key: MenuLabel.APPLICATIONS,
 					icon: '',
 					children: []

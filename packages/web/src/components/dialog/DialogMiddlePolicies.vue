@@ -11,7 +11,9 @@
 			<div class="dialog-desc">
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('name') }} *
+						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
@@ -32,7 +34,7 @@
 
 					<div class="form-item row" v-if="name === 'postgres'">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Distributed *
+							{{ t('distributed') }} *
 						</div>
 						<div class="form-item-value">
 							<q-select
@@ -54,6 +56,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 import { databasesOptions } from '../../types/constants';
@@ -64,6 +67,7 @@ import TerminusFormFooter from '../common/TerminusFormFooter.vue';
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
 const show = ref(true);
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 const props = defineProps({

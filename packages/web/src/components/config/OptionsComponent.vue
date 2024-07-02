@@ -1,28 +1,30 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">Options</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.OPTIONS') }}</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Cluster Scoped</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_option_cluster') }}
+			</div>
 			<div class="form-item-value">
 				<q-toggle
 					color="teal-6"
 					v-model="store.cfg.options.appScope.clusterScoped"
 				/>
 				<div class="text-body3 text-ink-2">
-					Whether this app is installed for all users in a Terminus cluster.
+					{{ t('config_option_cluster_desc') }}
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row" v-if="store.cfg.options.appScope.clusterScoped">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Client Reference
+				{{ t('config_space_client') }}
 			</div>
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
 					<div class="text-subtitle2 text-ink-2">
-						Specify the client apps that need to access this cluster app.
+						{{ t('config_space_client_desc') }}
 					</div>
 					<q-btn
 						class="add-btn"
@@ -45,7 +47,7 @@
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Enable Analytics
+				{{ t('config_space_analytics') }}
 			</div>
 			<div class="form-item-value">
 				<q-toggle
@@ -53,7 +55,7 @@
 					v-model="store.cfg.options.analytics.enabled"
 				/>
 				<div class="text-body3 text-ink-2">
-					Enable website analytics for your app.
+					{{ t('config_space_analytics_desc') }}
 				</div>
 			</div>
 		</div>
@@ -68,10 +70,14 @@
 					v-model="websocketToggle"
 					@update:model-value="updateWebsocket"
 				/>
-				<div class="text-body3 text-ink-2">Enable websocket for your app.</div>
+				<div class="text-body3 text-ink-2">
+					{{ t('config_space_websocket_desc') }}
+				</div>
 
 				<template v-if="websocketToggle">
-					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">Port *</div>
+					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">
+						{{ t('config_space_port') }} *
+					</div>
 					<q-input
 						dense
 						borderless
@@ -86,7 +92,9 @@
 						@update:model-value="updatePort"
 					>
 					</q-input>
-					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">URL *</div>
+					<div class="text-body3 text-ink-1 q-mt-md q-mb-sm">
+						{{ t('config_space_url') }} *
+					</div>
 					<q-input
 						dense
 						borderless
@@ -105,16 +113,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, PropType, computed } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import axios from 'axios';
-import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
-import { ApplicationInfo, AppCfg } from '@devbox/core';
-
 import ReferenceCard from '../common/ReferenceCard.vue';
 import DialogEditReference from '../dialog/DialogEditReference.vue';
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 const levelOptions = [

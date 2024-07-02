@@ -12,7 +12,7 @@
 				<q-form @submit="submit" @reset="onDialogCancel">
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Username *
+							{{ t('username') }} *
 						</div>
 						<div class="form-item-value">
 							<q-input
@@ -36,14 +36,16 @@
 					</div>
 
 					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Password</div>
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('password') }}
+						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
 								borderless
 								no-error-icon
 								v-model="selfMiddleware.password"
-								placeholder="Leave empty to generate a 16-bit random password"
+								:placeholder="t('config_space_postgres_password_place')"
 								lazy-rules
 								class="form-item-input"
 								input-class="text-ink-2"
@@ -61,6 +63,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 
@@ -69,6 +72,7 @@ import TerminusFormFooter from '../common/TerminusFormFooter.vue';
 
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 const show = ref(true);
 
@@ -89,9 +93,9 @@ const selfMiddleware = ref(JSON.parse(JSON.stringify(props.data)));
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return `Add ${props.data.name}`;
+		return t('addMiddle', { type: props.data.name });
 	} else {
-		return `Edit ${props.data.name}`;
+		return t('editMiddle', { type: props.data.name });
 	}
 });
 

@@ -36,7 +36,9 @@
 					@click="unbindContainer"
 				>
 					<q-icon name="sym_r_link_off" size="16px" />
-					<span class="text-body2 text-ink-2 q-ml-sm">Unbind</span>
+					<span class="text-body2 text-ink-2 q-ml-sm">{{
+						t('btn_unbind')
+					}}</span>
 				</div>
 				<div
 					class="bind row items-center justify-center"
@@ -44,7 +46,7 @@
 					@click="bindContainer"
 				>
 					<q-icon name="sym_r_link" size="16px" />
-					<span class="text-body2 text-ink-2 q-ml-sm">Bind</span>
+					<span class="text-body2 text-ink-2 q-ml-sm">{{ t('btn_bind') }}</span>
 				</div>
 				<div
 					class="openIde row items-center justify-center"
@@ -52,14 +54,18 @@
 					@click="onCodeBox"
 				>
 					<img src="../../assets/icon-terminal.svg" />
-					<span class="text-body2 text-white q-ml-sm">Open IDE</span>
+					<span class="text-body2 text-white q-ml-sm">{{
+						t('btn_open_ide')
+					}}</span>
 				</div>
 				<div
 					class="openIde disabled-openIde row items-center justify-center"
 					v-else
 				>
 					<img src="../../assets/icon-terminal.svg" />
-					<span class="text-body2 text-white q-ml-sm">Open IDE</span>
+					<span class="text-body2 text-white q-ml-sm">{{
+						t('btn_open_ide')
+					}}</span>
 				</div>
 
 				<div class="oprate-more q-ml-md" v-if="mode !== 'application'">
@@ -74,7 +80,7 @@
 								v-close-popup
 							>
 								<q-icon class="q-mr-xs" name="sym_r_edit_square" size="20px" />
-								Rename
+								{{ t('btn_rename') }}
 							</q-item>
 
 							<q-item
@@ -86,7 +92,8 @@
 								:disable="container.appId ? false : true"
 							>
 								<q-icon class="q-mr-xs" name="sym_r_link_off" size="20px" />
-								Unbind
+
+								{{ t('btn_unbind') }}
 							</q-item>
 
 							<q-item
@@ -98,7 +105,7 @@
 								:disable="container.appId ? true : false"
 							>
 								<q-icon class="q-mr-xs" name="sym_r_delete" size="20px" />
-								Delete
+								{{ t('btn_delete') }}
 							</q-item>
 						</q-list>
 					</q-menu>
@@ -111,7 +118,7 @@
 				<div class="col-6">
 					<div class="row items-center justify-start text-ink-2">
 						<q-icon class="q-mr-xs" name="sym_r_code_blocks" size="16px" />
-						<span>Env</span>
+						<span>{{ t('containers_env') }}</span>
 					</div>
 					<div class="text-ink-1 text-subtitle2" style="padding-left: 20px">
 						{{ container.devEnv || '-' }}
@@ -123,8 +130,8 @@
 						<q-icon class="q-mr-xs" name="sym_r_deployed_code" size="16px" />
 						<span>{{
 							mode === 'application'
-								? 'Binding Dev Container'
-								: 'Binding App Container'
+								? t('containers_bind_dev')
+								: t('containers_bind_app')
 						}}</span>
 					</div>
 					<div class="text-ink-1 text-subtitle2" style="padding-left: 20px">
@@ -140,7 +147,7 @@
 			<div class="content-2 row" style="margin: 20px 0">
 				<div class="col-12 items-center justify-start text-ink-2">
 					<q-icon class="q-mr-xs" name="sym_r_package_2" size="16px" />
-					<span>Pod Selector</span>
+					<span>{{ t('containers_pod_selector') }}</span>
 				</div>
 				<div
 					class="col-12 text-ink-1 text-subtitle2 podSelector"
@@ -153,7 +160,7 @@
 			<div class="content-3 row">
 				<div class="col-12 row items-center justify-start text-ink-2">
 					<q-icon class="q-mr-xs" name="sym_r_schedule" size="16px" />
-					<span>Update Time</span>
+					<span>{{ t('containers_update_time') }}</span>
 				</div>
 				<div
 					class="col-12 text-ink-1 text-subtitle2"
@@ -173,12 +180,12 @@
 				<img v-if="container.appId" :src="container.icon" />
 				<span v-else class="img-empty"></span>
 				<span v-if="container.appId">{{ container.appName }}</span>
-				<span v-else class="text-ink-2">Application</span>
+				<span v-else class="text-ink-2">{{ t('application') }}</span>
 			</div>
 			<div class="text-teal-6 text-subtitle3" v-if="container.appId">
-				Binding
+				{{ t('btn_binding') }}
 			</div>
-			<div class="text-red-6 text-subtitle3" v-else>UnBind</div>
+			<div class="text-red-6 text-subtitle3" v-else>{{ t('btn_unbind') }}</div>
 		</div>
 	</div>
 </template>
@@ -189,6 +196,7 @@ import axios from 'axios';
 import { useQuasar } from 'quasar';
 import { ApplicationInfo } from '@devbox/core';
 import { BtDialog } from '@bytetrade/ui';
+import { useI18n } from 'vue-i18n';
 
 import { useDevelopingApps } from '../../stores/app';
 
@@ -207,6 +215,7 @@ const props = defineProps({
 
 const emits = defineEmits(['bindContainer', 'unbindContainer']);
 
+const { t } = useI18n();
 const $q = useQuasar();
 const store = useDevelopingApps();
 const app = ref<ApplicationInfo | undefined>(undefined);

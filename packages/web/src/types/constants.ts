@@ -50,10 +50,18 @@ export const statusStyle = {
 };
 
 export enum OPERATE_ACTION {
-	ADD_FOLDER = 'Add Folder',
-	ADD_FILE = 'Add File',
-	RENAME = 'Rename',
-	DELETE = 'Delete'
+	ADD_FOLDER = 'ADD_FOLDER',
+	ADD_FILE = 'ADD_FILE',
+	RENAME = 'RENAME',
+	DELETE = 'DELETE'
+}
+
+export enum CONFIG_TAB {
+	METADATA = 'METADATA',
+	DETAILS = 'DETAILS',
+	SPACE = 'SPACE',
+	PERMISSIONS = 'PERMISSIONS',
+	OPTIONS = 'OPTIONS'
 }
 
 // export const FilesOption: Record<

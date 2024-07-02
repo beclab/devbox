@@ -22,12 +22,12 @@
 				>
 					<img src="../../assets/default-img.png" />
 					<div class="tips text-ink-1 text-subtitle">
-						{{ message || 'Drag and drop a PNG or WEBP files here to upload' }}
+						{{ message || t('upload_icon_nofi') }}
 					</div>
 					<div class="upload-btn text-teal-8">
 						<q-uploader-add-trigger />
 						<q-icon name="sym_r_upgrade" size="16px" />
-						<span class="text-body3">Upload</span>
+						<span class="text-body3">{{ t('upload') }}</span>
 					</div>
 				</div>
 
@@ -38,7 +38,7 @@
 				>
 					<q-uploader-add-trigger />
 					<q-icon name="sym_r_refresh" size="16px" />
-					<span class="text-body3">Replace</span>
+					<span class="text-body3">{{ t('replace') }}</span>
 				</div>
 			</template>
 
@@ -82,6 +82,7 @@
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
 import { defineProps, defineEmits, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	defaultImg: {
@@ -113,6 +114,7 @@ const props = defineProps({
 const emit = defineEmits(['uploaded']);
 const uploadUrl = ref(`${process.env.UPLOAD}/upload`);
 
+const { t } = useI18n();
 const $q = useQuasar();
 const IconUploader = ref();
 const showDefaultImg = ref(true);

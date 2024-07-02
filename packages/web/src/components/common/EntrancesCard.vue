@@ -103,7 +103,7 @@
 <script lang="ts" setup>
 import { defineProps, ref } from 'vue';
 import { useQuasar } from 'quasar';
-
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
 
 import DialogEntrance from '../dialog/DialogEntrance.vue';
@@ -123,6 +123,7 @@ const props = defineProps({
 	}
 });
 
+const { t } = useI18n();
 const $q = useQuasar();
 const store = useDevelopingApps();
 const defaultPolicies = ref({

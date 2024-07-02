@@ -3,7 +3,7 @@
 		<div class="config-right-header row items-center justify-between">
 			<div class="row items-center justify-start">
 				<img class="q-mr-sm" src="../assets/icon-txt.svg" style="width: 12px" />
-				<span class="text-ink-1">App Configuration</span>
+				<span class="text-ink-1">{{ t('config_name') }}</span>
 				<span
 					class="statusIcon q-ml-sm"
 					:style="{
@@ -34,19 +34,19 @@
 					no-caps
 				>
 					<q-tab
-						:name="menu.name"
+						:name="menu.label"
 						class="menuTab"
 						v-for="menu in store.configMenu"
-						:key="menu.name"
+						:key="menu.label"
 					>
 						<div class="row items-center justify-center">
 							<img
 								src="../assets/icon-default-active.svg"
-								v-if="menu.status === 0 && menu.name === tab"
+								v-if="menu.status === 0 && menu.label === tab"
 							/>
 							<img
 								src="../assets/icon-default.svg"
-								v-if="menu.status === 0 && menu.name !== tab"
+								v-if="menu.status === 0 && menu.label !== tab"
 							/>
 							<q-icon
 								name="sym_r_check_circle"
@@ -60,7 +60,9 @@
 								color="negative"
 								size="16px"
 							/>
-							<span class="q-ml-sm">{{ menu.name }}</span>
+							<span class="q-ml-sm">{{
+								t(`enums.CONFIG_TAB.${menu.name}`)
+							}}</span>
 						</div>
 					</q-tab>
 				</q-tabs>
@@ -98,6 +100,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, PropType, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useDevelopingApps } from '../stores/app';
 import { ApplicationInfo } from '@devbox/core';
@@ -108,6 +111,7 @@ import PermissionComponent from './config/PermissionComponent.vue';
 import OptionsComponent from './config/OptionsComponent.vue';
 import DialogConfirm from './dialog/DialogConfirm.vue';
 
+const { t } = useI18n();
 const $q = useQuasar();
 const store = useDevelopingApps();
 const props = defineProps({

@@ -1,27 +1,29 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">Permissions</div>
+		<div class="text-h6 text-ink-1">
+			{{ t('enums.CONFIG_TAB.PERMISSIONS') }}
+		</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Require App Data *
+				{{ t('config_space_appdata') }} *
 			</div>
 			<div class="form-item-value">
 				<q-toggle color="teal-6" v-model="store.cfg.permission.appData" />
 				<div class="text-body3 text-ink-2">
-					Requires read and write permissions to appdata directory.
+					{{ t('config_space_appdata.desc') }}
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Require System Data
+				{{ t('config_space_systemdata') }}
 			</div>
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
 					<div class="text-subtitle2 text-ink-2">
-						Require permissions to access system data through service providers.
+						{{ t('config_space_systemdata_desc') }}
 					</div>
 					<q-btn
 						class="add-btn"
@@ -29,7 +31,7 @@
 						flat
 						no-caps
 						color="teal-8"
-						label="Add"
+						:label="t('config.btn.add')"
 						@click="addProvider"
 					/>
 				</div>
@@ -106,17 +108,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, PropType } from 'vue';
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useQuasar } from 'quasar';
-import axios from 'axios';
-import { useRoute } from 'vue-router';
 import { useDevelopingApps } from '../../stores/app';
-import { ApplicationInfo, AppCfg } from '@devbox/core';
 
 import ProviderCard from '../common/ProviderCard.vue';
 import DialogEditProvider from '../dialog/DialogEditProvider.vue';
 
 const $q = useQuasar();
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 const defaultProvider = ref({

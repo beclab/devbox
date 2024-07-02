@@ -1,13 +1,15 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">Specs</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.SPACE') }}</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Entrances *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_space_entrances') }} *
+			</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
 					<span class="text-subtitle2 text-ink-2"
-						>Specify how to access this app, at least 1 required.
+						>{{ t('config_space_entrances_desc') }}
 					</span>
 					<q-btn
 						class="add-btn"
@@ -16,7 +18,7 @@
 						no-caps
 						@click="addEntrance"
 						color="teal-pressed"
-						label="Add Entrance"
+						:label="t('config.btn.addEntrance')"
 					/>
 				</div>
 
@@ -30,11 +32,13 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Resources *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_space_resources') }} *
+			</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
 					<span class="text-subtitle2 text-ink-2"
-						>Specify requested and limited resources for your app.
+						>{{ t('config_space_resources_desc') }}
 					</span>
 				</div>
 
@@ -48,11 +52,13 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Middleware</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_space_middleware') }}
+			</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
 					<span class="text-subtitle2 text-ink-2"
-						>Add the necessary middleware for your app.
+						>{{ t('config_space_middleware_desc') }}
 					</span>
 
 					<q-btn-dropdown
@@ -61,7 +67,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						label="Add"
+						:label="t('config.btn.add')"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
 						<q-list>
@@ -97,12 +103,13 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Dependencies *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_space_dependencies') }} *
+			</div>
 			<div class="form-item-value">
 				<div class="item-explain row items-center justify-between">
 					<span class="text-subtitle2 text-ink-2" style="flex: 1"
-						>Indicate if your app depends on other apps or requires a specific
-						OS version.
+						>{{ t('config_space_dependencies_desc') }}
 					</span>
 
 					<q-btn
@@ -111,7 +118,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						label="Add Dependencies"
+						:label="t('config.btn.addDependencies')"
 						@click="addDependency"
 					/>
 				</div>
@@ -136,6 +143,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
 
 import { middlewareOptions } from '../../types/constants';
@@ -150,6 +158,7 @@ import DialogDependency from '../dialog/DialogDependency.vue';
 import DialogMiddleware from '../dialog/DialogMiddleware.vue';
 
 const $q = useQuasar();
+const { t } = useI18n();
 const store = useDevelopingApps();
 const defaultEntrances = ref({
 	name: '',
