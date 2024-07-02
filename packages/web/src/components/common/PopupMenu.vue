@@ -11,7 +11,7 @@
 			>
 				<q-icon :name="item.icon" size="20px" class="q-mr-sm" color="ink-2" />
 				<q-item-section class="menuName text-ink-2">
-					{{ item.name }}</q-item-section
+					{{ item.label }}</q-item-section
 				>
 			</q-item>
 		</q-list>

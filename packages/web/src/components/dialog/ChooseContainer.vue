@@ -2,14 +2,14 @@
 	<q-dialog class="card-dialog" ref="dialogRef">
 		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
-				label="Bind a dev container"
+				:label="t('dialog_title_bind')"
 				icon=""
 				titAlign="text-left"
 				@close="onDialogCancel"
 			/>
 
 			<div class="dialog-desc">
-				<div class="text-ink-2 text-body3">Dev Env</div>
+				<div class="text-ink-2 text-body3">{{ t('containers_dev_env') }}</div>
 				<q-select
 					dense
 					options-dense
@@ -32,7 +32,9 @@
 					</template>
 				</q-select>
 
-				<div class="text-ink-2 text-body3 q-mt-md">Select dev containers</div>
+				<div class="text-ink-2 text-body3 q-mt-md">
+					{{ t('containers_select_env') }}
+				</div>
 				<q-select
 					dense
 					options-dense
@@ -55,7 +57,9 @@
 					</template>
 				</q-select>
 
-				<div class="text-ink-2 text-body3 q-mt-md">Container Name</div>
+				<div class="text-ink-2 text-body3 q-mt-md">
+					{{ t('containers_input_name') }}
+				</div>
 				<q-input
 					dense
 					borderless
@@ -70,8 +74,8 @@
 			</div>
 
 			<terminus-dialog-footer
-				:okText="okText"
-				cancelText="Cancel"
+				:okText="t('btn_confirm')"
+				:cancelText="t('btn_cancel')"
 				showCancel
 				@close="onDialogCancel"
 				@submit="onOKClick"
@@ -84,6 +88,7 @@
 import { useDialogPluginComponent, Loading } from 'quasar';
 import { ref, watch, onMounted } from 'vue';
 import axios from 'axios';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
 
 import TerminusDialogBar from '../common/TerminusDialogBar.vue';
@@ -92,6 +97,7 @@ import TerminusDialogFooter from '../common/TerminusDialogFooter.vue';
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
 const store = useDevelopingApps();
+const { t } = useI18n();
 
 const devOptions = [
 	{
@@ -111,7 +117,6 @@ const devOptions = [
 const devEnv = ref<string>('NodeJS');
 const container = ref<number | null>(null);
 const containerList = ref<any>([]);
-const okText = ref('Confirm');
 const devContainerName = ref();
 const unbindContainers = ref<any[]>([]);
 

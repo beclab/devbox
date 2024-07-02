@@ -2,31 +2,28 @@
 	<div class="wrap">
 		<div class="container row">
 			<div class="col-sm-12 col-md-6 q-pr-lg">
-				<div class="text-h3 text-ink-1">Create a new application</div>
+				<div class="text-h3 text-ink-1">{{ t('home_create') }}</div>
 
 				<div>
 					<q-form @submit="onSubmit">
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								App Name *
+								{{ t('home_appname') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
 									dense
 									borderless
 									no-error-icon
-									hint="App’s namespace in Terminus system."
+									:hint="t('home_appname_hint')"
 									v-model="config.name"
 									lazy-rules
 									:rules="[
 										(val) =>
-											(val && val.length > 0) || 'Please input the app name.',
+											(val && val.length > 0) || t('home_appname_rules_1'),
+										(val) => /^[a-z]/.test(val) || t('home_appname_rules_2'),
 										(val) =>
-											/^[a-z]/.test(val) ||
-											'must start with an alphabetic character.',
-										(val) =>
-											/^[a-z][a-z0-9]*$/.test(val) ||
-											'must contain only lowercase alphanumeric characters.'
+											/^[a-z][a-z0-9]*$/.test(val) || t('home_appname_rules_3')
 									]"
 									class="form-item-input"
 									input-class="text-ink-2"
@@ -39,7 +36,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								App Type *
+								{{ t('home_apptype') }} *
 							</div>
 							<div class="form-item-value">
 								<q-select
@@ -48,9 +45,8 @@
 									v-model="config.type"
 									:options="ApplicationTypeOptions"
 									dropdown-icon="sym_r_keyboard_arrow_down"
-									hint="Choose application type."
+									:hint="t('home_apptype_hint')"
 									color="text-ink-2"
-									:dark="true"
 									class="form-item-input q-mt-md"
 								>
 									<template v-slot:selected-item="scope">
@@ -64,23 +60,23 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Main Entrance Port *
+								{{ t('home_entrance_port') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
 									dense
 									borderless
 									no-error-icon
-									hint="Port of main entrance."
+									:hint="t('home_entrance_port_hint')"
 									v-model="config.websitePort"
 									lazy-rules
 									:rules="[
 										(val) =>
 											(val && val.length > 0) ||
-											'Please input the main entrance port',
+											t('home_entrance_port_rules_1'),
 										(val) =>
 											(val > 0 && val <= 65535) ||
-											'must be an int from 0 to 65535'
+											t('home_entrance_port_rules_2')
 									]"
 									class="form-item-input"
 									input-class="text-ink-2"
@@ -90,7 +86,9 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-ink-1">Image *</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">
+								{{ t('home_image') }} *
+							</div>
 							<div class="form-item-value">
 								<q-input
 									dense
@@ -110,7 +108,9 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-ink-1">Port *</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">
+								{{ t('home_port') }} *
+							</div>
 							<div class="form-item-value">
 								<q-select
 									dense
@@ -124,11 +124,11 @@
 									input-debounce="0"
 									@new-value="createPort"
 									class="form-item-input"
-									hint="Specify ports that need to be exposed."
+									:hint="t('home_port_hint')"
 									:rules="[
 										(vals) =>
 											vals.find((val) => val < 0 || val > 65535) &&
-											'must be an int from 0 to 65535'
+											t('home_port_rules')
 									]"
 								>
 									<template v-slot:selected-item="scope">
@@ -149,19 +149,17 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Required Memory *
+								{{ t('home_memory') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
 									dense
 									borderless
 									no-error-icon
-									hint="Requested memory resources for the app."
+									:hint="t('home_memory_hint')"
 									v-model.number="config.requiredMemory"
 									lazy-rules
-									:rules="[
-										(val) => val > 0 || 'must be a number greater than 0.'
-									]"
+									:rules="[(val) => val > 0 || t('home_memory_rules')]"
 									class="form-item-input"
 									input-class="text-ink-2"
 								>
@@ -181,7 +179,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Required GPU
+								{{ t('home_gpu') }}
 							</div>
 							<div class="form-item-value">
 								<q-input
@@ -190,11 +188,11 @@
 									no-error-icon
 									v-model.number="config.requiredGpu"
 									lazy-rules
-									hint="Requested GPU memory resources for the app."
+									:hint="t('home_gpu_hint')"
 									color="ink-2"
 									class="form-item-input"
 									input-class="text-ink-2"
-									placeholder="Leave empty if no GPU required."
+									:placeholder="t('home_gpu_place')"
 								>
 									<template v-slot:append>
 										<q-select
@@ -217,7 +215,7 @@
 								flat
 								no-caps
 								@click="cancel"
-								label="Cancel"
+								:label="t('cancel')"
 								type="button"
 								color="teal-6"
 							/>
@@ -225,7 +223,7 @@
 								class="form-btn-create col-5"
 								dense
 								no-caps
-								label="Create"
+								:label="t('create')"
 								type="submit"
 								color="teal-6"
 							/>
@@ -248,11 +246,12 @@ import { useDevelopingApps } from '../stores/app';
 import { useMenuStore } from '../stores/menu';
 import { CreateApplicationConfig, ApplicationType } from '@devbox/core';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 import { requiredOptions } from './../types/constants';
 
+const { t } = useI18n();
 const $q = useQuasar();
-
 const apps = useDevelopingApps();
 const menuStore = useMenuStore();
 

@@ -3,7 +3,11 @@
 		<q-card class="card-continer" flat>
 			<q-scroll-area style="height: 600px">
 				<terminus-dialog-bar
-					:label="mode === 'create' ? 'Add Entrances' : 'Edit Entrances'"
+					:label="
+						mode === 'create'
+							? t('dialog.title.addEntrance')
+							: t('dialog.title.editEntrance')
+					"
 					icon=""
 					titAlign="text-left"
 					@close="onDialogCancel"
@@ -13,7 +17,7 @@
 					<q-form @submit="submit" @reset="onCancel">
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Entrance Name *
+								{{ t('config_space_entrancename') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
@@ -21,15 +25,15 @@
 									borderless
 									no-error-icon
 									v-model="selfEntrance.name"
-									hint="Assign a unique name for this entrance."
+									:hint="t('config_space_entrancename_hint')"
 									lazy-rules
 									:rules="[
 										(val) =>
 											(val && val.length > 0) ||
-											'Please input the entrance name',
+											t('config_space_entrancename_rules'),
 										(val) =>
 											/^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(val) ||
-											'must contain only lowercase alphanumeric characters and hyphens.'
+											t('config_space_entrancename_rules2')
 									]"
 									input-class="form-item-input text-ink-2"
 									counter
@@ -41,7 +45,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Entrance Title *
+								{{ t('config_space_entrancetitle') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
@@ -49,12 +53,12 @@
 									borderless
 									no-error-icon
 									v-model="selfEntrance.title"
-									hint="Title that appears on the Terminus desktop after installation."
+									:hint="t('config_space_entrancetitle_hint')"
 									lazy-rules
 									:rules="[
 										(val) =>
 											(val && val.length > 0) ||
-											'Please input the entrance title'
+											t('config_space_entrancetitle_rules')
 									]"
 									input-class="form-item-input text-ink-2"
 									counter
@@ -66,7 +70,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Entrance Icon
+								{{ t('config_space_entranceicon') }}
 							</div>
 							<div class="form-item-value">
 								<upload-icon
@@ -79,14 +83,14 @@
 								/>
 
 								<div class="text-ink-2 q-mt-sm" style="font-size: 11px">
-									Icon that appears in the Terminus desktop after installed.
+									{{ t('config_space_entranceicon_desc') }}
 								</div>
 							</div>
 						</div>
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Host Name *
+								{{ t('config_space_hostname') }} *
 							</div>
 							<div class="form-item-value">
 								<q-input
@@ -94,14 +98,15 @@
 									borderless
 									no-error-icon
 									v-model="selfEntrance.host"
-									hint="Ingress name for this entrance."
+									:hint="t('config_space_hostname_hint')"
 									lazy-rules
 									:rules="[
 										(val) =>
-											(val && val.length > 0) || 'Please input the host name',
+											(val && val.length > 0) ||
+											t('config_space_hostname_rules'),
 										(val) =>
 											/^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(val) ||
-											'must contain only lowercase alphanumeric characters and hyphens.'
+											t('config_space_hostname_rule2')
 									]"
 									counter
 									input-class="form-item-input text-ink-2"
@@ -112,7 +117,9 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-ink-1">Port *</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">
+								{{ t('config_space_port') }} *
+							</div>
 							<div class="form-item-value">
 								<q-input
 									dense
@@ -128,7 +135,9 @@
 						</div>
 
 						<div class="form-item row">
-							<div class="form-item-key text-subtitle2 text-ink-1">Visible</div>
+							<div class="form-item-key text-subtitle2 text-ink-1">
+								{{ t('config_space_visible') }}
+							</div>
 							<div class="form-item-value">
 								<q-select
 									dense
@@ -136,7 +145,7 @@
 									:options="visiblityOptions"
 									v-model="invisibleSelf"
 									dropdown-icon="sym_r_keyboard_arrow_down"
-									hint="Show entrance icon and title on the Terminus desktop."
+									:hint="t('config_space_visible_hint')"
 									class="form-item-input text-ink-2"
 								>
 								</q-select>
@@ -145,7 +154,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Auth Level
+								{{ t('config_space_authlevel') }}
 							</div>
 							<div class="form-item-value">
 								<q-select
@@ -154,7 +163,7 @@
 									v-model="selfEntrance.authLevel"
 									:options="authLevelOptions"
 									dropdown-icon="sym_r_keyboard_arrow_down"
-									hint="A private entrance requires activating Tailscale for access."
+									:hint="t('config_space_authlevel_desc')"
 									class="form-item-input q-mt-md text-ink-2"
 								>
 								</q-select>
@@ -163,7 +172,7 @@
 
 						<div class="form-item row">
 							<div class="form-item-key text-subtitle2 text-ink-1">
-								Open Method:
+								{{ t('config_space_openmethod') }}
 							</div>
 							<div class="form-item-value">
 								<q-select
@@ -174,7 +183,7 @@
 									emit-value
 									map-options
 									dropdown-icon="sym_r_keyboard_arrow_down"
-									hint="Show entrance icon and title on the Terminus desktop."
+									:hint="t('config_space_openmethod_desc')"
 									class="form-item-input text-ink-2"
 								>
 								</q-select>
@@ -192,6 +201,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 
@@ -203,6 +213,7 @@ import UploadIcon from '../common/UploadIcon.vue';
 
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 const show = ref(true);
 

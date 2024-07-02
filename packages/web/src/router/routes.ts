@@ -21,21 +21,10 @@ const routes: RouteRecordRaw[] = [
 				path: '/containers',
 				component: () => import('pages/ContainerPage.vue')
 			},
-
-			// {
-			//   path: '/list',
-			//   name: 'list',
-			//   component: () => import('pages/ListPage.vue'),
-			// },
 			{
 				path: '/app/:id',
 				component: () => import('pages/ApplicationPage.vue')
 			},
-			// {
-			//   path: '/edit',
-			//   name: 'edit',
-			//   component: () => import('pages/EditPage.vue'),
-			// },
 			{
 				path: '/help',
 				name: 'help',

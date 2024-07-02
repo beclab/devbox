@@ -10,7 +10,9 @@
 
 			<div class="dialog-desc">
 				<div class="form-item row">
-					<div class="form-item-key text-subtitle2 text-ink-1">Name *</div>
+					<div class="form-item-key text-subtitle2 text-ink-1">
+						{{ t('name') }} *
+					</div>
 					<div class="form-item-value">
 						<q-input
 							dense
@@ -23,13 +25,15 @@
 							maxlength="30"
 							@update:model-value="updateSupportClient"
 							:rules="[
-								(val) => (val && val.length > 0) || 'Please input the name.',
+								(val) =>
+									(val && val.length > 0) ||
+									t('config_option_Reference_name_rules'),
 								(val) =>
 									/^[a-z]/.test(val) ||
-									'must start with an alphabetic character.',
+									t('config_option_Reference_name_rules2'),
 								(val) =>
 									/^[a-z][a-z0-9]*$/.test(val) ||
-									'must contain only lowercase alphanumeric characters.'
+									t('config_option_Reference_name_rules3')
 							]"
 						>
 						</q-input>
@@ -50,6 +54,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 
@@ -69,6 +74,7 @@ const props = defineProps({
 	}
 });
 
+const { t } = useI18n();
 const $q = useQuasar();
 const show = ref(true);
 const selfSupportData = ref(props.name);
@@ -80,9 +86,9 @@ const updateSupportClient = (value) => {
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return 'Add Client Reference';
+		return t('dialog.title.addClientReference');
 	} else {
-		return 'Edit Client Reference';
+		return t('dialog.title.editClientReference');
 	}
 });
 

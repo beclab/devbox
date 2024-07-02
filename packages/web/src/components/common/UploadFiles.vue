@@ -24,19 +24,19 @@
 				>
 					<img src="../../assets/default-img.png" />
 					<div class="tips text-ink-1 text-subtitle">
-						Drag and drop JPEG, PNG or WEBP files here to upload
+						{{ t('upload_file_nofi') }}
 					</div>
 					<div class="upload-btn text-teal-8">
 						<q-uploader-add-trigger />
 						<q-icon name="sym_r_upgrade" size="16px" />
-						<span class="text-body3">Upload</span>
+						<span class="text-body3">{{ t('upload') }}</span>
 					</div>
 				</div>
 
 				<div class="replace-btn text-teal-8" v-else>
 					<q-uploader-add-trigger />
 					<q-icon name="sym_r_upgrade" size="16px" />
-					<span class="text-body3">Upload</span>
+					<span class="text-body3">{{ t('upload') }}</span>
 				</div>
 			</template>
 
@@ -79,6 +79,7 @@
 <script lang="ts" setup>
 import { useQuasar } from 'quasar';
 import { defineProps, defineEmits, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
 	defaultImgs: {
@@ -111,6 +112,7 @@ const props = defineProps({
 const emit = defineEmits(['uploaded', 'deleteDefaultImg']);
 const uploadUrl = ref(`${process.env.UPLOAD}/upload`);
 
+const { t } = useI18n();
 const $q = useQuasar();
 const IconUploader = ref();
 const showDefaultImg = ref(true);

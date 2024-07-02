@@ -12,19 +12,20 @@
 				<q-form @submit="submit" @reset="onCancle">
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Data Group *
+							{{ t('config_permissions_datagroup') }} *
 						</div>
 						<div class="form-item-value">
 							<q-input
 								dense
 								borderless
 								no-error-icon
-								hint="Group of required data."
+								:hint="t('config_permissions_datagroup_hint')"
 								v-model="selfSupportData.group"
 								input-class="form-item-input text-ink-2"
 								:rules="[
 									(val) =>
-										(val && val.length > 0) || 'Please input the data group'
+										(val && val.length > 0) ||
+										t('config_permissions_datagroup_rules')
 								]"
 							>
 							</q-input>
@@ -33,7 +34,7 @@
 
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Data type *
+							{{ t('config_permissions_datatype') }} *
 						</div>
 						<div class="form-item-value">
 							<q-input
@@ -45,25 +46,8 @@
 								input-class="form-item-input text-ink-2"
 								:rules="[
 									(val) =>
-										(val && val.length > 0) || 'Please input the data type'
-								]"
-							>
-							</q-input>
-						</div>
-					</div>
-
-					<div class="form-item row">
-						<div class="form-item-key text-subtitle2 text-ink-1">Version *</div>
-						<div class="form-item-value">
-							<q-input
-								dense
-								borderless
-								no-error-icon
-								hint="Version of required data."
-								v-model="selfSupportData.version"
-								input-class="form-item-input text-ink-2"
-								:rules="[
-									(val) => (val && val.length > 0) || 'Please input the version'
+										(val && val.length > 0) ||
+										t('config_permissions_datatype_rules')
 								]"
 							>
 							</q-input>
@@ -72,7 +56,29 @@
 
 					<div class="form-item row">
 						<div class="form-item-key text-subtitle2 text-ink-1">
-							Operations *
+							{{ t('version') }} *
+						</div>
+						<div class="form-item-value">
+							<q-input
+								dense
+								borderless
+								no-error-icon
+								:hint="t('config_permissions_version_hint')"
+								v-model="selfSupportData.version"
+								input-class="form-item-input text-ink-2"
+								:rules="[
+									(val) =>
+										(val && val.length > 0) ||
+										t('config_permissions_version_rules')
+								]"
+							>
+							</q-input>
+						</div>
+					</div>
+
+					<div class="form-item row">
+						<div class="form-item-key text-subtitle2 text-ink-1">
+							{{ t('operations') }} *
 						</div>
 						<div class="form-item-value">
 							<q-select
@@ -88,10 +94,11 @@
 								@new-value="createPort"
 								class="form-item-input"
 								input-class="text-ink-2"
-								hint="Specify required service provider operations."
+								:hint="t('config_permissions_operations_hint')"
 								:rules="[
 									(val) =>
-										(val && val.length > 0) || 'Please input the operations'
+										(val && val.length > 0) ||
+										t('config_permissions_operations_rules')
 								]"
 							>
 								<template v-slot:selected-item="scope">
@@ -119,6 +126,7 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDialogPluginComponent, useQuasar } from 'quasar';
 import { useDevelopingApps } from '../../stores/app';
 
@@ -127,6 +135,7 @@ import TerminusFormFooter from '../common/TerminusFormFooter.vue';
 
 const { dialogRef, onDialogCancel, onDialogOK } = useDialogPluginComponent();
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 const props = defineProps({
@@ -146,9 +155,9 @@ const selfSupportData = ref(JSON.parse(JSON.stringify(props.data)));
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return 'Add Required Data';
+		return t('dialog.title.addRequiredData');
 	} else {
-		return 'Edit Required Data';
+		return t('dialog.title.editRequiredData');
 	}
 });
 

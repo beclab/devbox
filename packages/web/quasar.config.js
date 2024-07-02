@@ -36,7 +36,7 @@ module.exports = configure(function (ctx) {
 		// app boot file (/src/boot)
 		// --> boot files are part of "main.js"
 		// https://v2.quasar.dev/quasar-cli-vite/boot-files
-		boot: ["monacoplugin", "markdown", "axios", "bytetrade-ui"],
+		boot: ["monacoplugin", "markdown", "axios", "bytetrade-ui", "i18n"],
 
 		// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
 		css: ["app.scss", ctx.dev ? "font.dev.scss" : "font.pro.scss"],
@@ -85,11 +85,13 @@ module.exports = configure(function (ctx) {
 			open: true, // opens browser window automatically,
 			proxy: {
 				"/api": {
-					target: "http://127.0.0.1:3010/",
+					// target: "http://127.0.0.1:3010/",
+					target: "https://devbox.zhaohuaiyuan.myterminus.com/",
 					changeOrigin: true,
 				},
 				"/upload": {
-					target: "http://127.0.0.1:3010/",
+					// target: "http://127.0.0.1:3010/",
+					target: "https://devbox.zhaohuaiyuan.myterminus.com/",
 					changeOrigin: true,
 				},
 

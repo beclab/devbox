@@ -40,6 +40,7 @@
 <script lang="ts" setup>
 import { ref, defineProps, computed } from 'vue';
 import { useDialogPluginComponent } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import TerminusDialogBar from '../common/TerminusDialogBar.vue';
 import TerminusFormFooter from '../common/TerminusFormFooter.vue';
 
@@ -56,6 +57,7 @@ const props = defineProps({
 	}
 });
 
+const { t } = useI18n();
 const selfSupportData = ref(JSON.parse(JSON.stringify(props.data)));
 // const prefix = ref('https://');
 
@@ -65,9 +67,9 @@ const updateSupportClient = (value) => {
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return `Add ${selfSupportData.value.label} Client`;
+		return t('dialog.title.addClient', { type: selfSupportData.value.label });
 	} else {
-		return `Edit ${selfSupportData.value.label} Client`;
+		return t('dialog.title.editClient', { type: selfSupportData.value.label });
 	}
 });
 

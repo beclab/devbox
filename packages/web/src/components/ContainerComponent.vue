@@ -13,53 +13,17 @@
 		</div>
 		<div class="nodata" v-else>
 			<img src="../assets/nodata.svg" />
-			<span class="q-mt-xl">No data.</span>
+			<span class="q-mt-xl">{{ t('no_data') }}</span>
 		</div>
 	</div>
-
-	<!-- <div class="q-pa-md column">
-    <q-table
-      flat
-      bordered
-      title="Sender"
-      :rows="containers"
-      :columns="columns"
-      row-key="id"
-      wrap-cells
-      :pagination="initialPagination"
-    >
-      <template v-slot:body-cell-action="props">
-        <q-td :props="props">
-          <q-btn
-            v-if="!props.row.id"
-            label="Bind"
-            class="col-1"
-            flat
-            color="primary"
-            @click="bindContainer(props.row)"
-          />
-
-          <q-btn
-            v-if="props.row.id"
-            label="UnBind"
-            class="col-1"
-            flat
-            color="primary"
-            @click="unbindContainer(props.row)"
-          />
-        </q-td>
-      </template>
-    </q-table>
-  </div> -->
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, PropType } from 'vue';
+import { ref, onMounted, PropType } from 'vue';
 import { useQuasar } from 'quasar';
-import axios from 'axios';
-import { useRoute } from 'vue-router';
 import { useDevelopingApps } from '../stores/app';
 import { ApplicationInfo, Container } from '@devbox/core';
+import { useI18n } from 'vue-i18n';
 import ChooseContainer from './dialog/ChooseContainer.vue';
 
 import ContainerCard from './common/ContainerCard.vue';
@@ -72,6 +36,7 @@ const props = defineProps({
 	}
 });
 const $q = useQuasar();
+const { t } = useI18n();
 
 const initialPagination = {
 	sortBy: 'desc',
@@ -85,67 +50,6 @@ const containers = ref<Container[]>([]);
 onMounted(async () => {
 	containers.value = await store.getAppContainer(props.app.appName);
 });
-
-const columns = [
-	{
-		name: 'image',
-		align: 'left',
-		label: 'Name',
-		field: 'image',
-		sortable: false
-	},
-	{
-		name: 'podSelector',
-		align: 'left',
-		label: 'podSelector',
-		field: 'podSelector',
-		sortable: false
-	},
-	{
-		name: 'containerName',
-		align: 'left',
-		label: 'containerName',
-		field: 'containerName',
-		sortable: false
-	},
-	{
-		name: 'id',
-		align: 'left',
-		label: 'Container id',
-		field: 'id',
-		sortable: false
-	},
-	{
-		name: 'state',
-		align: 'left',
-		label: 'state',
-		field: 'state',
-		sortable: false
-	},
-	{
-		name: 'devEnv',
-		align: 'left',
-		label: 'devEnv',
-		field: 'devEnv',
-		sortable: false
-	},
-	{
-		name: 'createTime',
-		align: 'left',
-		label: 'createTime',
-		field: 'createTime',
-		sortable: false
-	},
-	// {
-	//   name: 'updateTime',
-	//   align: 'left',
-	//   label: 'updateTime',
-	//   field: 'updateTime',
-	//   sortable: false,
-	// },
-
-	{ name: 'action', align: 'right', label: 'Action', sortable: false }
-];
 
 function bindContainer(container: Container) {
 	$q.dialog({

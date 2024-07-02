@@ -1,6 +1,6 @@
 <template>
 	<div class="dev-container">
-		<div class="text-h3 text-ink-1">Dev Container List</div>
+		<div class="text-h3 text-ink-1">{{ t('container_list') }}</div>
 		<div
 			class="container"
 			v-if="store.containers && store.containers.length > 0"
@@ -13,15 +13,17 @@
 		</div>
 		<div class="nodata" v-else>
 			<img src="../assets/nodata.svg" />
-			<span class="q-mt-xl">No data.</span>
+			<span class="q-mt-xl">{{ t('no_data') }}</span>
 		</div>
 	</div>
 </template>
 <script lang="ts" setup>
 import { onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../stores/app';
 import ContainerCard from '../components/common/ContainerCard.vue';
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 
 onMounted(() => {

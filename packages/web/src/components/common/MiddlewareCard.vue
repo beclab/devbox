@@ -51,7 +51,9 @@
 		</div>
 		<div class="item-content" v-if="name !== 'zincSearch'">
 			<div class="content-hearder row items-center justify-between">
-				<span class="q-ml-md">Databases</span>
+				<span class="q-ml-md">{{
+					t('config_space_middleware_Databases')
+				}}</span>
 				<q-icon
 					class="cursor-pointer q-mr-md"
 					name="sym_r_add_box"
@@ -109,6 +111,7 @@
 <script lang="ts" setup>
 import { defineProps, ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
 
 import DialogMiddleware from '../dialog/DialogMiddleware.vue';
@@ -129,6 +132,7 @@ const props = defineProps({
 });
 
 const $q = useQuasar();
+const { t } = useI18n();
 const store = useDevelopingApps();
 const passwordVisibility = ref(false);
 

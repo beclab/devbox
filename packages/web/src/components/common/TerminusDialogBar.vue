@@ -6,12 +6,14 @@
 		</div>
 		<q-space />
 		<q-btn dense flat icon="close" @click="onCancel" color="ink-3">
-			<q-tooltip>Close</q-tooltip>
+			<q-tooltip>{{ t('close') }}</q-tooltip>
 		</q-btn>
 	</q-bar>
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
 defineProps({
 	label: {
 		type: String,
@@ -30,6 +32,7 @@ defineProps({
 	}
 });
 
+const { t } = useI18n();
 const emit = defineEmits(['close']);
 
 const onCancel = () => {

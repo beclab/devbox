@@ -1,10 +1,10 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">Details</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.DETAILS') }}</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
-				Upgrade Description
+				{{ t('config_details_upgrade_desc') }}
 			</div>
 			<div class="form-item-value">
 				<q-input
@@ -17,7 +17,7 @@
 					lazy-rules
 					:rules="[
 						(val) =>
-							(val && val.length > 0) || 'Please input the upgrade description'
+							(val && val.length > 0) || t('config_details_upgrade_rules')
 					]"
 					input-class="form-item-input text-ink-2"
 					counter
@@ -28,17 +28,20 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Developer *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_developer') }} *
+			</div>
 			<div class="form-item-value">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="The name of developer of this app."
+					:hint="t('config_details_developer_hint')"
 					v-model="store.cfg.spec.developer"
 					lazy-rules
 					:rules="[
-						(val) => (val && val.length > 0) || 'Please input the developer'
+						(val) =>
+							(val && val.length > 0) || t('config_details_developer_rules')
 					]"
 					input-class="form-item-input text-ink-2"
 					counter
@@ -49,17 +52,20 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Submitter *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_submitter') }} *
+			</div>
 			<div class="form-item-value">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="The name of submitter who submits this app to the app market."
+					:hint="t('config_details_submitter_hint')"
 					v-model="store.cfg.spec.submitter"
 					lazy-rules
 					:rules="[
-						(val) => (val && val.length > 0) || 'Please input the submitter'
+						(val) =>
+							(val && val.length > 0) || t('config_details_submitter_rules')
 					]"
 					input-class="form-item-input text-ink-2"
 					counter
@@ -70,7 +76,9 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Featured Image</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_featimage') }}
+			</div>
 			<div class="form-item-value">
 				<upload-icon
 					:default-img="store.cfg.spec.featuredImage"
@@ -85,14 +93,15 @@
 					class="text-ink-2 q-mt-sm"
 					style="font-size: 11px; text-indent: 10px; line-height: 1"
 				>
-					Upload a featured image for the app. The image must be in JPEG, PNG or
-					WEBP format, up to 8MB each, with a size of 1440x900 px.
+					{{ t('config_details_featimage_hint') }}
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Promote Image *</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_promotemage') }} *
+			</div>
 			<div class="form-item-value">
 				<upload-files
 					:default-imgs="store.cfg.spec.promoteImage"
@@ -105,20 +114,21 @@
 					@deleteDefaultImg="deleteDefaultImg"
 				/>
 				<div class="text-ink-2 q-mt-sm" style="font-size: 11px">
-					Upload 2-8 app screenshots for promotion. Screenshots must be in JPEG,
-					PNG or WEBP format, up to 8MB each, with a size of 1440x900 px.
+					{{ t('config_details_promotemage_hint') }}
 				</div>
 			</div>
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Document</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_document') }}
+			</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Add a link to the documents or user manual for your app."
+					:hint="t('config_details_document_hint')"
 					v-model="store.cfg.spec.doc"
 					lazy-rules
 					class="form-item-input"
@@ -130,13 +140,15 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Website</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_website') }}
+			</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Add a link to your official website, if you have one."
+					:hint="t('config_details_website_hint')"
 					v-model="store.cfg.spec.website"
 					lazy-rules
 					class="form-item-input"
@@ -148,13 +160,15 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Legal Note</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_legalnote') }}
+			</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Add a link to the legal notes that you want to display on the app market."
+					:hint="t('config_details_legalnote_hint')"
 					v-model="store.cfg.spec.legal"
 					lazy-rules
 					class="form-item-input"
@@ -166,13 +180,15 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">License</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_license') }}
+			</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Add a link to your app's license agreement."
+					:hint="t('config_details_license_hint')"
 					v-model="store.cfg.spec.license"
 					lazy-rules
 					class="form-item-input"
@@ -184,13 +200,15 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Source Code</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_sourcecode') }}
+			</div>
 			<div class="form-item-value q-mb-lg">
 				<q-input
 					dense
 					borderless
 					no-error-icon
-					hint="Add a link to your app's source code."
+					:hint="t('config_details_sourcecode_hint')"
 					v-model="store.cfg.spec.sourceCode"
 					lazy-rules
 					class="form-item-input"
@@ -202,12 +220,14 @@
 		</div>
 
 		<div class="form-item row">
-			<div class="form-item-key text-subtitle2 text-ink-1">Support Client</div>
+			<div class="form-item-key text-subtitle2 text-ink-1">
+				{{ t('config_details_supportclient') }}
+			</div>
 
 			<div class="form-item-value">
 				<div class="row items-center justify-between">
 					<div class="text-subtitle2 text-ink-2">
-						Add links to your app clients on other platforms.
+						{{ t('config_details_supportclient_desc') }}
 					</div>
 					<q-btn-dropdown
 						class="client-dropdown"
@@ -215,7 +235,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						label="Add Clients"
+						:label="t('config.btn.addClients')"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
 						<q-list flat>
@@ -252,6 +272,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 import { useDevelopingApps } from '../../stores/app';
 
 import UploadFiles from '../common/UploadFiles.vue';
@@ -260,6 +281,7 @@ import ClientCard from '../common/ClientCard.vue';
 import DialogEditClient from '../dialog/DialogEditClient.vue';
 import DialogConfirm from '../dialog/DialogConfirm.vue';
 
+const { t } = useI18n();
 const store = useDevelopingApps();
 const $q = useQuasar();
 
