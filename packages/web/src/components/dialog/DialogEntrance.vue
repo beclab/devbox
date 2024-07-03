@@ -5,8 +5,8 @@
 				<terminus-dialog-bar
 					:label="
 						mode === 'create'
-							? t('dialog.title.addEntrance')
-							: t('dialog.title.editEntrance')
+							? t('dialog.addEntrance')
+							: t('dialog.editEntrance')
 					"
 					icon=""
 					titAlign="text-left"

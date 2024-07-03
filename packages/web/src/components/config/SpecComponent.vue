@@ -1,6 +1,6 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.SPACE') }}</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.SPACE') }}</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
@@ -18,7 +18,7 @@
 						no-caps
 						@click="addEntrance"
 						color="teal-pressed"
-						:label="t('config.btn.addEntrance')"
+						:label="t('config.addEntrance')"
 					/>
 				</div>
 
@@ -67,7 +67,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						:label="t('config.btn.add')"
+						:label="t('config.add')"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
 						<q-list>
@@ -118,7 +118,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						:label="t('config.btn.addDependencies')"
+						:label="t('config.addDependencies')"
 						@click="addDependency"
 					/>
 				</div>

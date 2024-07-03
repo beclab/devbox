@@ -60,9 +60,7 @@
 								color="negative"
 								size="16px"
 							/>
-							<span class="q-ml-sm">{{
-								t(`enums.CONFIG_TAB.${menu.name}`)
-							}}</span>
+							<span class="q-ml-sm">{{ t(`enums.${menu.name}`) }}</span>
 						</div>
 					</q-tab>
 				</q-tabs>

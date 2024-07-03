@@ -155,9 +155,9 @@ const selfSupportData = ref(JSON.parse(JSON.stringify(props.data)));
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return t('dialog.title.addRequiredData');
+		return t('dialog.addRequiredData');
 	} else {
-		return t('dialog.title.editRequiredData');
+		return t('dialog.editRequiredData');
 	}
 });
 

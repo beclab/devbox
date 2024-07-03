@@ -1,7 +1,7 @@
 <template>
 	<div class="column">
 		<div class="text-h6 text-ink-1">
-			{{ t('enums.CONFIG_TAB.PERMISSIONS') }}
+			{{ t('enums.PERMISSIONS') }}
 		</div>
 
 		<div class="form-item row">
@@ -31,7 +31,7 @@
 						flat
 						no-caps
 						color="teal-8"
-						:label="t('config.btn.add')"
+						:label="t('config.add')"
 						@click="addProvider"
 					/>
 				</div>

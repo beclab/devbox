@@ -134,12 +134,12 @@ const fileInfo = reactive({
 
 const fileMenu = ref([
 	{
-		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.ADD_FOLDER}`),
+		label: t(`enums.${OPERATE_ACTION.ADD_FOLDER}`),
 		name: OPERATE_ACTION.ADD_FOLDER,
 		icon: 'sym_r_create_new_folder'
 	},
 	{
-		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.ADD_FILE}`),
+		label: t(`enums.${OPERATE_ACTION.ADD_FILE}`),
 		name: OPERATE_ACTION.ADD_FILE,
 		icon: 'sym_r_note_add'
 	}
@@ -147,12 +147,12 @@ const fileMenu = ref([
 
 const oprateMenu = ref([
 	{
-		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.RENAME}`),
+		label: t(`enums.${OPERATE_ACTION.RENAME}`),
 		name: OPERATE_ACTION.RENAME,
 		icon: 'sym_r_edit_square'
 	},
 	{
-		label: t(`enums.OPERATE_ACTION.${OPERATE_ACTION.DELETE}`),
+		label: t(`enums.${OPERATE_ACTION.DELETE}`),
 		name: OPERATE_ACTION.DELETE,
 		icon: 'sym_r_delete'
 	}
