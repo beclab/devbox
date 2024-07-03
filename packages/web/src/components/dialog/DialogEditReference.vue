@@ -86,9 +86,9 @@ const updateSupportClient = (value) => {
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return t('dialog.title.addClientReference');
+		return t('dialog.addClientReference');
 	} else {
-		return t('dialog.title.editClientReference');
+		return t('dialog.editClientReference');
 	}
 });
 

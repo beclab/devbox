@@ -4,8 +4,8 @@
 			<terminus-dialog-bar
 				:label="
 					mode === 'create'
-						? t('dialog.title.addSubPolicies')
-						: t('dialog.title.editSubPolicies')
+						? t('dialog.addSubPolicies')
+						: t('dialog.editSubPolicies')
 				"
 				icon=""
 				titAlign="text-left"

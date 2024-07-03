@@ -67,9 +67,9 @@ const updateSupportClient = (value) => {
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return t('dialog.title.addClient', { type: selfSupportData.value.label });
+		return t('dialog.addClient', { type: selfSupportData.value.label });
 	} else {
-		return t('dialog.title.editClient', { type: selfSupportData.value.label });
+		return t('dialog.editClient', { type: selfSupportData.value.label });
 	}
 });
 

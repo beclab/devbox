@@ -1,6 +1,6 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.METADATA') }}</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.METADATA') }}</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">

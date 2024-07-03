@@ -3,9 +3,7 @@
 		<q-card class="card-continer" flat>
 			<terminus-dialog-bar
 				:label="
-					mode === 'create'
-						? t('dialog.title.addEntrance')
-						: t('dialog.title.editEntrance')
+					mode === 'create' ? t('dialog.addEntrance') : t('dialog.editEntrance')
 				"
 				icon=""
 				titAlign="text-left"

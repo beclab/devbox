@@ -26,17 +26,17 @@ export const useMenuStore = defineStore('menu', {
 		return {
 			homeMenu: [
 				{
-					label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.DEVBOX}`),
+					label: i18n.global.t(`enums.${MenuLabel.DEVBOX}`),
 					key: MenuLabel.DEVBOX,
 					icon: '',
 					children: [
 						{
-							label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.HOME}`),
+							label: i18n.global.t(`enums.${MenuLabel.HOME}`),
 							key: MenuLabel.HOME,
 							icon: 'sym_r_home'
 						},
 						{
-							label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.CONTAINERS}`),
+							label: i18n.global.t(`enums.${MenuLabel.CONTAINERS}`),
 							key: MenuLabel.CONTAINERS,
 							icon: 'sym_r_deployed_code'
 						}
@@ -50,7 +50,7 @@ export const useMenuStore = defineStore('menu', {
 			],
 			applicationMenu: [
 				{
-					label: i18n.global.t(`enums.MENU_LABEL.${MenuLabel.APPLICATIONS}`),
+					label: i18n.global.t(`enums.${MenuLabel.APPLICATIONS}`),
 					key: MenuLabel.APPLICATIONS,
 					icon: '',
 					children: []

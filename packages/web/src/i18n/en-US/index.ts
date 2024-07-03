@@ -96,20 +96,18 @@ export default {
 	dialog_create_title: 'Name',
 	dialog_title_bind: 'Bind a dev container',
 	dialog: {
-		title: {
-			addEntrance: 'Add Entrance',
-			editEntrance: 'Edit Entrance',
-			addSubPolicies: 'Add Sub Policies',
-			editSubPolicies: 'Edit Sub Policies',
-			addClientReference: 'Add Client Reference',
-			editClientReference: 'Edit Client Reference',
-			addRequiredData: 'Add Required Data',
-			editRequiredData: 'Edit Required Data',
-			addClient: 'Add {type} Client',
-			editClient: 'Edit {type} Client',
-			addMiddle: 'Add {type}',
-			editMiddle: 'Edit {type}'
-		}
+		addEntrance: 'Add Entrance',
+		editEntrance: 'Edit Entrance',
+		addSubPolicies: 'Add Sub Policies',
+		editSubPolicies: 'Edit Sub Policies',
+		addClientReference: 'Add Client Reference',
+		editClientReference: 'Edit Client Reference',
+		addRequiredData: 'Add Required Data',
+		editRequiredData: 'Edit Required Data',
+		addClient: 'Add {type} Client',
+		editClient: 'Edit {type} Client',
+		addMiddle: 'Add {type}',
+		editMiddle: 'Edit {type}'
 	},
 
 	containers_env: 'Env',
@@ -303,34 +301,26 @@ export default {
 	config_permissions_operations_rules: 'Please enter key input the operations.',
 
 	config: {
-		btn: {
-			addClients: 'Add Clients',
-			addEntrance: 'Add Entrance',
-			add: 'Add',
-			addDependencies: 'Add Dependencies'
-		}
+		addClients: 'Add Clients',
+		addEntrance: 'Add Entrance',
+		add: 'Add',
+		addDependencies: 'Add Dependencies'
 	},
 
 	enums: {
-		OPERATE_ACTION: {
-			ADD_FOLDER: 'Add Folder',
-			ADD_FILE: 'Add File',
-			RENAME: 'Rename',
-			DELETE: 'Delete'
-		},
-		CONFIG_TAB: {
-			METADATA: 'Metadata',
-			DETAILS: 'Details',
-			SPACE: 'Specs',
-			PERMISSIONS: 'Permissions',
-			OPTIONS: 'Options'
-		},
-		MENU_LABEL: {
-			DevBox: 'DevBox',
-			Home: 'Home',
-			Containers: 'Containers',
-			Help: 'Help',
-			Applications: 'Applications'
-		}
+		ADD_FOLDER: 'Add Folder',
+		ADD_FILE: 'Add File',
+		RENAME: 'Rename',
+		DELETE: 'Delete',
+		METADATA: 'Metadata',
+		DETAILS: 'Details',
+		SPACE: 'Specs',
+		PERMISSIONS: 'Permissions',
+		OPTIONS: 'Options',
+		DevBox: 'DevBox',
+		Home: 'Home',
+		Containers: 'Containers',
+		Help: 'Help',
+		Applications: 'Applications'
 	}
 };

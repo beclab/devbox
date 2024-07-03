@@ -1,6 +1,6 @@
 <template>
 	<div class="column">
-		<div class="text-h6 text-ink-1">{{ t('enums.CONFIG_TAB.DETAILS') }}</div>
+		<div class="text-h6 text-ink-1">{{ t('enums.DETAILS') }}</div>
 
 		<div class="form-item row">
 			<div class="form-item-key text-subtitle2 text-ink-1">
@@ -235,7 +235,7 @@
 						flat
 						no-caps
 						color="teal-pressed"
-						:label="t('config.btn.addClients')"
+						:label="t('config.addClients')"
 						dropdown-icon="sym_r_keyboard_arrow_down"
 					>
 						<q-list flat>
