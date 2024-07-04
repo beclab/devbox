@@ -376,7 +376,8 @@ func (h *handlers) openApplication(ctx *fiber.Ctx) error {
 		})
 	}
 
-	httpposturl := fmt.Sprintf("http://%s/legacy/v1alpha1/api.intent/v1/server/intent/send", os.Getenv("OS_SYSTEM_SERVER"))
+	//httpposturl := fmt.Sprintf("http://%s/legacy/v1alpha1/api.intent/v1/server/intent/send", os.Getenv("OS_SYSTEM_SERVER"))
+	httpposturl := fmt.Sprintf("http://edge-desktop.user-space-%s/server/intent/send", os.Getenv("OWNER"))
 
 	fmt.Println("HTTP JSON POST URL:", httpposturl)
 
@@ -410,6 +411,13 @@ func (h *handlers) openApplication(ctx *fiber.Ctx) error {
 		})
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return ctx.JSON(fiber.Map{
+			"code":    response.StatusCode,
+			"message": fmt.Sprintf("Request intent failed: %v", error),
+		})
+	}
 
 	fmt.Println("response Status:", response.Status)
 	fmt.Println("response Headers:", response.Header)
