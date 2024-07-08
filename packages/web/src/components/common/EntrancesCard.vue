@@ -38,7 +38,7 @@
 
 		<div class="item-content">
 			<div class="content-hearder row items-center justify-between">
-				<span class="q-ml-md text-ink-2">Policies</span>
+				<span class="q-ml-md text-ink-2">{{ t('policies') }}</span>
 				<q-icon
 					class="cursor-pointer q-mr-md"
 					name="sym_r_add_box"

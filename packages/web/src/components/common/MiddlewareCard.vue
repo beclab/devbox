@@ -49,7 +49,8 @@
 				/>
 			</div>
 		</div>
-		<div class="item-content" v-if="name !== 'zincSearch'">
+
+		<div class="item-content">
 			<div class="content-hearder row items-center justify-between">
 				<span class="q-ml-md">{{
 					t('config_space_middleware_Databases')

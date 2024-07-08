@@ -67,6 +67,7 @@ export default {
 	upload: 'Upload',
 	replace: 'Replace',
 	close: 'Close',
+	policies: 'Policies',
 
 	btn_install: 'Install',
 	btn_installing: 'Installing',
