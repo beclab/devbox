@@ -93,9 +93,9 @@ const selfMiddleware = ref(JSON.parse(JSON.stringify(props.data)));
 
 const title = computed(() => {
 	if (props.mode === 'create') {
-		return t('addMiddle', { type: props.data.name });
+		return t('dialog.addMiddle', { type: props.data.name });
 	} else {
-		return t('editMiddle', { type: props.data.name });
+		return t('dialog.editMiddle', { type: props.data.name });
 	}
 });
 

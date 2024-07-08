@@ -87,7 +87,6 @@
 					max-values="2"
 					hide-dropdown-icon
 					input-debounce="0"
-					@new-value="createPort"
 					class="form-item-input"
 					:hint="t('config_metadata_categories_hint')"
 					:rules="[

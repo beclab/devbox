@@ -8,7 +8,7 @@ export const requiredCpuOptions = ['core', 'm'];
 
 export const requiredOptions = ['Ei', 'Pi', 'Ti', 'Gi', 'Mi', 'Ki'];
 
-export const middlewareOptions = ['postgres', 'redis', 'mongodb', 'zincSearch'];
+export const middlewareOptions = ['postgres', 'redis', 'mongodb'];
 
 export const databasesOptions = ['Enable', 'Disable'];
 
