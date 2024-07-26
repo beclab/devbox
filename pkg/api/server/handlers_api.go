@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/go-resty/resty/v2"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,7 +17,6 @@ import (
 	"github.com/beclab/devbox/pkg/store/db/model"
 
 	"github.com/emicklei/go-restful/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v2"
@@ -395,6 +395,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		"password": "password",
 	}
 	values["svcs"] = map[string]interface{}{}
+	values["cluster"] = map[string]interface{}{}
 
 	path := getAppPath(app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
