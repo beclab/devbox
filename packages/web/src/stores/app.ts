@@ -164,7 +164,8 @@ export const useDevelopingApps = defineStore('app', {
 			podSelector,
 			containerName,
 			devEnv,
-			devContainerName
+			devContainerName,
+			image
 		}: {
 			containerId?: number;
 			appId: number;
@@ -172,6 +173,7 @@ export const useDevelopingApps = defineStore('app', {
 			containerName: string;
 			devEnv?: string;
 			devContainerName: string;
+			image: string;
 		}): Promise<void> {
 			try {
 				await axios.post(this.url + '/api/bind-container', {
@@ -180,7 +182,8 @@ export const useDevelopingApps = defineStore('app', {
 					podSelector,
 					containerName,
 					devEnv,
-					devContainerName
+					devContainerName,
+					image
 				});
 			} catch (e) {
 				console.log(e);
