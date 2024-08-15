@@ -65,7 +65,8 @@ function bindContainer(container: Container) {
 					podSelector: container.podSelector,
 					containerName: container.containerName,
 					devContainerName: data.devContainerName,
-					devEnv: data.devEnv
+					devEnv: data.devEnv,
+					image: container.image
 				};
 
 				if (data.container) {

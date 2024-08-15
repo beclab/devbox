@@ -86,12 +86,12 @@ module.exports = configure(function (ctx) {
 			proxy: {
 				"/api": {
 					// target: "http://127.0.0.1:3010/",
-					target: "https://devbox.zhaohuaiyuan.myterminus.com/",
+					target: "https://fa5bd82b.zhaohuaiyuan.myterminus.com/",
 					changeOrigin: true,
 				},
 				"/upload": {
 					// target: "http://127.0.0.1:3010/",
-					target: "https://devbox.zhaohuaiyuan.myterminus.com/",
+					target: "https://fa5bd82b.zhaohuaiyuan.myterminus.com/",
 					changeOrigin: true,
 				},
 
