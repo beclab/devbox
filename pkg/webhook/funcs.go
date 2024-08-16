@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -13,14 +14,17 @@ import (
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/envoy"
 	"github.com/beclab/devbox/pkg/development/helm"
+	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
 
+	"github.com/containerd/containerd/reference/docker"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/klog/v2"
@@ -492,4 +496,60 @@ func (wh *Webhook) getUserHomeDir(ctx context.Context) (string, error) {
 		return "", err
 	}
 	return filepath.Join(dir, "Home"), nil
+}
+
+func (wh *Webhook) MutateIm(ctx context.Context, raw []byte, proxyUUID uuid.UUID) (patch []byte, err error) {
+	var obj unstructured.Unstructured
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		klog.Errorf("Error unmarshaling request to unstructured err=%v", err)
+		return nil, err
+	}
+	appName, _, _ := unstructured.NestedString(obj.Object, "spec", "appName")
+	originAppName := strings.TrimSuffix(appName, "-dev")
+	refs, _, _ := unstructured.NestedSlice(obj.Object, "spec", "refs")
+
+	sql := `select dc.id,dc.dev_env,dc.name, dc.create_time, dc.update_time, ac.pod_selector,ac.app_id, ac.container_name,ac.image,a.app_name
+	from dev_apps a
+	join dev_app_containers ac on a.id = ac.app_id
+	join dev_containers dc on ac.container_id = dc.id
+	where app_name = '%s'`
+	sql = fmt.Sprintf(sql, originAppName)
+	list := make([]*model.DevContainerInfo, 0)
+	db := db.NewDbOperator()
+	err = db.DB.Raw(sql).Scan(&list).Error
+	if err != nil {
+		return nil, err
+	}
+	klog.Infof("len(list)=%v", len(list))
+	if len(list) == 0 {
+		return makePatches(raw, obj.Object, appName)
+	}
+
+	newRefs := make([]interface{}, 0)
+	for _, r := range refs {
+		name := r.(map[string]interface{})["name"].(string)
+		pullPolicy := r.(map[string]interface{})["imagePullPolicy"].(string)
+		image, _ := docker.ParseDockerRef(*list[0].Image)
+
+		devImage, _ := docker.ParseDockerRef(container.DevEnvImage(list[0].DevEnv))
+		if name == image.String() {
+			name = devImage.String()
+		}
+		newRefs = append(newRefs, map[string]interface{}{
+			"name":            name,
+			"imagePullPolicy": pullPolicy,
+		})
+	}
+	klog.Infof("newRefs: %#v", newRefs)
+	err = unstructured.SetNestedSlice(obj.Object, newRefs, "spec", "refs")
+	if err != nil {
+		return nil, err
+	}
+
+	patch, err = makePatches(raw, obj.Object, appName)
+	if err != nil {
+		klog.Infof("make Patches err=%v", err)
+	}
+	klog.Infof("pathc: %v", string(patch))
+	return patch, err
 }

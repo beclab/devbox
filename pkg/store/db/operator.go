@@ -62,6 +62,13 @@ func createTableIfNotExists() (err error) {
 		if err != nil {
 			return err
 		}
+	} else {
+		if !db.Migrator().HasColumn(&model.DevAppContainers{}, "Image") {
+			err = db.Migrator().AddColumn(&model.DevAppContainers{}, "Image")
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

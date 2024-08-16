@@ -80,6 +80,7 @@ func main() {
 			config := ctrl.GetConfigOrDie()
 			wh := webhook.Webhook{KubeClient: kubernetes.NewForConfigOrDie(config)}
 			runtime.Must(wh.DeleteDevContainerMutatingWebhook())
+			runtime.Must(wh.DeleteImageManagerMutatingWebhook())
 		},
 	}
 
