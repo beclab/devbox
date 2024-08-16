@@ -19,6 +19,7 @@ type DevContainerInfo struct {
 	PodSelector   *string `json:"podSelector,omitempty"`
 	AppID         *int    `json:"appId,omitempty"`
 	ContainerName *string `json:"containerName,omitempty"`
+	Image         *string `json:"image,omitempty"`
 	AppName       *string `json:"appName,omitempty"`
 	State         *string `json:"state,omitempty"`
 	DevPath       *string `json:"devPath,omitempty"`
