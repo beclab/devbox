@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/beclab/devbox/pkg/store/db/model"
 
 	"github.com/emicklei/go-restful/v3"
+	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v2"
@@ -194,6 +194,7 @@ func (h *handlers) bindContainer(ctx *fiber.Ctx) error {
 		AppId            int     `json:"appId"`
 		PodSelector      string  `json:"podSelector"`
 		ContainerName    string  `json:"containerName"`
+		Image            string  `json:"image"`
 		DevEnv           *string `json:"devEnv,omitempty"`
 		DevContainerName string  `json:"devContainerName"`
 	}
@@ -279,6 +280,7 @@ func (h *handlers) bindContainer(ctx *fiber.Ctx) error {
 		ContainerID:   uint(containerId),
 		PodSelector:   postData.PodSelector,
 		ContainerName: postData.ContainerName,
+		Image:         postData.Image,
 	}
 
 	err = h.db.DB.Create(&appContainer).Error

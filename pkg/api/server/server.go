@@ -36,6 +36,7 @@ func NewServer(db *db.DbOperator) *server {
 		DB:         db,
 	}
 	utilruntime.Must(webhook.CreateOrUpdateDevContainerMutatingWebhook())
+	utilruntime.Must(webhook.CreateOrUpdateImageManagerMutatingWebhook())
 
 	return &server{
 		handlers: &handlers{db: db, kubeConfig: config},
@@ -104,6 +105,7 @@ func (s *server) Start() {
 	// webhooks /webhook
 	wh := webhookServer.Group("webhook")
 	wh.Post("/devcontainer", s.webhooks.devcontainer)
+	wh.Post("/imagemanager", s.webhooks.imageManager)
 
 	klog.Info("dev box api server listening on 8088 ")
 

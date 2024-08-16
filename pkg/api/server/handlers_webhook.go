@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
-
-	"github.com/beclab/devbox/pkg/webhook"
 	
+	"github.com/beclab/devbox/pkg/webhook"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -86,4 +86,47 @@ func (h *webhooks) mutate(ctx context.Context, req *admissionv1.AdmissionRequest
 
 	return resp
 
+}
+
+func (h *webhooks) imageManager(ctx *fiber.Ctx) error {
+	klog.Infof("Received mutating webhook request: Method=%v, URL=%v", ctx.Method(), ctx.OriginalURL())
+	admissionRequestBody := ctx.BodyRaw()
+	if len(admissionRequestBody) == 0 {
+		klog.Error("Error reading admission request body, body is empty")
+		return fiber.NewError(fiber.StatusBadRequest, "empty request admission request body")
+	}
+	var admissionReq, admissionResp admissionv1.AdmissionReview
+	proxyUUID := uuid.New()
+	if _, _, err := webhook.Deserializer.Decode(admissionRequestBody, nil, &admissionReq); err != nil {
+		klog.Error("Error decoding admission request body, ", err)
+		admissionResp.Response = h.webhook.AdmissionError(err)
+	} else {
+		admissionResp.Response = h.imageManagerMutate(ctx.Context(), admissionReq.Request, proxyUUID)
+	}
+
+	admissionResp.TypeMeta = admissionReq.TypeMeta
+	admissionResp.Kind = admissionReq.Kind
+
+	return ctx.JSON(&admissionResp)
+}
+
+func (h *webhooks) imageManagerMutate(ctx context.Context, req *admissionv1.AdmissionRequest, proxyUUID uuid.UUID) *admissionv1.AdmissionResponse {
+	if req == nil {
+		klog.Error("nil admission Request")
+		return h.webhook.AdmissionError(errNilAdmissionRequest)
+	}
+	resp := &admissionv1.AdmissionResponse{
+		Allowed: true,
+		UID:     req.UID,
+	}
+
+	klog.Info("Creating patch for resource ", req.Resource)
+	patchBytes, err := h.webhook.MutateIm(ctx, req.Object.Raw, proxyUUID)
+	if err != nil {
+		return h.webhook.AdmissionError(err)
+	}
+	if len(patchBytes) > 0 {
+		h.webhook.PatchAdmissionResponse(resp, patchBytes)
+	}
+	return resp
 }
