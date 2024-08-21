@@ -111,6 +111,10 @@ const devOptions = [
 	{
 		label: 'Python',
 		value: 'Python'
+	},
+	{
+		label: 'Rust',
+		value: 'Rust'
 	}
 ];
 
