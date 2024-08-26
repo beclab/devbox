@@ -86,7 +86,7 @@ func (c *createApp) WithDir(dir string) *createApp {
 
 func (c *createApp) Run(ctx context.Context, cfg *CreateConfig) error {
 	at := AppTemplate{}
-	at.WithAppCfg(cfg).WithDeployment(cfg).WithService(cfg).WithChartMetadata(cfg)
+	at.WithAppCfg(cfg).WithDeployment(cfg).WithService(cfg).WithChartMetadata(cfg).WithOwner(cfg)
 	if cfg.Traefik {
 		at.WithTraefik(cfg)
 	}
@@ -107,6 +107,10 @@ type AppTemplate struct {
 	service       *corev1.Service
 	chartMetadata *chart.Metadata
 	traefik       *Traefik
+	owner         *Owner
+}
+
+type Owner struct {
 }
 
 type Traefik struct {
@@ -515,6 +519,11 @@ func (at *AppTemplate) WithChartMetadata(cfg *CreateConfig) *AppTemplate {
 	return at
 }
 
+func (at *AppTemplate) WithOwner(cfg *CreateConfig) *AppTemplate {
+	at.owner = &Owner{}
+	return at
+}
+
 func (at *AppTemplate) WithTraefik(cfg *CreateConfig) *AppTemplate {
 	sa := &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
@@ -911,6 +920,13 @@ func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string) (err error) 
 			return err
 		}
 		err = ioutil.WriteFile(filepath.Join(path, "Chart.yaml"), yml, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
+	if at.owner != nil {
+		err = ioutil.WriteFile(filepath.Join(path, "owners"), []byte{}, 0644)
 		if err != nil {
 			return err
 		}
