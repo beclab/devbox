@@ -299,7 +299,8 @@ export default {
 	config_permissions_version_rules: 'Please input the version',
 	config_permissions_operations_hint:
 		'Specify required service provider operations.',
-	config_permissions_operations_rules: 'Please enter key input the operations.',
+	config_permissions_operations_rules:
+		'Use comma to separate multiple operations.',
 
 	config: {
 		addClients: 'Add Clients',
@@ -323,5 +324,22 @@ export default {
 		Containers: 'Containers',
 		Help: 'Help',
 		Applications: 'Applications'
+	},
+
+	message: {
+		save_file_success: 'File saved successfully',
+		save_file_failed: 'Failed to save file',
+		save_loadChart_failed: 'Failed to load chart',
+		save_select_failed: 'Failed to select',
+		save_loadChildren_failed: 'Failed to load children',
+		create_file_success: 'File created successfully',
+		create_file_failed: 'File created successfully',
+		create_folder_success: 'Folder created successfully',
+		create_folder_failed: 'Failed to create folder',
+		rename_folder_success: 'Renamed successfully',
+		rename_folder_failed: 'Failed to rename',
+		delete_file_success: 'File deleted successfully',
+		delete_file_failed: 'Failed to delete',
+		deleteTip: 'Delete this file/folder?'
 	}
 };
