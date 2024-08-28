@@ -24,7 +24,7 @@
 						ref="uploadInput"
 						type="file"
 						style="display: none"
-						accept=".tgz"
+						accept=".zip,.rar,.7z,.tar,.tgz"
 						@change="uploadFile"
 					/>
 					<div

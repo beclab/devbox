@@ -104,7 +104,7 @@ import { useDevelopingApps } from '../stores/app';
 import { ApplicationInfo } from '@devbox/core';
 import { OPERATE_ACTION } from '../types/constants';
 import { FilesSelectType } from '../types/types';
-import { BtDialog } from '@bytetrade/ui';
+import { BtDialog, BtNotify, NotifyDefinedType } from '@bytetrade/ui';
 import { useI18n } from 'vue-i18n';
 
 import PopupMenu from './common/PopupMenu.vue';
@@ -120,7 +120,6 @@ const props = defineProps({
 
 const { t } = useI18n();
 const $q = useQuasar();
-const appName = ref(props.app.appName);
 const chartNodes = ref<any>([]);
 const selectedKey = ref(null);
 const tempFile = ref();
@@ -182,16 +181,24 @@ watch(
 
 async function onSaveFile() {
 	if (selectedKey.value != null) {
-		const res: any = await axios.put(
-			store.url + '/api/files/' + selectedKey.value,
-			fileInfo.code,
-			{ headers: { 'content-type': 'text/plain' } }
-		);
-		if (res.code != 200) {
-			return;
+		try {
+			const res: any = await axios.put(
+				store.url + '/api/files/' + selectedKey.value,
+				fileInfo.code,
+				{ headers: { 'content-type': 'text/plain' } }
+			);
+
+			fileStatus.value = false;
+			BtNotify.show({
+				type: NotifyDefinedType.SUCCESS,
+				message: t('message.save_file_success')
+			});
+		} catch (e) {
+			BtNotify.show({
+				type: NotifyDefinedType.FAILED,
+				message: t('message.save_file_failed') + e.message
+			});
 		}
-		fileStatus.value = false;
-		$q.notify('success to save file');
 	}
 }
 
@@ -246,9 +253,9 @@ async function loadChart() {
 			}
 		];
 	} catch (e: any) {
-		$q.notify({
-			type: 'negative',
-			message: 'failed to loadChart; ' + e.message
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.save_loadChart_failed') + e.message
 		});
 	}
 }
@@ -271,9 +278,9 @@ const onSelected = async (value) => {
 		fileInfo.lang = res.extension;
 		fileInfo.name = res.name;
 	} catch (e: any) {
-		$q.notify({
-			type: 'negative',
-			message: 'onSelect failed; ' + e.message
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.save_loadChart_failed') + e.message
 		});
 	}
 };
@@ -301,9 +308,9 @@ const loadChildren = async (node: any) => {
 
 		chartNodes.value = nodes;
 	} catch (e: any) {
-		$q.notify({
-			type: 'negative',
-			message: 'loadChildren failed; ' + e.message
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.save_loadChildren_failed') + e.message
 		});
 	}
 };
@@ -362,25 +369,37 @@ const createDialg = (path: string, action: OPERATE_ACTION) => {
 };
 
 const createFile = async (path: string) => {
-	const res = await axios.put(
-		store.url + '/api/files/' + path,
-		{},
-		{
-			headers: { 'content-type': 'text/plain' }
-		}
-	);
-	$q.notify('success to create file');
-	await loadChart();
+	try {
+		await axios.put(store.url + '/api/files/' + path);
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: t('message.create_file_success')
+		});
+		await loadChart();
+	} catch (e) {
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.create_file_failed') + e.message
+		});
+	}
 };
 
 const createFolder = async (path: string) => {
-	const res = await axios.post(
-		store.url + '/api/files/' + path + '?file_type=dir',
-		{},
-		{ headers: { 'content-type': 'text/plain' } }
-	);
-	$q.notify('success to create folder');
-	await loadChart();
+	try {
+		const res = await axios.post(
+			store.url + '/api/files/' + path + '?file_type=dir'
+		);
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: t('message.create_folder_success')
+		});
+		await loadChart();
+	} catch (e) {
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.create_folder_failed') + e.message
+		});
+	}
 };
 
 const renameDialg = (path: string, label: string, action: OPERATE_ACTION) => {
@@ -412,23 +431,67 @@ const renameDialg = (path: string, label: string, action: OPERATE_ACTION) => {
 
 const renamefile = async (path: string, label: string, newname: any) => {
 	const newpath = path.replace(label, newname);
-	const res = await axios.patch(
-		store.url + '/api/files/' + path + '?action=rename&destination=' + newpath,
-		{},
-		{
-			headers: { 'content-type': 'text/plain' }
-		}
-	);
-	$q.notify('success to rename');
-	await loadChart();
+
+	try {
+		await axios.patch(
+			store.url +
+				'/api/files/' +
+				path +
+				'?action=rename&destination=' +
+				newpath,
+			{},
+			{
+				headers: { 'content-type': 'text/plain' }
+			}
+		);
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: t('message.rename_folder_success')
+		});
+		await loadChart();
+	} catch (e) {
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: t('message.rename_folder_failed')
+		});
+	}
 };
 
 const deletefile = async (path: string) => {
-	const res = await axios.delete(store.url + '/api/files/' + path, {
-		headers: { 'content-type': 'text/plain' }
-	});
-	$q.notify('success to create file');
-	await loadChart();
+	BtDialog.show({
+		platform: 'web',
+		cancel: true,
+		message: t('message.deleteTip'),
+		okStyle: {
+			background: '#00BE9E',
+			color: '#ffffff'
+		},
+		title: 'Delete'
+	})
+		.then((val) => {
+			if (val) {
+				_deletefile(path);
+			}
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+};
+
+const _deletefile = async (path: string) => {
+	try {
+		await axios.delete(store.url + '/api/files/' + path);
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: t('message.delete_file_success')
+		});
+		await loadChart();
+	} catch (e) {
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.delete_file_failed') + e.message
+		});
+	}
 };
 </script>
 <style lang="scss">
