@@ -1,5 +1,5 @@
 FROM golang:1.20.2 AS builder
-ARG CHECK_CHART_VERSION=0.0.2
+ARG CHECK_CHART_VERSION=0.0.4
 
 RUN apt-get update && apt-get install -y gcc git musl-dev musl-tools wget
 
