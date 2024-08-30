@@ -46,14 +46,12 @@
 					<span
 						class="color"
 						:style="{
-							background: statusStyle[appState]
-								? statusStyle[appState].color
+							background: statusStyle[appState.toLowerCase()]
+								? statusStyle[appState.toLowerCase()].color
 								: statusStyle.canceled.color
 						}"
 					></span>
-					<span class="text-capitalize">{{
-						appState === 'completed' ? 'Running' : appState
-					}}</span>
+					<span class="text-capitalize"> {{ appState }}</span>
 				</div>
 				<q-separator class="q-mx-md" v-if="appState" vertical inset />
 				<div
@@ -61,21 +59,35 @@
 					@mouseenter="handleMouseEnter"
 					@mouseleave="handleMouseLeave"
 				>
-					<div class="oprate-btn-install" v-if="!appState" @click="onInstall">
+					<div
+						class="oprate-btn-install"
+						v-if="
+							!appOperateState ||
+							(appOperateType === 'uninstall' &&
+								appOperateState === 'completed')
+						"
+						@click="onInstall"
+					>
 						{{ t('btn_install') }}
 					</div>
 
 					<div
-						class="oprate-btn-install bg-teal-6 text-white"
-						v-if="appState === 'processing' && !showCancel"
+						class="oprate-btn-install"
+						v-if="appState === 'uninstalling' && !showCancel"
 					>
-						Installing
+						Uninstalling
+					</div>
+
+					<div
+						class="oprate-btn-install bg-teal-6 text-white"
+						v-if="appState === 'installing' && !showCancel"
+					>
 						{{ t('btn_installing') }}
 					</div>
 
 					<div
 						class="oprate-btn-install"
-						v-if="appState === 'completed' && !showCancel"
+						v-if="appState === 'running' && !showCancel"
 						@click="onUpgrade"
 					>
 						{{ t('btn_upgrade') }}
@@ -83,14 +95,14 @@
 
 					<div
 						class="oprate-btn-install bg-teal-6"
-						v-if="appState === 'pending' && !showCancel"
+						v-if="appOperateState === 'pending' && !showCancel"
 					>
 						<img class="ani-loading" src="../assets/icon-loading.svg" />
 					</div>
 
 					<div
 						class="oprate-btn-install"
-						v-if="appState !== 'completed' && showCancel"
+						v-if="appState !== 'running' && showCancel"
 						@click="onCancel"
 					>
 						{{ t('btn_cancel') }}
@@ -100,7 +112,7 @@
 				<div
 					class="oprate-btn q-mr-sm"
 					@click="onPreview"
-					v-if="appState === 'completed'"
+					v-if="appState === 'running'"
 				>
 					<div class="oprate-btn-install">{{ t('btn_preview') }}</div>
 				</div>
@@ -113,7 +125,7 @@
 					ref="uploadInput"
 					type="file"
 					style="display: none"
-					accept=".tgz"
+					accept=".zip,.rar,.7z,.tar,.tgz"
 					@change="uploadFile"
 				/>
 
@@ -148,7 +160,7 @@
 								clickable
 								v-ripple
 								v-close-popup
-								:disable="appState === 'completed' ? false : true"
+								:disable="appState === 'running' ? false : true"
 								@click="onUninstall"
 							>
 								<q-icon class="q-mr-xs" name="sym_r_reset_tv" size="20px" />
@@ -197,9 +209,9 @@ import { useDevelopingApps } from '../stores/app';
 import { useMenuStore } from '../stores/menu';
 import axios from 'axios';
 import { ApplicationInfo } from '@devbox/core';
-import { BtNotify } from '@bytetrade/ui';
 import { statusStyle } from '../types/constants';
 import { useI18n } from 'vue-i18n';
+import { BtNotify, NotifyDefinedType } from '@bytetrade/ui';
 
 // import ConfigComponent from '../components/ConfigComponent.vue';
 import ContainerComponent from '../components/ContainerComponent.vue';
@@ -215,6 +227,8 @@ const $q = useQuasar();
 
 const uploadInput = ref();
 const appState = ref();
+const appOperateState = ref();
+const appOperateType = ref();
 const timer = ref();
 const downloading = ref(false);
 const showCancel = ref(false);
@@ -261,7 +275,10 @@ async function onInstall() {
 		await axios.post(store.url + '/api/command/install-app', {
 			name: app.value.appName
 		});
-		$q.notify('Start installing / re-installing');
+		BtNotify.show({
+			type: NotifyDefinedType.SUCCESS,
+			message: 'Start installing / re-installing'
+		});
 		getAppState();
 	} catch (e: any) {
 		console.log(e);
@@ -281,7 +298,10 @@ function onCancel() {
 		$q.loading.show();
 		try {
 			await axios.post(store.url + `/api/apps/${app.value.appName}/cancel`, {});
-			$q.notify('Cancel successful!');
+			BtNotify.show({
+				type: NotifyDefinedType.SUCCESS,
+				message: 'Cancel successful'
+			});
 			getAppState();
 		} catch (e: any) {
 			console.log(e);
@@ -304,7 +324,11 @@ function onUpgrade() {
 			await axios.post(store.url + '/api/command/install-app', {
 				name: app.value.appName
 			});
-			$q.notify('Start upgraging / re-upgraging');
+			BtNotify.show({
+				type: NotifyDefinedType.SUCCESS,
+				message: 'Start upgraging / re-upgraging'
+			});
+
 			getAppState();
 		} catch (e: any) {
 			console.log(e);
@@ -328,7 +352,10 @@ function onUninstall() {
 				store.url + `/api/command/uninstall/${app.value.appName}`,
 				{}
 			);
-			$q.notify('Start uninstalling / re-uninstalling');
+			BtNotify.show({
+				type: NotifyDefinedType.SUCCESS,
+				message: 'Start uninstalling / re-uninstalling'
+			});
 			getAppState();
 		} catch (e: any) {
 			console.log(e);
@@ -348,43 +375,69 @@ async function getAppState(isInit?: string) {
 
 async function __getAppState(isInit?: string) {
 	try {
+		// operate Status
 		const data: any = await store.getAppState(app.value.appName);
+		console.log('appOperateState', data);
 		if (!data) {
 			return false;
 		}
+		appOperateState.value = data.state;
+		appOperateType.value = data.opType;
 
-		const status: any = await store.getAppStatus(app.value.appName);
-		if (!status) {
+		// App Status
+		const res: any = await store.getAppStatus(app.value.appName);
+		console.log('appState', res);
+		if (!res) {
 			return false;
 		}
+		appState.value = res.status.state;
 
-		appState.value = data.state;
-		if (data.state === 'completed') {
+		if (
+			appState.value === 'running' ||
+			(appOperateState.value === 'completed' && data.opType === 'install')
+		) {
 			clearInterval(timer.value);
 			refreshApplication();
-		} else if (
-			data.state === 'canceled' ||
-			data.state === 'failed' ||
-			data.state === 'suspend'
-		) {
-			if (!isInit) {
-				BtNotify.show({
-					type: 'bt-failed',
-					message: `State ${data.state}`
-				});
-			}
+		}
 
-			appState.value = null;
+		if (
+			appOperateState.value === 'canceled' ||
+			appOperateState.value === 'failed' ||
+			appOperateState.value === 'completed'
+		) {
 			clearInterval(timer.value);
 		}
+
+		if (appState.value === 'suspend') {
+			clearInterval(timer.value);
+		}
+
+		// if (data.state === 'completed') {
+		// 	clearInterval(timer.value);
+		// 	refreshApplication();
+		// } else if (
+		// 	data.state === 'canceled' ||
+		// 	data.state === 'failed' ||
+		// 	data.state === 'suspend'
+		// ) {
+		// 	if (!isInit) {
+		// 		BtNotify.show({
+		// 			type: NotifyDefinedType.FAILED,
+		// 			message: `State ${data.state}`
+		// 		});
+		// 	}
+
+		// 	appState.value = null;
+		// 	clearInterval(timer.value);
+		// }
 	} catch (e: any) {
-		appState.value = null;
+		// appState.value = null;
 		clearInterval(timer.value);
 	}
 }
 
 function handleMouseEnter() {
-	if (appState.value === 'pending' || appState.value === 'processing') {
+	if (appState.value === 'pending' || appState.value === 'installing') {
 		showCancel.value = true;
 	}
 }
@@ -437,10 +490,16 @@ async function uploadFile(event: any) {
 	if (file) {
 		const { status, message } = await upload_dev_file(file);
 		if (status) {
-			$q.notify(message);
+			BtNotify.show({
+				type: NotifyDefinedType.SUCCESS,
+				message: message
+			});
 			store.cfg = await store.getAppCfg(app.value.appName);
 		} else {
-			$q.notify(message);
+			BtNotify.show({
+				type: NotifyDefinedType.FAILED,
+				message: message
+			});
 		}
 	} else {
 		console.log('file selected failure');

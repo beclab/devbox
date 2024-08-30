@@ -98,7 +98,6 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, PropType, reactive } from 'vue';
-import { useQuasar } from 'quasar';
 import axios from 'axios';
 import { useDevelopingApps } from '../stores/app';
 import { ApplicationInfo } from '@devbox/core';
@@ -119,11 +118,11 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const $q = useQuasar();
 const chartNodes = ref<any>([]);
 const selectedKey = ref(null);
 const tempFile = ref();
 const fileStatus = ref(false);
+const currentFile = ref();
 
 const fileInfo = reactive({
 	code: '',
@@ -217,7 +216,8 @@ const getChildren = (items: any) => {
 			children: data.isDir ? [{}] : null,
 			handler: data.isDir ? loadChildren : null,
 			isDir: data.isDir,
-			defaultHide: true
+			defaultHide: true,
+			muted: true
 		};
 		children.push(selectData);
 
@@ -249,7 +249,8 @@ async function loadChart() {
 				path: props.app.appName,
 				key: props.app.appName,
 				isDir: true,
-				defaultHide: true
+				defaultHide: true,
+				muted: true
 			}
 		];
 	} catch (e: any) {
@@ -265,7 +266,15 @@ const toggleVaule = (data) => {
 };
 
 const onSelected = async (value) => {
-	selectedKey.value = value.item.path;
+	if (fileStatus.value) {
+		checkFileSave(value);
+	} else {
+		selectedKey.value = value.item.path;
+		fetchData(value);
+	}
+};
+
+const fetchData = async (value) => {
 	try {
 		const res: any = await axios.get(
 			store.url + '/api/files/' + value.item.path,
@@ -283,6 +292,31 @@ const onSelected = async (value) => {
 			message: t('message.save_loadChart_failed') + e.message
 		});
 	}
+};
+
+const checkFileSave = (value) => {
+	BtDialog.show({
+		platform: 'web',
+		cancel: true,
+		okStyle: {
+			background: '#00BE9E',
+			color: '#ffffff'
+		},
+		title: 'Reanme',
+		message: t('message.save_file')
+	})
+		.then(async (val) => {
+			if (val) {
+				await onSaveFile();
+				selectedKey.value = value.item.path;
+				await fetchData(value);
+			} else {
+				await fetchData(value);
+			}
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 };
 
 const loadChildren = async (node: any) => {

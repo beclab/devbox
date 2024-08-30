@@ -29,7 +29,7 @@ export const statusStyle = {
 	upgrading: {
 		color: '#3377FF'
 	},
-	completed: {
+	running: {
 		color: '#29CC5F'
 	},
 	uninstalling: {

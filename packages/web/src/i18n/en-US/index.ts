@@ -1,20 +1,17 @@
-// This is just an example,
-// so you can safely delete all default props below
-
 export default {
 	launch_input_placehoder: 'Search',
-	launch_no_result: 'No Results',
-	page_404: 'No results',
+	launch_no_result: 'No results',
+	page_404: 'Oops. Nothing here...',
 	no_data: 'No data.',
-	home_welcome: 'No data',
+	home_welcome: 'Welcome to DevBox',
 	home_desc: 'An easy way to develop in Terminus',
 	home_start: 'Start',
 	home_create: 'Create a new application',
 	home_update: 'Upload a chart package',
 	home_recent: 'Recent',
-	home_recent_resc_1: 'The application you recently',
-	home_recent_resc_2: 'Your recently developed apps',
-	home_documents: ' will appear here',
+	home_recent_resc_1: 'Your recently developed apps',
+	home_recent_resc_2: ' will appear here',
+	home_documents: 'Documents',
 	home_doc_1: 'DevBox tutorials',
 	home_doc_2: 'Basic concepts of Terminus applications',
 	home_doc_3: 'Understand Terminus Application Chart',
@@ -37,7 +34,7 @@ export default {
 	home_image: 'Image',
 	home_image_hint: 'Image for app containers',
 	home_image_rules: 'Add image',
-	home_port: 'Image',
+	home_port: 'Port',
 	home_port_hint: 'Specify ports that need to be exposed',
 	home_port_rules: 'Must be an integer between 0 and 65535',
 	home_memory: 'Required memory',
@@ -305,6 +302,7 @@ export default {
 		rename_folder_failed: 'Failed to rename',
 		delete_file_success: 'File deleted successfully',
 		delete_file_failed: 'Failed to delete',
-		deleteTip: 'Delete this file/folder?'
+		deleteTip: 'Delete this file/folder?',
+		save_file: 'Do you want to save the current file?'
 	}
 };
