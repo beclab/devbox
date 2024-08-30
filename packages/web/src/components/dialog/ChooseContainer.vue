@@ -68,7 +68,6 @@
 					lazy-rules
 					color="teal-4"
 					class="form-item-input q-mt-xs"
-					placeholder="Container Name AAA"
 				>
 				</q-input>
 			</div>

@@ -69,11 +69,11 @@ export default boot(({ app }) => {
 					throw Error(data.msg);
 				}
 
-				if (data.message) {
-					Notify.create({
-						message: data.message
-					});
-				}
+				// if (data.message) {
+				// 	Notify.create({
+				// 		message: data.message
+				// 	});
+				// }
 
 				return data.data;
 			}

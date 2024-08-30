@@ -33,12 +33,14 @@ export const useMenuStore = defineStore('menu', {
 						{
 							label: i18n.global.t(`enums.${MenuLabel.HOME}`),
 							key: MenuLabel.HOME,
-							icon: 'sym_r_home'
+							icon: 'sym_r_home',
+							muted: true
 						},
 						{
 							label: i18n.global.t(`enums.${MenuLabel.CONTAINERS}`),
 							key: MenuLabel.CONTAINERS,
-							icon: 'sym_r_deployed_code'
+							icon: 'sym_r_deployed_code',
+							muted: true
 						}
 						// {
 						//   label: MenuLabel.HELP,

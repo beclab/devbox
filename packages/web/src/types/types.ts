@@ -9,4 +9,5 @@ export type FilesSelectType = {
 	handler: any;
 	isDir: boolean;
 	defaultHide: boolean;
+	muted: boolean;
 };

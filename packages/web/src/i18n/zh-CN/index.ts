@@ -1,17 +1,17 @@
 export default {
 	launch_input_placehoder: '搜索',
 	launch_no_result: '没有结果',
-	page_404: '没有结果',
+	page_404: '哎呀，什么都没有...',
 	no_data: '无数据',
-	home_welcome: '无数据',
+	home_welcome: '欢迎使用 DevBox',
 	home_desc: '在 Terminus 中轻松开发应用',
 	home_start: '开始',
 	home_create: '创建新应用',
 	home_update: '上传 chart 包',
 	home_recent: '最近',
 	home_recent_resc_1: '您最近开发的应用',
-	home_recent_resc_2: '您最近开发的应用',
-	home_documents: '将显示在这里',
+	home_recent_resc_2: '将显示在这里',
+	home_documents: '文档',
 	home_doc_1: 'DevBox 教程',
 	home_doc_2: 'Terminus 应用的基本概念',
 	home_doc_3: '理解 Terminus 应用 chart',
@@ -34,7 +34,7 @@ export default {
 	home_image: '图像',
 	home_image_hint: '应用容器的镜像',
 	home_image_rules: '添加图像',
-	home_port: '图像',
+	home_port: '端口',
 	home_port_hint: '指定要暴露的端口',
 	home_port_rules: '必须是 0 到 65535 之间的整数',
 	home_memory: '所需内存',
@@ -238,7 +238,7 @@ export default {
 	config_permissions_datatype_rules: '输入数据类型',
 	config_permissions_version_hint: '所需数据版本',
 	config_permissions_version_rules: '输入版本',
-	config_permissions_operations_hint: '服务提供商所需的操作',
+	config_permissions_operations_hint: '服务提供方所需的操作',
 	config_permissions_operations_rules: '请输入关键操作',
 	config: {
 		addClients: '添加客户端',
@@ -276,6 +276,7 @@ export default {
 		rename_folder_failed: '重命名失败',
 		delete_file_success: '删除成功',
 		delete_file_failed: '删除失败',
-		deleteTip: '确定删除这个文件/文件夹吗？'
+		deleteTip: '确定删除这个文件/文件夹吗？',
+		save_file: '是否保存当前文件？'
 	}
 };
