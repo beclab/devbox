@@ -46,67 +46,67 @@
 					<span
 						class="color"
 						:style="{
-							background: statusStyle[appState.toLowerCase()]
-								? statusStyle[appState.toLowerCase()].color
-								: statusStyle.canceled.color
+							background:
+								appState.toLowerCase() === 'running'
+									? statusStyle.running.color
+									: statusStyle.pending.color
 						}"
 					></span>
-					<span class="text-capitalize"> {{ appState }}</span>
+					<span class="text-capitalize q-mr-xs">
+						{{
+							appState === 'uninstalling' && appOperateType === 'install'
+								? 'installing'
+								: appState
+						}}</span
+					>
 				</div>
 				<q-separator class="q-mx-md" v-if="appState" vertical inset />
+
 				<div
-					class="oprate-btn q-mr-sm"
+					class="event-btn q-mr-sm"
+					v-if="
+						appOperateState === '' ||
+						(appOperateType === 'uninstall' && appOperateState === 'completed')
+					"
+					@click="onInstall"
+				>
+					{{ t('btn_install') }}
+				</div>
+
+				<div
+					v-if="
+						['downloading', 'processing'].includes(appOperateState) &&
+						appState !== 'running' &&
+						appOperateType === 'install'
+					"
+					class="event-btn bg-teal-6 text-white q-mr-sm"
 					@mouseenter="handleMouseEnter"
 					@mouseleave="handleMouseLeave"
+					@click="onCancel"
 				>
-					<div
-						class="oprate-btn-install"
-						v-if="
-							!appOperateState ||
-							(appOperateType === 'uninstall' &&
-								appOperateState === 'completed')
-						"
-						@click="onInstall"
-					>
-						{{ t('btn_install') }}
-					</div>
+					{{ showCancel ? t('btn_cancel') : t('btn_installing') }}
+				</div>
 
-					<div
-						class="oprate-btn-install"
-						v-if="appState === 'uninstalling' && !showCancel"
-					>
-						Uninstalling
-					</div>
+				<div
+					v-if="appState === 'running'"
+					class="event-btn q-mr-sm"
+					@click="onUpgrade"
+				>
+					{{ t('btn_upgrade') }}
+				</div>
 
-					<div
-						class="oprate-btn-install bg-teal-6 text-white"
-						v-if="appState === 'installing' && !showCancel"
-					>
-						{{ t('btn_installing') }}
-					</div>
+				<div
+					v-if="appOperateType === 'uninstall' && appState === 'uninstalling'"
+					class="event-btn q-mr-sm"
+				>
+					Uninstalling
+				</div>
 
-					<div
-						class="oprate-btn-install"
-						v-if="appState === 'running' && !showCancel"
-						@click="onUpgrade"
-					>
-						{{ t('btn_upgrade') }}
-					</div>
-
-					<div
-						class="oprate-btn-install bg-teal-6"
-						v-if="appOperateState === 'pending' && !showCancel"
-					>
-						<img class="ani-loading" src="../assets/icon-loading.svg" />
-					</div>
-
-					<div
-						class="oprate-btn-install"
-						v-if="appState !== 'running' && showCancel"
-						@click="onCancel"
-					>
-						{{ t('btn_cancel') }}
-					</div>
+				<div
+					v-if="appOperateState === 'pending'"
+					class="event-btn bg-teal-6 q-mr-sm"
+				>
+					<img class="ani-loading" src="../assets/icon-loading.svg" />
 				</div>
 
 				<div
@@ -202,7 +202,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import { useDevelopingApps } from '../stores/app';
@@ -217,6 +217,7 @@ import { BtNotify, NotifyDefinedType } from '@bytetrade/ui';
 import ContainerComponent from '../components/ContainerComponent.vue';
 import EditComponent from '../components/EditComponent.vue';
 import DialogConfirm from '../components/dialog/DialogConfirm.vue';
+import { log } from 'console';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -241,20 +242,20 @@ async function refreshApplication() {
 	app.value = store.apps.find((app) => app.id == appid.value);
 }
 
-onMounted(async () => {
-	await refreshApplication();
-	await getAppState('init');
-});
-
 onUnmounted(() => {
 	clearInterval(timer.value);
 });
 
 watch(
 	() => route.params.id,
-	async () => {
-		await refreshApplication();
-		await __getAppState('init');
+	async (newVal) => {
+		if (newVal) {
+			await refreshApplication();
+			await getAppState();
+		}
+	},
+	{
+		immediate: true
 	}
 );
 
@@ -277,7 +278,7 @@ async function onInstall() {
 		});
 		BtNotify.show({
 			type: NotifyDefinedType.SUCCESS,
-			message: 'Start installing / re-installing'
+			message: t('message.start_installing')
 		});
 		getAppState();
 	} catch (e: any) {
@@ -288,11 +289,14 @@ async function onInstall() {
 }
 
 function onCancel() {
+	if (showCancel.value) {
+		return false;
+	}
 	$q.dialog({
 		component: DialogConfirm,
 		componentProps: {
-			title: 'Cancel',
-			message: 'Are you sure you want to cancel the installation?'
+			title: t('cancel'),
+			message: t('cancel_installation')
 		}
 	}).onOk(async () => {
 		$q.loading.show();
@@ -300,7 +304,7 @@ function onCancel() {
 			await axios.post(store.url + `/api/apps/${app.value.appName}/cancel`, {});
 			BtNotify.show({
 				type: NotifyDefinedType.SUCCESS,
-				message: 'Cancel successful'
+				message: t('message.successfully')
 			});
 			getAppState();
 		} catch (e: any) {
@@ -315,8 +319,8 @@ function onUpgrade() {
 	$q.dialog({
 		component: DialogConfirm,
 		componentProps: {
-			title: 'Upgrade',
-			message: 'Are you sure you want to Upgrade the app?'
+			title: t('btn_upgrade'),
+			message: t('upgrade_app')
 		}
 	}).onOk(async () => {
 		$q.loading.show();
@@ -326,7 +330,7 @@ function onUpgrade() {
 			});
 			BtNotify.show({
 				type: NotifyDefinedType.SUCCESS,
-				message: 'Start upgraging / re-upgraging'
+				message: t('message.start_upgrade')
 			});
 
 			getAppState();
@@ -342,8 +346,8 @@ function onUninstall() {
 	$q.dialog({
 		component: DialogConfirm,
 		componentProps: {
-			title: 'Uninstall',
-			message: 'Are you sure you want to uninstall the app?'
+			title: t('btn_uninstall'),
+			message: t('message.uninstall_app')
 		}
 	}).onOk(async () => {
 		$q.loading.show();
@@ -354,7 +358,7 @@ function onUninstall() {
 			);
 			BtNotify.show({
 				type: NotifyDefinedType.SUCCESS,
-				message: 'Start uninstalling / re-uninstalling'
+				message: t('message.start_uninstalling')
 			});
 			getAppState();
 		} catch (e: any) {
@@ -365,71 +369,72 @@ function onUninstall() {
 	});
 }
 
-async function getAppState(isInit?: string) {
+async function getAppState() {
 	if (timer.value) clearInterval(timer.value);
-	await __getAppState(isInit);
+	await __getAppState();
 	timer.value = setInterval(async () => {
 		await __getAppState();
-	}, 10000);
+	}, 2000);
 }
 
-async function __getAppState(isInit?: string) {
+async function __getAppState() {
 	try {
+		let appOperateState_temp: string;
+		let appState_temp: string;
+		let appOperateType_temp: string;
+
 		// operate Status
 		const data: any = await store.getAppState(app.value.appName);
-		console.log('appOperateState', data);
+		console.log('appOperateState_temp', data);
 		if (!data) {
 			return false;
 		}
-		appOperateState.value = data.state;
-		appOperateType.value = data.opType;
+		appOperateState_temp = data.state;
+		appOperateType_temp = data.opType;
+
+		if (
+			appOperateState_temp === '' ||
+			appOperateState_temp === 'canceled' ||
+			appOperateState_temp === 'failed' ||
+			appOperateState_temp === 'completed'
+		) {
+			clearInterval(timer.value);
+		}
 
 		// App Status
 		const res: any = await store.getAppStatus(app.value.appName);
-		console.log('appState', res);
+		console.log('appState_temp', res);
 		if (!res) {
 			return false;
 		}
-		appState.value = res.status.state;
+		appState_temp = res.status.state;
 
 		if (
-			appState.value === 'running' ||
-			(appOperateState.value === 'completed' && data.opType === 'install')
+			appOperateState_temp === 'failed' &&
+			appOperateType_temp === 'install'
 		) {
+			appState_temp = '';
+		}
+
+		if (
+			appOperateState_temp === 'failed' &&
+			appOperateType_temp === 'uninstall'
+		) {
+			appState_temp = 'running';
+		}
+
+		appOperateType.value = appOperateType_temp;
+		appOperateState.value = appOperateState_temp || '';
+		appState.value = appState_temp || '';
+
+		if (appState_temp === 'running') {
 			clearInterval(timer.value);
 			refreshApplication();
 		}
 
-		if (
-			appOperateState.value === 'canceled' ||
-			appOperateState.value === 'failed' ||
-			appOperateState.value === 'completed'
-		) {
+		if (appState_temp === 'suspend') {
 			clearInterval(timer.value);
 		}
-
-		if (appState.value === 'suspend') {
-			clearInterval(timer.value);
-		}
-
-		// if (data.state === 'completed') {
-		// 	clearInterval(timer.value);
-		// 	refreshApplication();
-		// } else if (
-		// 	data.state === 'canceled' ||
-		// 	data.state === 'failed' ||
-		// 	data.state === 'suspend'
-		// ) {
-		// 	if (!isInit) {
-		// 		BtNotify.show({
-		// 			type: NotifyDefinedType.FAILED,
-		// 			message: `State ${data.state}`
-		// 		});
-		// 	}
-
-		// 	appState.value = null;
-		// 	clearInterval(timer.value);
-		// }
 	} catch (e: any) {
 		// appState.value = null;
 		clearInterval(timer.value);
@@ -437,9 +442,7 @@ async function __getAppState(isInit?: string) {
 }
 
 function handleMouseEnter() {
-	if (appState.value === 'pending' || appState.value === 'installing') {
-		showCancel.value = true;
-	}
+	showCancel.value = true;
 }
 
 function handleMouseLeave() {
@@ -450,8 +453,8 @@ async function onDeleteApplication() {
 	$q.dialog({
 		component: DialogConfirm,
 		componentProps: {
-			title: 'Delete',
-			message: 'Are you sure to delete the current application?'
+			title: t('btn_delete'),
+			message: t('message.delete_app')
 		}
 	}).onOk(async () => {
 		$q.loading.show();
@@ -516,7 +519,7 @@ async function upload_dev_file(
 		await axios.post(store.url + '/api/command/upload-app-chart', formData, {
 			headers: { 'Content-Type': 'multipart/form-data' }
 		});
-		return { status: true, message: 'upload chart success' };
+		return { status: true, message: t('message.successfully') };
 	} catch (e: any) {
 		console.log(e);
 		return { status: false, message: e.message };
@@ -552,15 +555,37 @@ async function upload_dev_file(
 				border-radius: 8px;
 			}
 		}
-		.oprate-btn {
+
+		.event-btn {
 			width: 80px;
 			height: 32px;
 			line-height: 32px;
-			text-algin: center;
+			text-align: center;
 			display: inline-block;
 			border-radius: 8px;
 			border: 1px solid $btn-stroke;
 			overflow: hidden;
+			color: $ink-1;
+			cursor: pointer;
+
+			&:hover {
+				background: $background-hover;
+			}
+			&.oprate-disabled {
+				opacity: 0.5;
+			}
+		}
+
+		.oprate-btn {
+			width: 80px;
+			height: 32px;
+			line-height: 32px;
+			text-align: center;
+			display: inline-block;
+			border-radius: 8px;
+			border: 1px solid $btn-stroke;
+			overflow: hidden;
+			color: $ink-1;
 
 			span {
 				margin-left: 4px;
@@ -580,7 +605,7 @@ async function upload_dev_file(
 				color: $ink-1;
 				font-size: 12px;
 				line-height: 100%;
-				text-algin: center;
+				text-align: center;
 				cursor: pointer;
 				display: flex;
 				align-items: center;
@@ -625,14 +650,8 @@ async function upload_dev_file(
 				border-radius: 6px;
 				display: inline-block;
 				margin-right: 8px;
-				margin-top: 4px;
 			}
 		}
-	}
-	.container-left {
-	}
-
-	.container-right {
 	}
 }
 </style>

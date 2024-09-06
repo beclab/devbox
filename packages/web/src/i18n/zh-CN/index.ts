@@ -277,6 +277,16 @@ export default {
 		delete_file_success: '删除成功',
 		delete_file_failed: '删除失败',
 		deleteTip: '确定删除这个文件/文件夹吗？',
-		save_file: '是否保存当前文件？'
+		save_file: '是否保存当前文件？',
+		rename_file: '重命名',
+		confirmation: '确定',
+		start_installing: '开始安装',
+		start_upgrade: '开始更新',
+		start_uninstalling: '开始卸载',
+		cancel_installation: '确定取消安装吗？',
+		successfully: '成功',
+		upgrade_app: '确定更新App吗？',
+		uninstall_app: '确定卸载App吗？',
+		delete_app: '确定删除App吗？'
 	}
 };
