@@ -266,8 +266,8 @@ export default {
 	message: {
 		save_file_success: '文件保存成功',
 		save_file_failed: '文件保存失败',
-		save_loadChart_failed: '读取数据失败',
-		save_loadChildren_failed: '读取文件失败',
+		save_loadChart_failed: '读取 Chart 失败',
+		save_loadChildren_failed: '读取子项失败',
 		create_file_success: '文件创建成功',
 		create_file_failed: '文件创建失败',
 		create_folder_success: '文件夹创建成功',
@@ -285,8 +285,8 @@ export default {
 		start_uninstalling: '开始卸载',
 		cancel_installation: '确定取消安装吗？',
 		successfully: '成功',
-		upgrade_app: '确定更新App吗？',
-		uninstall_app: '确定卸载App吗？',
-		delete_app: '确定删除App吗？'
+		upgrade_app: '确定更新 App 吗？',
+		uninstall_app: '确定卸载 App 吗？',
+		delete_app: '确定删除 App 吗？'
 	}
 };
