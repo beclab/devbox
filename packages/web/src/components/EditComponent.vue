@@ -122,7 +122,6 @@ const chartNodes = ref<any>([]);
 const selectedKey = ref(null);
 const tempFile = ref();
 const fileStatus = ref(false);
-const currentFile = ref();
 
 const fileInfo = reactive({
 	code: '',
@@ -302,7 +301,7 @@ const checkFileSave = (value) => {
 			background: '#00BE9E',
 			color: '#ffffff'
 		},
-		title: 'Reanme',
+		title: t('message.confirmation'),
 		message: t('message.save_file')
 	})
 		.then(async (val) => {
@@ -444,7 +443,7 @@ const renameDialg = (path: string, label: string, action: OPERATE_ACTION) => {
 			background: '#00BE9E',
 			color: '#ffffff'
 		},
-		title: 'Reanme',
+		title: t('message.rename_file'),
 		prompt: {
 			model: label,
 			isValid: (val) => val.length > 2,

@@ -303,6 +303,16 @@ export default {
 		delete_file_success: 'File deleted successfully',
 		delete_file_failed: 'Failed to delete',
 		deleteTip: 'Delete this file/folder?',
-		save_file: 'Do you want to save the current file?'
+		save_file: 'Do you want to save the current file?',
+		rename_file: 'Rename File',
+		confirmation: 'Confirmation',
+		start_installing: 'Start installing',
+		start_upgrade: 'Start upgraging',
+		start_uninstalling: 'Start uninstalling',
+		cancel_installation: 'Are you sure you want to cancel the installation?',
+		successfully: 'Successfully',
+		upgrade_app: 'Are you sure you want to Upgrade the app?',
+		uninstall_app: 'Are you sure you want to uninstall the app?',
+		delete_app: 'Are you sure to delete the app?'
 	}
 };
