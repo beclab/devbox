@@ -76,8 +76,8 @@
 					<div class="link-more text-body1 text-ink-2">
 						{{ t('home_visit_1') }}
 						<a
-							href="https://docs.jointerminus.com/overview/introduction/what-is-terminus.html"
-							>docs.jointerminus.com</a
+							href="https://docs.joinolares.com/overview/introduction/what-is-olares.html"
+							>docs.joinolares.com</a
 						>
 						{{ t('home_visit_2') }}
 					</div>

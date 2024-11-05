@@ -1,6 +1,6 @@
 # DevBox
 
-Terminus App development management tools
+Olares App development management tools
 
 ## Build backend
 ### Build binary

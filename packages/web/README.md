@@ -1,6 +1,6 @@
 # Devbox (devbox)
 
-Terminus dev tools
+Olares dev tools
 
 ## Install the dependencies
 

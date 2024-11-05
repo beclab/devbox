@@ -4,7 +4,7 @@ export default {
 	page_404: 'Oops. Nothing here...',
 	no_data: 'No data.',
 	home_welcome: 'Welcome to DevBox',
-	home_desc: 'An easy way to develop in Terminus',
+	home_desc: 'An easy way to develop in Olares',
 	home_start: 'Start',
 	home_create: 'Create a new application',
 	home_update: 'Upload a chart package',
@@ -13,15 +13,15 @@ export default {
 	home_recent_resc_2: ' will appear here',
 	home_documents: 'Documents',
 	home_doc_1: 'DevBox tutorials',
-	home_doc_2: 'Basic concepts of Terminus applications',
-	home_doc_3: 'Understand Terminus Application Chart',
-	home_doc_4: 'TerminusManifest configuration guide ',
-	home_doc_5: 'Terminus Market Protocol overview',
+	home_doc_2: 'Basic concepts of Olares applications',
+	home_doc_3: 'Understand Olares Application Chart',
+	home_doc_4: 'OlaresManifest configuration guide ',
+	home_doc_5: 'Olares Market Protocol overview',
 	home_doc_6: 'How to submit an application',
 	home_visit_1: 'Visit',
 	home_visit_2: 'for more information.',
 	home_appname: 'App name',
-	home_appname_hint: 'App namespace in Terminus',
+	home_appname_hint: 'App namespace in Olares',
 	home_appname_rules_1: 'Enter the app name',
 	home_appname_rules_2: 'Must start with an alphabetic character',
 	home_appname_rules_3: 'Only allows lowercase letters (a-z) and numbers (0-9)',
@@ -111,9 +111,9 @@ export default {
 	config_name: 'App configuration',
 	config_metadata_icon: 'Icon',
 	config_metadata_icon_hint:
-		'Your app icon in the Terminus Market. Use a PNG or WEBP file, up to 512 KB, sized at 256x256 pixels.',
+		'Your app icon in the Olares Market. Use a PNG or WEBP file, up to 512 KB, sized at 256x256 pixels.',
 	config_metadata_apptitle: 'App title',
-	config_metadata_apptitle_hint: 'Your app title in Terminus Market',
+	config_metadata_apptitle_hint: 'Your app title in Olares Market',
 	config_metadata_apptitle_rules: 'Enter the app title',
 	config_metadata_versionname: 'Version',
 	config_metadata_versionname_hint:
@@ -121,11 +121,11 @@ export default {
 	config_metadata_versionname_rules: 'Enter the version',
 	config_metadata_categories: 'Categories',
 	config_metadata_categories_hint:
-		'List the categories under which your app will appear in the Terminus Market',
+		'List the categories under which your app will appear in the Olares Market',
 	config_metadata_categories_rules: 'Enter categories for your app',
 	config_metadata_shortdesc: 'Short description',
 	config_metadata_shortdesc_hint:
-		'A short description that will appear below the app title in the Terminus Market',
+		'A short description that will appear below the app title in the Olares Market',
 	config_metadata_shortdesc_rules: 'Enter the short description',
 	config_metadata_fulldesc: 'Full description',
 	config_metadata_fulldesc_hint: 'A comprehensive description of your app',
@@ -213,7 +213,7 @@ export default {
 	config_space_middleware_Databases: 'Databases',
 	config_option_cluster: 'Cluster scoped',
 	config_option_cluster_desc:
-		'Whether this app is installed for all users in a Terminus cluster',
+		'Whether this app is installed for all users in a Olares cluster',
 	config_option_Reference_name_rules: 'Enter the name',
 	config_option_Reference_name_rules2:
 		'Must start with an alphabetic character',
@@ -230,13 +230,13 @@ export default {
 	config_space_url: 'URL',
 	config_space_visible: 'Visible',
 	config_space_visible_hint:
-		'Show entrance icon and title on the Terminus desktop',
+		'Show entrance icon and title on the Olares desktop',
 	config_space_authlevel: 'Auth level',
 	config_space_authlevel_desc:
 		'A private entrance that requires activating Tailscale for access',
 	config_space_openmethod: 'Open method',
 	config_space_openmethod_desc:
-		'Show entrance icon and title on the Terminus desktop',
+		'Show entrance icon and title on the Olares desktop',
 	config_space_policy: 'Policy scope',
 	config_space_policy_hint:
 		'Set affected URLs of the policy. Regular expressions are supported.',
