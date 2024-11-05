@@ -65,32 +65,32 @@ export const useMenuStore = defineStore('menu', {
 				{
 					id: 1,
 					message: 'DevBox Tutorial',
-					link: 'https://docs.jointerminus.com/developer/develop/tutorial/devbox.html'
+					link: 'https://docs.joinolares.com/developer/develop/tutorial/devbox.html'
 				},
 				{
 					id: 2,
-					message: 'Introduction to Basic Concepts of Terminus Application',
-					link: 'https://docs.jointerminus.com/overview/terminus/application.html'
+					message: 'Introduction to Basic Concepts of Olares Application',
+					link: 'https://docs.joinolares.com/overview/olares/application.html'
 				},
 				{
 					id: 3,
-					message: 'Learn about Terminus Application Chart',
-					link: 'https://docs.jointerminus.com/developer/develop/package/chart.html'
+					message: 'Learn about Olares Application Chart',
+					link: 'https://docs.joinolares.com/developer/develop/package/chart.html'
 				},
 				{
 					id: 4,
-					message: 'Configuration Guideline for TerminusManifest',
-					link: 'https://docs.jointerminus.com/developer/develop/package/manifest.html'
+					message: 'Configuration Guideline for OlaresManifest',
+					link: 'https://docs.joinolares.com/developer/develop/package/manifest.html'
 				},
 				{
 					id: 5,
-					message: 'Terminus Market protocol overview',
-					link: 'https://docs.jointerminus.com/overview/protocol/market.html'
+					message: 'Olares Market protocol overview',
+					link: 'https://docs.joinolares.com/overview/protocol/market.html'
 				},
 				{
 					id: 6,
-					message: 'How to sbmit an application to the Terminus Market',
-					link: 'https://docs.jointerminus.com/developer/develop/submit/'
+					message: 'How to sbmit an application to the Olares Market',
+					link: 'https://docs.joinolares.com/developer/develop/submit/'
 				}
 			]
 		} as DataState;

@@ -1,7 +1,7 @@
 {
 	"name": "@devbox/web",
 	"version": "0.0.1",
-	"description": "Terminus dev tools",
+	"description": "Olares dev tools",
 	"productName": "Devbox",
 	"author": "liuyu <>",
 	"private": true,

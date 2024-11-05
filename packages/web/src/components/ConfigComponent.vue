@@ -186,7 +186,7 @@ async function onSave() {
 		componentProps: {
 			title: 'Confirmation',
 			message:
-				'There are errors in TerminusManifest.yaml files. Your app may not be able to install correctly. Do you want to save any way?',
+				'There are errors in OlaresManifest.yaml files. Your app may not be able to install correctly. Do you want to save any way?',
 			showAgain: true,
 			okText: 'Save'
 		}
