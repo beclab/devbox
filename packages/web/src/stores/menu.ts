@@ -65,32 +65,32 @@ export const useMenuStore = defineStore('menu', {
 				{
 					id: 1,
 					message: 'DevBox Tutorial',
-					link: 'https://docs.joinolares.com/developer/develop/tutorial/devbox.html'
+					link: 'https://docs.olares.xyz/developer/develop/tutorial/devbox.html'
 				},
 				{
 					id: 2,
 					message: 'Introduction to Basic Concepts of Olares Application',
-					link: 'https://docs.joinolares.com/overview/olares/application.html'
+					link: 'https://docs.olares.xyz/manual/concepts/application.html'
 				},
 				{
 					id: 3,
 					message: 'Learn about Olares Application Chart',
-					link: 'https://docs.joinolares.com/developer/develop/package/chart.html'
+					link: 'https://docs.olares.xyz/developer/develop/package/chart.html'
 				},
 				{
 					id: 4,
 					message: 'Configuration Guideline for OlaresManifest',
-					link: 'https://docs.joinolares.com/developer/develop/package/manifest.html'
+					link: 'https://docs.olares.xyz/developer/develop/package/manifest.html'
 				},
 				{
 					id: 5,
 					message: 'Olares Market protocol overview',
-					link: 'https://docs.joinolares.com/overview/protocol/market.html'
+					link: 'https://docs.olares.xyz/manual/tasks/install-uninstall-update.html'
 				},
 				{
 					id: 6,
 					message: 'How to sbmit an application to the Olares Market',
-					link: 'https://docs.joinolares.com/developer/develop/submit/'
+					link: 'https://docs.olares.xyz/developer/develop/submit/'
 				}
 			]
 		} as DataState;
