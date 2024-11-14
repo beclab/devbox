@@ -13,8 +13,8 @@ type AppMetaData struct {
 }
 
 type AppConfiguration struct {
-	ConfigVersion string      `yaml:"terminusManifest.version" json:"terminusManifest.version"`
-	ConfigType    string      `yaml:"terminusManifest.type" json:"terminusManifest.type"`
+	ConfigVersion string      `yaml:"olaresManifest.version" json:"olaresManifest.version"`
+	ConfigType    string      `yaml:"olaresManifest.type" json:"olaresManifest.type"`
 	Metadata      AppMetaData `yaml:"metadata" json:"metadata"`
 	Entrances     []Entrance  `yaml:"entrances" json:"entrances"`
 	Spec          AppSpec     `yaml:"spec" json:"spec"`

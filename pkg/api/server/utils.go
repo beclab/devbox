@@ -46,7 +46,7 @@ func readCfgFromFile(chartDir string) (*application.AppConfiguration, error) {
 	cfgFile := findAppCfgFile(chartDir)
 	klog.Infof("readCfgFromFile: %s", cfgFile)
 	if len(cfgFile) == 0 {
-		return nil, errors.New("not found TerminusManifest.yaml file")
+		return nil, errors.New("not found OlaresManifest.yaml file")
 	}
 	appcfg, err := readAppInfo(cfgFile)
 	if err != nil {

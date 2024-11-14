@@ -7,7 +7,7 @@ import (
 
 const (
 	DevOwnerLabel  = "dev.bytetrade.io/dev-owner"
-	AppCfgFileName = "TerminusManifest.yaml"
+	AppCfgFileName = "OlaresManifest.yaml"
 )
 
 var (
