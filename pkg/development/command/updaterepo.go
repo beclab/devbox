@@ -99,13 +99,13 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 	if !notExist {
 		err = helm.UpdateAppCfgVersion(realPath, &newVersion)
 		if err != nil {
-			klog.Error("update TerminusManifest.yaml metadata.version error, ", err)
+			klog.Error("update OlaresManifest.yaml metadata.version error, ", err)
 			return err
 		}
 	}
 
 	appcfg := filepath.Join(realPath, constants.AppCfgFileName)
-	appcfgBak := filepath.Join(realPath, "TerminusManifest.yaml.bak")
+	appcfgBak := filepath.Join(realPath, "OlaresManifest.yaml.bak")
 	appcfgDeferFunc, err := backupAndRestoreFile(appcfg, appcfgBak)
 	if err != nil {
 		return err

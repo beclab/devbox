@@ -136,7 +136,7 @@ func UpdateAppCfgVersion(path string, version *semver.Version) error {
 	}
 	err = os.WriteFile(appCfgYaml, data, 0644)
 	if err != nil {
-		klog.Error("write file TerminusManifest.yaml error, ", err)
+		klog.Error("write file OlaresManifest.yaml error, ", err)
 		return err
 	}
 
@@ -155,7 +155,7 @@ func UpdateAppCfgName(name, path string) error {
 	var appCfg application.AppConfiguration
 	err = yaml.Unmarshal(data, &appCfg)
 	if err != nil {
-		klog.Error("parse TerminusManifest.yaml error, ", err)
+		klog.Error("parse OlaresManifest.yaml error, ", err)
 		return err
 	}
 
@@ -178,7 +178,7 @@ func UpdateAppCfgName(name, path string) error {
 
 	err = os.WriteFile(appCfgYaml, data, 0644)
 	if err != nil {
-		klog.Error("write file TerminusManifest.yaml error, ", err)
+		klog.Error("write file OlaresManifest.yaml error, ", err)
 		return err
 	}
 
@@ -398,14 +398,14 @@ func GetAppCfg(app string, baseDir string) (*application.AppConfiguration, error
 	appCfgYaml := filepath.Join(realPath, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgYaml)
 	if err != nil {
-		klog.Error("read TerminusManifest.yaml error, ", err, ", ", appCfgYaml)
+		klog.Error("read OlaresManifest.yaml error, ", err, ", ", appCfgYaml)
 		return nil, err
 	}
 
 	var appCfg application.AppConfiguration
 	err = yaml.Unmarshal(data, &appCfg)
 	if err != nil {
-		klog.Error("parse TerminusManifest.yaml error, ", err)
+		klog.Error("parse OlaresManifest.yaml error, ", err)
 		return nil, err
 	}
 
