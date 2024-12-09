@@ -66,10 +66,10 @@ func (h *handlers) createDevApp(ctx *fiber.Ctx) error {
 	output, err := command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), config.Name)
 	if err != nil {
 
-		klog.Error("check TerminusManifest.yaml error, ", err, ", ", config)
+		klog.Error("check OlaresManifest.yaml error, ", err, ", ", config)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("TerminusManifest.yaml has error: %v", err),
+			"message": fmt.Sprintf("OlaresManifest.yaml has error: %v", err),
 		})
 	}
 	if len(output) > 0 {

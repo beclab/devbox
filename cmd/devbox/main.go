@@ -34,7 +34,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "devbox",
 		Short: "DevBox",
-		Long:  `The DevBox is a Terminus App dev tools`,
+		Long:  `The DevBox is a Olares App dev tools`,
 	}
 
 	serverCmd := &cobra.Command{

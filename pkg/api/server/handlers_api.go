@@ -43,7 +43,7 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 		klog.Error("read app cfg error, ", err, ", ", app, ", ", appCfgPath)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Read TerminusManifest.yaml failed: %v", err),
+			"message": fmt.Sprintf("Read OlaresManifest.yaml failed: %v", err),
 		})
 	}
 
@@ -54,7 +54,7 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 		klog.Error(string(data))
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Parse TerminusManifest.yaml failed: %v", err),
+			"message": fmt.Sprintf("Parse OlaresManifest.yaml failed: %v", err),
 		})
 	}
 
@@ -82,7 +82,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 		klog.Error("read app cfg post data error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("TerminusManifest.yaml has errors: %v", err),
+			"message": fmt.Sprintf("OlaresManifest.yaml has errors: %v", err),
 		})
 	}
 	data, err := yaml.Marshal(&appcfg)
@@ -90,12 +90,12 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 		klog.Error("parse post app cfg error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("TerminusManifest.yaml has errors: %v", err),
+			"message": fmt.Sprintf("OlaresManifest.yaml has errors: %v", err),
 		})
 	}
 	appCfg := filepath.Join(path, constants.AppCfgFileName)
 	uniquePath := uuid.NewString()
-	appCfgBak := filepath.Join("/tmp", uniquePath, "TerminusManifest.yaml.bak")
+	appCfgBak := filepath.Join("/tmp", uniquePath, "OlaresManifest.yaml.bak")
 	chartDeferFunc, err := command.BackupAndRestoreFile(appCfg, appCfgBak)
 	if err != nil {
 		return ctx.JSON(fiber.Map{
@@ -109,7 +109,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 		klog.Error("save app cfg to file error, ", err, ", ", appCfgPath)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Save TerminusManifest.yaml error: %v", err),
+			"message": fmt.Sprintf("Save OlaresManifest.yaml error: %v", err),
 		})
 	}
 	output, err := command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), app)
@@ -117,7 +117,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 		klog.Error("check app cfg error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("TerminusManifest.yaml has errors: %v", err),
+			"message": fmt.Sprintf("OlaresManifest.yaml has errors: %v", err),
 		})
 	}
 	if len(output) > 0 {
@@ -406,7 +406,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		klog.Error("read app cfg error, ", err, ", ", app, ", ", appCfgPath)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Read TerminusManifest.yaml failed: %v", err),
+			"message": fmt.Sprintf("Read OlaresManifest.yaml failed: %v", err),
 		})
 	}
 
@@ -417,7 +417,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		klog.Error(string(data))
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Parse TerminusManifest.yaml failed: %v", err),
+			"message": fmt.Sprintf("Parse OlaresManifest.yaml failed: %v", err),
 		})
 	}
 
