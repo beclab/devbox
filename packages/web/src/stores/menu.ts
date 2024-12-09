@@ -69,32 +69,28 @@ export const useMenuStore = defineStore('menu', {
 				},
 				{
 					id: 2,
-					message: 'Introduction to Basic Concepts of Olares Application',
+					message: 'Basic concepts of Olares applications',
 					link: 'https://docs.olares.xyz/manual/concepts/application.html'
 				},
 				{
 					id: 3,
-					message: 'Learn about Olares Application Chart',
+					message: 'Understand Olares Application Chart',
 					link: 'https://docs.olares.xyz/developer/develop/package/chart.html'
 				},
 				{
 					id: 4,
-					message: 'Configuration Guideline for OlaresManifest',
+					message: 'OlaresManifest configuration guide',
 					link: 'https://docs.olares.xyz/developer/develop/package/manifest.html'
 				},
 				{
 					id: 5,
-					message: 'Olares Market protocol overview',
-					link: 'https://docs.olares.xyz/manual/tasks/install-uninstall-update.html'
-				},
-				{
-					id: 6,
-					message: 'How to sbmit an application to the Olares Market',
+					message: 'How to submit an application',
 					link: 'https://docs.olares.xyz/developer/develop/submit/'
 				}
 			]
 		} as DataState;
 	},
+
 	getters: {
 		menuList(state) {
 			return [...state.homeMenu, ...state.applicationMenu];
