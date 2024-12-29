@@ -24,10 +24,10 @@ jobs:
       - name: Download release check-chart
         uses: dsaltares/fetch-gh-release-asset@master
         with:
-          file: check-chart_0.0.4_linux_amd64.tar.gz
+          file: check-chart_0.0.5_linux_amd64.tar.gz
           repo: beclab/check-chart
           target: check-chart.tar.gz
-          version: tags/v0.0.4
+          version: tags/v0.0.5
       - name: get latest tag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
         id: get-latest-tag
