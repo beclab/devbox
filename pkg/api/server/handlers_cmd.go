@@ -865,7 +865,7 @@ func WaitForUninstall(name, token string, kubeConfig *rest.Config) error {
 	}
 	devNamespace := name + "-" + constants.Owner
 	klog.Infof("wait for uninstall: %s", devNamespace)
-	return wait.PollUntilContextTimeout(context.TODO(), time.Second, 3*time.Minute, true, func(ctx context.Context) (done bool, err error) {
+	return wait.PollUntilContextTimeout(context.TODO(), time.Second, 5*time.Minute, true, func(ctx context.Context) (done bool, err error) {
 		if err != nil {
 			return false, err
 		}
