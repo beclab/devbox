@@ -1,16 +1,16 @@
 <template>
-	<q-menu class="menu-wrap">
-		<q-list dense padding>
+	<q-menu class="popup-menu">
+		<q-list class="menu-list" dense padding>
 			<q-item
-				class="row items-center justify-start"
+				class="row items-center justify-start q-mx-xs menu-item"
 				clickable
 				v-close-popup
 				v-for="item in items"
 				:key="item.name"
 				@click="handleEvent(item.name)"
 			>
-				<q-icon :name="item.icon" size="20px" class="q-mr-sm" color="ink-2" />
-				<q-item-section class="menuName text-ink-2">
+				<q-icon :name="item.icon" size="16px" class="q-mr-xs" color="ink-2" />
+				<q-item-section class="text-ink-2 text-body3">
 					{{ item.label }}</q-item-section
 				>
 			</q-item>
@@ -18,6 +18,7 @@
 	</q-menu>
 </template>
 <script lang="ts" setup>
+import { ref } from 'vue';
 import { OPERATE_ACTION } from '../../types/constants';
 
 const props = defineProps({
@@ -41,3 +42,18 @@ const handleEvent = async (action: OPERATE_ACTION) => {
 	emits('handleEvent', action, props.path, props.label);
 };
 </script>
+
+<style lang="scss" scoped>
+.popup-menu {
+	box-shadow: 0px 4px 10px 0px #00000033;
+	padding: 0 4px;
+	.menu-list {
+		padding: 4px 0;
+		.menu-item {
+			border-radius: 4px;
+			padding: 0 4px;
+			margin: 0;
+		}
+	}
+}
+</style>
