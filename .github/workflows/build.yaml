@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "16.18"
       - name: Cache
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/packagge-lock.json')}}
@@ -49,7 +49,7 @@ jobs:
           curl -L -o fonttools.zip https://cdn.bttcdn.com/common/fonttools.zip
           unzip fonttools.zip
       - name: Python Icon
-        run:  pwd; cd ./fonttools; sudo node python-icon.js
+        run: pwd; cd ./fonttools; sudo node python-icon.js
       - name: subset Icon
         run: |
           sudo chmod 755 fonttools
