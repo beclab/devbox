@@ -217,7 +217,6 @@ import { BtNotify, NotifyDefinedType } from '@bytetrade/ui';
 import ContainerComponent from '../components/ContainerComponent.vue';
 import EditComponent from '../components/EditComponent.vue';
 import DialogConfirm from '../components/dialog/DialogConfirm.vue';
-import { log } from 'console';
 
 const { t } = useI18n();
 const route = useRoute();

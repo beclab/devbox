@@ -9,7 +9,6 @@ export enum MenuLabel {
 	DEVBOX = 'DevBox',
 	HOME = 'Home',
 	CONTAINERS = 'Containers',
-	HELP = 'Help',
 	APPLICATIONS = 'Applications'
 }
 
@@ -105,6 +104,28 @@ export const useMenuStore = defineStore('menu', {
 					key: `/app/${app.id}`,
 					icon: 'sym_r_grid_view'
 				});
+			}
+		},
+
+		updatePathToMenu(path: string) {
+			const splitPath = path.split('/');
+			if (splitPath.length <= 0) return false;
+			switch (splitPath[1]) {
+				case 'home':
+				case 'create':
+					this.currentItem = MenuLabel.HOME;
+					break;
+
+				case 'containers':
+					this.currentItem = MenuLabel.CONTAINERS;
+					break;
+
+				case 'app':
+					this.currentItem = `/app/${splitPath[2]}`;
+					break;
+
+				default:
+					break;
 			}
 		}
 	}

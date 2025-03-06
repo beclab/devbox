@@ -4,7 +4,7 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: '/',
 		component: () => import('layouts/MainLayout.vue'),
-		beforeEnter: (to, from, next) => {
+		beforeEnter: (to, _from, next) => {
 			if (to.fullPath == '/') {
 				return next({ path: '/home' });
 			}
@@ -12,7 +12,6 @@ const routes: RouteRecordRaw[] = [
 		},
 		children: [
 			{ path: '/home', component: () => import('pages/HomePage.vue') },
-			{ path: '/list', component: () => import('pages/ListPage.vue') },
 			{
 				path: '/create',
 				component: () => import('pages/CreatePage.vue')
@@ -22,13 +21,8 @@ const routes: RouteRecordRaw[] = [
 				component: () => import('pages/ContainerPage.vue')
 			},
 			{
-				path: '/app/:id',
-				component: () => import('pages/ApplicationPage.vue')
-			},
-			{
-				path: '/help',
-				name: 'help',
-				component: () => import('pages/HelpPage.vue')
+				path: '/app/:id/:path?',
+				component: () => import('../pages/ApplicationPage.vue')
 			}
 		]
 	},

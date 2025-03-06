@@ -31,13 +31,15 @@
 
 <script lang="ts" setup>
 import { watch, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useDevelopingApps } from '../stores/app';
 import { useMenuStore, MenuLabel } from '../stores/menu';
 
 const store = useDevelopingApps();
 const menuStore = useMenuStore();
 const router = useRouter();
+const route = useRoute();
+menuStore.updatePathToMenu(route.path);
 
 watch(
 	() => store.apps,

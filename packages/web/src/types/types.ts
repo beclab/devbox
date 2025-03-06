@@ -2,12 +2,15 @@ export type FilesSelectType = {
 	label: string;
 	icon: string;
 	path: string;
-	key: string;
 	expandable: string;
 	selectable: boolean;
 	children: any;
 	handler: any;
 	isDir: boolean;
-	defaultHide: boolean;
-	muted: boolean;
+};
+
+export type FilesCodeType = {
+	code: String;
+	lang: String;
+	name: String;
 };
