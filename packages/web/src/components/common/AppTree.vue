@@ -16,6 +16,7 @@
 		no-nodes-label=" "
 		text-color="ink-2"
 		class="my-tree-wrapper"
+		@lazy-load="onLazyLoad"
 	>
 		<template v-slot:default-header="prop">
 			<div
@@ -98,9 +99,7 @@ const props = defineProps({
 	}
 });
 
-console.log('app', props.app);
-
-const emits = defineEmits(['onSelected', 'loadChart']);
+const emits = defineEmits(['onSelected', 'updatePathNode']);
 
 const { t } = useI18n();
 const store = useDevelopingApps();
@@ -133,6 +132,59 @@ const operateMenu = ref([
 		icon: 'sym_r_delete'
 	}
 ]);
+
+const onLazyLoad = async ({ node, done }) => {
+	const res = await loadChildren(node);
+	done(res);
+};
+
+const loadChildren = async (node: any) => {
+	try {
+		const res: any = await axios.get(store.url + '/api/files/' + node.path);
+
+		const setChildren = (n: any, path: any, children: any) => {
+			for (let i in n) {
+				if (n[i].path == path && n[i].isDir) {
+					n[i].children = children;
+					return;
+				}
+
+				if (n[i].isDir && n[i].children.length > 0) {
+					setChildren(n[i].children, path, children);
+				}
+			}
+		};
+
+		const children = getChildren(res.items);
+		return children;
+	} catch (e: any) {
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.save_loadChildren_failed') + e.message
+		});
+	}
+};
+
+const getChildren = (items: any) => {
+	let children: FilesSelectType[] = [];
+
+	for (let n in items) {
+		const data = items[n];
+		const selectData: FilesSelectType = {
+			label: data.name,
+			icon: data.isDir ? 'folder' : 'article',
+			path: data.path,
+			expandable: data.isDir,
+			selectable: !data.isDir,
+			children: data.isDir ? [{}] : null,
+			isDir: data.isDir,
+			lazy: data.isDir ? true : false
+		};
+		children.push(selectData);
+	}
+
+	return children;
+};
 
 const onSelected = async (value) => {
 	emits('onSelected', value);
@@ -193,9 +245,9 @@ const createDialog = (path: string, action: OPERATE_ACTION) => {
 			if (!val) return false;
 			const filepath = `${path}/${val}`;
 			if (action === OPERATE_ACTION.ADD_FOLDER) {
-				createFolder(filepath);
+				createFolder(filepath, path);
 			} else if (action === OPERATE_ACTION.ADD_FILE) {
-				createFile(filepath);
+				createFile(filepath, path);
 			}
 		})
 		.catch((err) => {
@@ -203,14 +255,14 @@ const createDialog = (path: string, action: OPERATE_ACTION) => {
 		});
 };
 
-const createFile = async (path: string) => {
+const createFile = async (path: string, parentPath: string) => {
 	try {
 		await axios.put(store.url + '/api/files/' + path);
 		BtNotify.show({
 			type: NotifyDefinedType.SUCCESS,
 			message: t('message.create_file_success')
 		});
-		await emits('loadChart');
+		await emits('updatePathNode', parentPath);
 	} catch (e) {
 		BtNotify.show({
 			type: NotifyDefinedType.FAILED,
@@ -219,7 +271,7 @@ const createFile = async (path: string) => {
 	}
 };
 
-const createFolder = async (path: string) => {
+const createFolder = async (path: string, parentPath: string) => {
 	try {
 		const res = await axios.post(
 			store.url + '/api/files/' + path + '?file_type=dir'
@@ -228,7 +280,7 @@ const createFolder = async (path: string) => {
 			type: NotifyDefinedType.SUCCESS,
 			message: t('message.create_folder_success')
 		});
-		await emits('loadChart');
+		await emits('updatePathNode', parentPath);
 	} catch (e) {
 		BtNotify.show({
 			type: NotifyDefinedType.FAILED,
@@ -266,6 +318,7 @@ const renameDialog = (path: string, label: string, action: OPERATE_ACTION) => {
 
 const renameFile = async (path: string, label: string, newname: any) => {
 	const newPath = path.replace(label, newname);
+	const parentPath = path.split('/').slice(0, -1).join('/');
 
 	try {
 		await axios.patch(
@@ -283,7 +336,7 @@ const renameFile = async (path: string, label: string, newname: any) => {
 			type: NotifyDefinedType.SUCCESS,
 			message: t('message.rename_folder_success')
 		});
-		await emits('loadChart');
+		await emits('updatePathNode', parentPath);
 	} catch (e) {
 		BtNotify.show({
 			type: NotifyDefinedType.SUCCESS,
@@ -293,10 +346,11 @@ const renameFile = async (path: string, label: string, newname: any) => {
 };
 
 const deleteFile = async (path: string) => {
+	const target_name = path.substring(path.lastIndexOf('/') + 1);
 	BtDialog.show({
 		platform: 'web',
 		cancel: true,
-		message: t('message.deleteTip'),
+		message: t('message.deleteTip', { name: target_name }),
 		okStyle: {
 			background: '#00BE9E',
 			color: '#ffffff'
@@ -314,13 +368,15 @@ const deleteFile = async (path: string) => {
 };
 
 const _deleteFile = async (path: string) => {
+	const parentPath = path.split('/').slice(0, -1).join('/');
+
 	try {
 		await axios.delete(store.url + '/api/files/' + path);
 		BtNotify.show({
 			type: NotifyDefinedType.SUCCESS,
 			message: t('message.delete_file_success')
 		});
-		await emits('loadChart');
+		await emits('updatePathNode', parentPath);
 	} catch (e) {
 		BtNotify.show({
 			type: NotifyDefinedType.FAILED,

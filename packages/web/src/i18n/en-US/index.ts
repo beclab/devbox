@@ -301,7 +301,7 @@ export default {
 		rename_folder_failed: 'Failed to rename',
 		delete_file_success: 'File deleted successfully',
 		delete_file_failed: 'Failed to delete',
-		deleteTip: 'Delete this file/folder?',
+		deleteTip: 'Delete {name} ?',
 		save_file: 'Do you want to save the current file?',
 		rename_file: 'Rename File',
 		confirmation: 'Confirmation',

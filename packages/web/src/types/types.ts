@@ -5,8 +5,8 @@ export type FilesSelectType = {
 	expandable: string;
 	selectable: boolean;
 	children: any;
-	handler: any;
 	isDir: boolean;
+	lazy?: boolean;
 };
 
 export type FilesCodeType = {
