@@ -39,12 +39,21 @@ const store = useDevelopingApps();
 const menuStore = useMenuStore();
 const router = useRouter();
 const route = useRoute();
-menuStore.updatePathToMenu(route.path);
 
 watch(
 	() => store.apps,
 	() => {
 		menuStore.updateApplications();
+	}
+);
+
+watch(
+	() => route.path,
+	() => {
+		menuStore.updatePathToMenu(route.path);
+	},
+	{
+		immediate: true
 	}
 );
 

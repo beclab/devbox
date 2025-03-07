@@ -6,7 +6,7 @@
 				:selected="selected"
 				:chartNodes="chartNodes"
 				@on-selected="onSelected"
-				@load-chart="loadChart"
+				@update-path-node="updatePathNode"
 			/>
 		</div>
 
@@ -51,7 +51,6 @@ const chartNodes = ref<any>([]);
 const tempFile = ref();
 const isEditing = ref(false);
 const selected = ref(props.app.chart);
-console.log('onMounted', route.path.split('/'));
 
 const fileInfo = reactive<FilesCodeType>({
 	code: '',
@@ -60,13 +59,11 @@ const fileInfo = reactive<FilesCodeType>({
 });
 
 onMounted(async () => {
-	console.log('route.params.path', route.params.path);
 	if (route.params.path) {
 		selected.value = Encoder.bytesToString(
 			Encoder.base64UrlToBytes(route.params.path)
 		);
 	}
-	console.log('selected', selected.value);
 
 	await loadChart();
 });
@@ -96,11 +93,9 @@ const changeCode = (value) => {
 async function onSaveFile() {
 	if (!selected.value) return false;
 	try {
-		const res: any = await axios.put(
-			store.url + '/api/files/' + selected.value,
-			fileInfo.code,
-			{ headers: { 'content-type': 'text/plain' } }
-		);
+		await axios.put(store.url + '/api/files/' + selected.value, fileInfo.code, {
+			headers: { 'content-type': 'text/plain' }
+		});
 
 		isEditing.value = false;
 		BtNotify.show({
@@ -127,8 +122,8 @@ const getChildren = (items: any) => {
 			expandable: data.isDir,
 			selectable: !data.isDir,
 			children: data.isDir ? [{}] : null,
-			handler: data.isDir ? loadChildren : null,
-			isDir: data.isDir
+			isDir: data.isDir,
+			lazy: data.isDir ? true : false
 		};
 		children.push(selectData);
 	}
@@ -153,7 +148,6 @@ async function loadChart() {
 				isDir: true
 			}
 		];
-		console.log('chartNodes', chartNodes.value);
 	} catch (e: any) {
 		BtNotify.show({
 			type: NotifyDefinedType.FAILED,
@@ -162,9 +156,42 @@ async function loadChart() {
 	}
 }
 
-const onSelected = async (value) => {
-	console.log('onSelected value', value);
+const updatePathNode = async (path: string) => {
+	try {
+		const res: any = await axios.get(store.url + '/api/files/' + path);
 
+		const children = getChildren(res.items);
+
+		const replaceNodes = replaceObjectByPath(chartNodes.value, path, children);
+
+		chartNodes.value = replaceNodes;
+	} catch (e: any) {
+		BtNotify.show({
+			type: NotifyDefinedType.FAILED,
+			message: t('message.save_loadChart_failed') + e.message
+		});
+	}
+};
+
+function replaceObjectByPath(array, targetPath, newObject) {
+	return array.map((item) => {
+		if (item.path === targetPath) {
+			item.children = newObject;
+			return item;
+		}
+
+		if (item.children && Array.isArray(item.children)) {
+			return {
+				...item,
+				children: replaceObjectByPath(item.children, targetPath, newObject)
+			};
+		}
+
+		return item;
+	});
+}
+
+const onSelected = async (value) => {
 	if (isEditing.value) {
 		checkFileSave(value);
 	} else {
@@ -182,9 +209,6 @@ const fetchData = async (value) => {
 		fileInfo.code = res.content ? res.content : '';
 		// fileInfo.lang = res.extension;
 		fileInfo.name = res.name;
-
-		console.log('route', route);
-		console.log('route', props.app);
 
 		router.push({
 			path: `/app/${props.app.id}/${Encoder.stringToBase64Url(value)}`
@@ -210,9 +234,6 @@ const checkFileSave = (value) => {
 	})
 		.then(async (val) => {
 			if (val) {
-				console.log('checkFileSave val', val);
-				console.log('checkFileSave value', value);
-
 				await onSaveFile();
 				selected.value = value;
 				await fetchData(value);
@@ -221,36 +242,6 @@ const checkFileSave = (value) => {
 		.catch((err) => {
 			console.log(err);
 		});
-};
-
-const loadChildren = async (node: any) => {
-	try {
-		const res: any = await axios.get(store.url + '/api/files/' + node.path);
-
-		const setChildren = (n: any, path: any, children: any) => {
-			for (let i in n) {
-				if (n[i].path == path && n[i].isDir) {
-					n[i].children = children;
-					return;
-				}
-
-				if (n[i].isDir && n[i].children.length > 0) {
-					setChildren(n[i].children, path, children);
-				}
-			}
-		};
-
-		const children = getChildren(res.items);
-		let nodes = chartNodes.value;
-		setChildren(nodes, node.path, children);
-
-		chartNodes.value = nodes;
-	} catch (e: any) {
-		BtNotify.show({
-			type: NotifyDefinedType.FAILED,
-			message: t('message.save_loadChildren_failed') + e.message
-		});
-	}
 };
 
 const editorMount = () => {

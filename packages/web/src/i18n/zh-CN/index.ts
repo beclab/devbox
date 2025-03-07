@@ -274,7 +274,7 @@ export default {
 		rename_folder_failed: '重命名失败',
 		delete_file_success: '删除成功',
 		delete_file_failed: '删除失败',
-		deleteTip: '确定删除这个文件/文件夹吗？',
+		deleteTip: '确定删除 {name} 吗？',
 		save_file: '是否保存当前文件？',
 		rename_file: '重命名',
 		confirmation: '确定',
