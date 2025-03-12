@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DefaultDBFile = "/data/message.db"
+	DefaultDBFile = "./data/message.db"
 )
 
 var (

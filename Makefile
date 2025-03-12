@@ -17,14 +17,6 @@ linux: ;$(info $(M)...Begin to build system-server - linux version.) @
 run: ; $(info $(M)...Run system-server.)
 	go run --tags "sqlite_trace" ./cmd/devbox/main.go -v 4 --db /tmp/test.db
 
-.PHONY: docker-build-frontend
-docker-build-frontend: ## Build docker image with the manager.
-	docker build -t ${IMG} .
-
-.PHONY: docker-push-frontend
-docker-push-frontend: ## Push docker image with the manager.
-	docker push ${IMG}
-
 .PHONY: docker-build-server
 docker-build-server: ## Build docker image with the manager.
 	docker build -t ${IMG} -f Dockerfile.server .
