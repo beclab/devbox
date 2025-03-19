@@ -1,27 +1,27 @@
 package db
 
 import (
-	"flag"
 	"fmt"
+	"os"
 
 	"github.com/beclab/devbox/pkg/store/db/model"
 
-	_ "github.com/mattn/go-sqlite3"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-const (
-	DefaultDBFile = "./data/message.db"
-)
-
-var (
-	dbFile = ""
-)
-
-func init() {
-	flag.StringVar(&dbFile, "db", DefaultDBFile, "default message db file")
-}
+//
+//const (
+//	DefaultDBFile = "./data/message.db"
+//)
+//
+//var (
+//	dbFile = ""
+//)
+//
+//func init() {
+//	flag.StringVar(&dbFile, "db", DefaultDBFile, "default message db file")
+//}
 
 type DbOperator struct {
 	DB *gorm.DB
@@ -32,9 +32,20 @@ var (
 )
 
 func init() {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=allow",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USERNAME"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"))
+
 	var err error
-	source := fmt.Sprintf("file:%s?cache=shared", dbFile)
-	db, err = gorm.Open(sqlite.Open(source), &gorm.Config{})
+	//source := fmt.Sprintf("file:%s?cache=shared", dbFile)
+	db, err = gorm.Open(postgres.New(
+		postgres.Config{
+			DSN:                  dsn,
+			PreferSimpleProtocol: true,
+		}),
+		&gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
