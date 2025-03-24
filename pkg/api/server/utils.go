@@ -1,19 +1,20 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"io"
-	"k8s.io/klog/v2"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/development/application"
+	"github.com/beclab/devbox/pkg/utils"
+	"github.com/beclab/oachecker"
 
 	"github.com/mholt/archiver/v3"
-	"gopkg.in/yaml.v3"
+	"k8s.io/klog/v2"
 )
 
 func getAppPath(app string) string {
@@ -42,7 +43,7 @@ func CheckDir(dirname string) error {
 	return err
 }
 
-func readCfgFromFile(chartDir string) (*application.AppConfiguration, error) {
+func readCfgFromFile(chartDir string) (*oachecker.AppConfiguration, error) {
 	cfgFile := findAppCfgFile(chartDir)
 	klog.Infof("readCfgFromFile: %s", cfgFile)
 	if len(cfgFile) == 0 {
@@ -55,8 +56,7 @@ func readCfgFromFile(chartDir string) (*application.AppConfiguration, error) {
 	return appcfg, nil
 }
 
-func readAppInfo(cfgFile string) (*application.AppConfiguration, error) {
-	var appcfg application.AppConfiguration
+func readAppInfo(cfgFile string) (*oachecker.AppConfiguration, error) {
 	f, err := os.Open(cfgFile)
 	if err != nil {
 		return nil, err
@@ -65,10 +65,16 @@ func readAppInfo(cfgFile string) (*application.AppConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = yaml.Unmarshal(data, &appcfg); err != nil {
+	admin, err := utils.GetAdminUsername(context.TODO())
+	if err != nil {
 		return nil, err
 	}
-	return &appcfg, nil
+	opts := []func(map[string]interface{}){
+		oachecker.WithAdmin(admin),
+		oachecker.WithOwner(constants.Owner),
+	}
+	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
+	return appcfg, nil
 }
 
 // findAppCfgFile find app.cfg path in untar path

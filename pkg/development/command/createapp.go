@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/development/application"
+	"github.com/beclab/oachecker"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/Masterminds/semver/v3"
+	"github.com/beclab/devbox/pkg/constants"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"helm.sh/helm/v3/pkg/chart"
 	appsv1 "k8s.io/api/apps/v1"
@@ -102,7 +102,7 @@ func (c *createApp) Run(ctx context.Context, cfg *CreateConfig) error {
 }
 
 type AppTemplate struct {
-	appCfg        *application.AppConfiguration
+	appCfg        *oachecker.AppConfiguration
 	deployment    *appsv1.Deployment
 	service       *corev1.Service
 	chartMetadata *chart.Metadata
@@ -128,10 +128,10 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 	if configType == "" {
 		configType = "app"
 	}
-	appcfg := application.AppConfiguration{
+	appcfg := oachecker.AppConfiguration{
 		ConfigVersion: "v1",
 		ConfigType:    configType,
-		Metadata: application.AppMetaData{
+		Metadata: oachecker.AppMetaData{
 			Name:        cfg.Name,
 			Icon:        defaultIcon,
 			Description: fmt.Sprintf("app %s", cfg.Name),
@@ -140,7 +140,7 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 			Title:       cfg.Name,
 			Categories:  []string{"dev"},
 		},
-		Spec: application.AppSpec{
+		Spec: oachecker.AppSpec{
 			RequiredMemory: "100Mi",
 			RequiredCPU:    "50m",
 			RequiredDisk:   "50Mi",
@@ -149,13 +149,13 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 			VersionName:    "0.0.1",
 			SupportArch:    []string{"amd64"},
 		},
-		Options: application.Options{
-			AppScope: application.AppScope{
+		Options: oachecker.Options{
+			AppScope: &oachecker.AppScope{
 				AppRef: appRef,
 			},
 		},
 	}
-	entrances := make([]application.Entrance, 0)
+	entrances := make([]oachecker.Entrance, 0)
 	name := cfg.Name
 	port, _ := strconv.Atoi(cfg.WebsitePort)
 
@@ -166,7 +166,7 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 			name = ""
 		}
 	}
-	entrances = append(entrances, application.Entrance{
+	entrances = append(entrances, oachecker.Entrance{
 		Name:       name,
 		Host:       name,
 		Port:       int32(port),
@@ -190,17 +190,17 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 		appcfg.Permission.UserData = make([]string, 0)
 	}
 
-	middleware := application.Middleware{}
+	middleware := oachecker.Middleware{}
 	if cfg.SystemDB {
 		if cfg.Redis {
-			middleware.Redis = &application.RedisConfig{
+			middleware.Redis = &oachecker.RedisConfig{
 				Namespace: "redis",
 			}
 		}
 		if cfg.MongoDB {
-			middleware.MongoDB = &application.MongodbConfig{
+			middleware.MongoDB = &oachecker.MongodbConfig{
 				Username: "root",
-				Databases: []application.Database{
+				Databases: []oachecker.Database{
 					{
 						Name: cfg.Name,
 					},
@@ -208,9 +208,9 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 			}
 		}
 		if cfg.PostgreSQL {
-			middleware.Postgres = &application.PostgresConfig{
+			middleware.Postgres = &oachecker.PostgresConfig{
 				Username: "postgres",
-				Databases: []application.Database{
+				Databases: []oachecker.Database{
 					{
 						Name:        cfg.Name,
 						Distributed: true,
@@ -256,7 +256,11 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 	}
 
 	if cfg.OSVersion != "" {
-		appcfg.Options.Dependencies = []application.Dependency{
+		if appcfg.Options.Dependencies == nil {
+			dependencies := make([]oachecker.Dependency, 0)
+			appcfg.Options.Dependencies = &dependencies
+		}
+		*appcfg.Options.Dependencies = []oachecker.Dependency{
 			{
 				Name:    "terminus",
 				Type:    "system",

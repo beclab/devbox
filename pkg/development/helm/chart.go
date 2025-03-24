@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/development/application"
-
 	"github.com/Masterminds/semver/v3"
+	"github.com/beclab/devbox/pkg/constants"
+	"github.com/beclab/devbox/pkg/utils"
+	"github.com/beclab/oachecker"
 	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -120,8 +120,10 @@ func UpdateAppCfgVersion(path string, version *semver.Version) error {
 		klog.Error("read app cfg error, ", err, ", ", appCfgYaml)
 		return err
 	}
-	var appCfg application.AppConfiguration
-	err = yaml.Unmarshal(data, &appCfg)
+	//var appCfg application.AppConfiguration
+	//err = yaml.Unmarshal(data, &appCfg)
+
+	appCfg, err := utils.GetAppConfig(data)
 	if err != nil {
 		klog.Error("parse appcfg error, ", err)
 		return err
@@ -152,8 +154,9 @@ func UpdateAppCfgName(name, path string) error {
 		return err
 	}
 
-	var appCfg application.AppConfiguration
-	err = yaml.Unmarshal(data, &appCfg)
+	//var appCfg application.AppConfiguration
+	//err = yaml.Unmarshal(data, &appCfg)
+	appCfg, err := utils.GetAppConfig(data)
 	if err != nil {
 		klog.Error("parse OlaresManifest.yaml error, ", err)
 		return err
@@ -389,7 +392,7 @@ func FindContainers(objs []runtime.Object) []*ContainerInfo {
 	return infos
 }
 
-func GetAppCfg(app string, baseDir string) (*application.AppConfiguration, error) {
+func GetAppCfg(app string, baseDir string) (*oachecker.AppConfiguration, error) {
 	if app == "" {
 		return nil, errors.New("repo path must be specified")
 	}
@@ -402,7 +405,7 @@ func GetAppCfg(app string, baseDir string) (*application.AppConfiguration, error
 		return nil, err
 	}
 
-	var appCfg application.AppConfiguration
+	var appCfg oachecker.AppConfiguration
 	err = yaml.Unmarshal(data, &appCfg)
 	if err != nil {
 		klog.Error("parse OlaresManifest.yaml error, ", err)

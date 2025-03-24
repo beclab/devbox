@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"k8s.io/klog/v2"
+	"github.com/beclab/oachecker"
 )
 
 type lint struct {
@@ -20,19 +20,15 @@ func (l *lint) WithDir(dir string) *lint {
 	return l
 }
 
-func (l *lint) Run(ctx context.Context, chart string) (string, error) {
-	chartPath := l.baseCommand.dir
-	chartPath = filepath.Join(chartPath, chart)
-
-	output, err := l.run(ctx, "-c", chartPath)
+func (l *lint) Run(ctx context.Context, chart string) error {
+	chartPath := filepath.Join(l.baseCommand.dir, chart)
+	err := oachecker.LintWithDifferentOwnerAdmin(chartPath, "owner", "admin")
 	if err != nil {
-		klog.Error("run check-chart error, ", err, ", ", chartPath)
-		return "", err
+		return err
 	}
-
-	if len(output) == 0 {
-		return "", nil
+	err = oachecker.LintWithSameOwnerAdmin(chartPath, "owner")
+	if err != nil {
+		return err
 	}
-
-	return output, nil
+	return err
 }

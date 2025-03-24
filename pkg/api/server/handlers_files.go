@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/beclab/devbox/pkg/files"
+	"github.com/beclab/oachecker"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/afero"
@@ -47,6 +48,16 @@ func (h *handlers) getFiles(ctx *fiber.Ctx) error {
 func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
 	content := ctx.Body()
+
+	if strings.HasSuffix(path, "/OlaresManifest.yaml") {
+		err := ManifestLint(content)
+		if err != nil {
+			return ctx.JSON(fiber.Map{
+				"code":    http.StatusBadRequest,
+				"message": fmt.Sprintf("lint OlaresManifest.yaml failed: %v", err),
+			})
+		}
+	}
 
 	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), path, bytes.NewReader(content))
 	if err != nil {
@@ -178,3 +189,16 @@ type noCheck struct {
 }
 
 func (*noCheck) Check(path string) bool { return true }
+
+func ManifestLint(content []byte) error {
+	err := oachecker.CheckManifestFromContent(content)
+	if err != nil {
+		return err
+	}
+	err = oachecker.CheckManifestFromContent(content, oachecker.WithOwner("owner"),
+		oachecker.WithAdmin("admin"))
+	if err != nil {
+		return err
+	}
+	return nil
+}

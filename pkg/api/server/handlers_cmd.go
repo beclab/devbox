@@ -63,24 +63,17 @@ func (h *handlers) createDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	output, err := command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), config.Name)
+	err = command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), config.Name)
 	if err != nil {
-
+		e := os.RemoveAll(filepath.Join(BaseDir, config.Name))
+		if e != nil {
+			klog.Errorf("remove dir %s error", config.Name)
+		}
 		klog.Error("check OlaresManifest.yaml error, ", err, ", ", config)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("OlaresManifest.yaml has error: %v", err),
 		})
-	}
-	if len(output) > 0 {
-		err = os.RemoveAll(filepath.Join(BaseDir, config.Name))
-		if err != nil {
-			klog.Errorf("remove dir %s error", config.Name)
-			return ctx.JSON(fiber.Map{
-				"code":    http.StatusBadRequest,
-				"message": output,
-			})
-		}
 	}
 
 	// create app in db
@@ -253,14 +246,11 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 	devName := name + "-dev"
 	devNamespace := devName + "-" + constants.Owner
 
-	output, err := command.Lint().WithDir(BaseDir).Run(context.TODO(), name)
+	err = command.Lint().WithDir(BaseDir).Run(context.TODO(), name)
 	if err != nil {
-		return err
-	}
-	if len(output) > 0 {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": output,
+			"message": err.Error(),
 		})
 	}
 
@@ -305,7 +295,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		}
 	}
 
-	output, err = command.Install().Run(ctx.Context(), devName, token)
+	output, err := command.Install().Run(ctx.Context(), devName, token)
 	if err != nil {
 		klog.Error("command install error, ", err, ", ", name)
 		return ctx.JSON(fiber.Map{
@@ -544,18 +534,12 @@ func (h *handlers) uploadDevAppChart(ctx *fiber.Ctx) error {
 		})
 	}
 
-	output, err := command.Lint().WithDir(untarPath).Run(context.TODO(), app)
+	err = command.Lint().WithDir(untarPath).Run(context.TODO(), app)
 	if err != nil {
 		klog.Error("check chart error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Lint Failed: %v", err),
-		})
-	}
-	if len(output) > 0 {
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": output,
 		})
 	}
 
@@ -585,7 +569,7 @@ func (h *handlers) lintDevAppChart(ctx *fiber.Ctx) error {
 		})
 	}
 
-	res, err := command.Lint().WithDir(BaseDir).Run(ctx.Context(), app)
+	err := command.Lint().WithDir(BaseDir).Run(ctx.Context(), app)
 	if err != nil {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
@@ -595,7 +579,7 @@ func (h *handlers) lintDevAppChart(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(fiber.Map{
 		"code": http.StatusOK,
-		"data": map[string]string{"result": res},
+		"data": map[string]string{"result": ""},
 	})
 }
 
@@ -678,20 +662,20 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 	klog.Infof("WithDir: %s\n", filepath.Dir(chartDir))
 	klog.Infof("chart Base : %s\n", filepath.Base(chartDir))
 
-	output, err := command.Lint().WithDir(filepath.Dir(chartDir)).Run(context.TODO(), filepath.Base(chartDir))
+	err = command.Lint().WithDir(filepath.Dir(chartDir)).Run(context.TODO(), filepath.Base(chartDir))
 	if err != nil {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Lint failed: %v", err),
 		})
 	}
-	klog.Infof("output: %s\n", output)
-	if len(output) > 0 {
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": output,
-		})
-	}
+	//klog.Infof("output: %s\n", output)
+	//if len(output) > 0 {
+	//	return ctx.JSON(fiber.Map{
+	//		"code":    http.StatusBadRequest,
+	//		"message": output,
+	//	})
+	//}
 	var exists *model.DevApp
 	err = h.db.DB.Where("app_name = ?", cfg.Metadata.Name).First(&exists).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

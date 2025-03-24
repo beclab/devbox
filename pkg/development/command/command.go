@@ -44,7 +44,3 @@ func newCheckChart() *checkChart {
 		*newBaseCommand(),
 	}
 }
-
-func (c *checkChart) run(ctx context.Context, args ...string) (string, error) {
-	return c.baseCommand.run(ctx, "check-chart", args...)
-}
