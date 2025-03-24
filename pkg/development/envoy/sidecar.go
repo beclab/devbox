@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/beclab/devbox/pkg/development/application"
+	"github.com/beclab/oachecker"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -16,7 +16,7 @@ import (
 )
 
 func InjectSidecar(ctx context.Context, kubeClient *kubernetes.Clientset, namespace string,
-	pod *corev1.Pod, devcontainers []*DevcontainerEndpoint, proxyUUID string, appcfg *application.AppConfiguration) error {
+	pod *corev1.Pod, devcontainers []*DevcontainerEndpoint, proxyUUID string, appcfg *oachecker.AppConfiguration) error {
 	injected, _ := IsInjectedPod(pod)
 	sidecarConfig := &ConfigBuilder{}
 	sidecarConfig.WithDevcontainers(devcontainers)
@@ -77,7 +77,6 @@ func InjectSidecar(ctx context.Context, kubeClient *kubernetes.Clientset, namesp
 			pod.Spec.Containers = append(pod.Spec.Containers, getWebSocketSideCarContainerSpec(appcfg.Options.WsConfig))
 		}
 	}
-
 	return nil
 }
 
@@ -176,7 +175,7 @@ EOF
 	return cmd
 }
 
-func getWebSocketSideCarContainerSpec(wsConfig *application.WsConfig) corev1.Container {
+func getWebSocketSideCarContainerSpec(wsConfig *oachecker.WsConfig) corev1.Container {
 	return corev1.Container{
 		Name:            WsContainerName,
 		Image:           WsContainerImage,

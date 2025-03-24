@@ -14,6 +14,8 @@ import (
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/helm"
 	"github.com/beclab/devbox/pkg/store/db/model"
+	"github.com/beclab/devbox/pkg/utils"
+	"github.com/beclab/oachecker"
 
 	"github.com/emicklei/go-restful/v3"
 	"github.com/go-resty/resty/v2"
@@ -47,8 +49,12 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var appcfg application.AppConfiguration
-	err = yaml.Unmarshal(data, &appcfg)
+	//appcfg, err := oachecker.GetAppConfiguration()
+	//
+	//var appcfg application.AppConfiguration
+	//err = yaml.Unmarshal(data, &appcfg)
+
+	appcfg, err := utils.GetAppConfig(data)
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
 		klog.Error(string(data))
@@ -76,7 +82,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 	path := getAppPath(app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 
-	var appcfg application.AppConfiguration
+	var appcfg oachecker.AppConfiguration
 	err := ctx.BodyParser(&appcfg)
 	if err != nil {
 		klog.Error("read app cfg post data error, ", err)
@@ -98,6 +104,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 	appCfgBak := filepath.Join("/tmp", uniquePath, "OlaresManifest.yaml.bak")
 	chartDeferFunc, err := command.BackupAndRestoreFile(appCfg, appCfgBak)
 	if err != nil {
+		chartDeferFunc()
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Backup and restore file error: %v", err),
@@ -112,19 +119,12 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Save OlaresManifest.yaml error: %v", err),
 		})
 	}
-	output, err := command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), app)
+	err = command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), app)
 	if err != nil {
 		klog.Error("check app cfg error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("OlaresManifest.yaml has errors: %v", err),
-		})
-	}
-	if len(output) > 0 {
-		chartDeferFunc()
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": output,
 		})
 	}
 
@@ -410,8 +410,10 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var appcfg application.AppConfiguration
-	err = yaml.Unmarshal(data, &appcfg)
+	appcfg, err := utils.GetAppConfig(data)
+
+	//var appcfg application.AppConfiguration
+	//err = yaml.Unmarshal(data, &appcfg)
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
 		klog.Error(string(data))

@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"k8s.io/klog/v2"
+	"github.com/beclab/oachecker"
 )
 
 type checkCfg struct {
@@ -20,19 +20,7 @@ func (c *checkCfg) WithDir(dir string) *checkCfg {
 	return c
 }
 
-func (c *checkCfg) Run(ctx context.Context, chart string) (string, error) {
-	chartPath := c.baseCommand.dir
-	chartPath = filepath.Join(chartPath, chart)
-
-	output, err := c.run(ctx, "cfg", "-c", chartPath)
-	if err != nil {
-		klog.Error("run check-chart cfg error, ", err, ", ", chartPath)
-		return "", err
-	}
-
-	if len(output) == 0 {
-		return "", nil
-	}
-
-	return output, nil
+func (c *checkCfg) Run(ctx context.Context, chart string) error {
+	err := oachecker.CheckChart(filepath.Join(c.baseCommand.dir, chart))
+	return err
 }
