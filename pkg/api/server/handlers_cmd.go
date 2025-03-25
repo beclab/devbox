@@ -214,9 +214,9 @@ func (h *handlers) updateDevAppRepo(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
+func (h *handlers) installDevApp(ctx *fiber.Ctx) (err error) {
 	app := make(map[string]string)
-	err := ctx.BodyParser(&app)
+	err = ctx.BodyParser(&app)
 	if err != nil {
 		klog.Error("parse install app data error, ", err)
 		return ctx.JSON(fiber.Map{
@@ -242,12 +242,29 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("App name is empty"),
 		})
 	}
+	defer func() {
+		if err != nil {
+			err = UpdateDevAppState(name, abnormal)
+			if err != nil {
+				klog.Errorf("update app state to abnormal err %v", err)
+			}
+		}
+	}()
+	err = UpdateDevAppState(name, deploying)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("update app state err %v", err),
+		})
+	}
+
 	source := app["source"]
 	devName := name + "-dev"
 	devNamespace := devName + "-" + constants.Owner
 
 	err = command.Lint().WithDir(BaseDir).Run(context.TODO(), name)
 	if err != nil {
+
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": err.Error(),
@@ -295,7 +312,8 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		}
 	}
 
-	output, err := command.Install().Run(ctx.Context(), devName, token)
+	_, err = command.Install().Run(ctx.Context(), devName, token)
+
 	if err != nil {
 		klog.Error("command install error, ", err, ", ", name)
 		return ctx.JSON(fiber.Map{
@@ -304,10 +322,11 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	if len(output) > 0 {
+	err = UpdateDevAppState(name, deployed)
+	if err != nil {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": output,
+			"message": fmt.Sprintf("update app state to deployed err %v", err),
 		})
 	}
 	return ctx.JSON(fiber.Map{
@@ -608,6 +627,10 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Uninstall Failed: %v", err),
 		})
 	}
+	err = UpdateDevAppState(name, undeploy)
+	if err != nil {
+		klog.Errorf("update dev app state to undeploy err %v", err)
+	}
 
 	klog.Infof("res: %#v", res.Data)
 	return ctx.JSON(fiber.Map{
@@ -707,6 +730,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 			AppName: cfg.Metadata.Name,
 			DevEnv:  "default",
 			AppType: db.CommunityApp,
+			State:   undeploy,
 		}
 		appID, err = InsertDevApp(&appData)
 		if err != nil {
@@ -759,23 +783,46 @@ func InsertDevApp(app *model.DevApp) (appId int64, err error) {
 		return appId, ErrAppIsExist
 	}
 
-	da := model.DevApp{
-		AppName: app.AppName,
-		AppType: app.AppType,
-		DevEnv:  app.DevEnv,
-	}
-	err = op.DB.Create(&da).Error
+	err = op.DB.Create(app).Error
 	if err != nil {
 		klog.Error("exec sql error, ", err)
 		return appId, err
 	}
 
-	appId = int64(da.ID)
+	appId = int64(app.ID)
 	if err != nil {
 		klog.Error("get last insert id error, ", err)
 		return appId, err
 	}
 	return appId, nil
+}
+
+func UpdateDevApp(name string, updates map[string]interface{}) (appId int64, err error) {
+	op := db.NewDbOperator()
+	var exists *model.DevApp
+	err = op.DB.Where("app_name = ?", name).First(&exists).Error
+	if err != nil {
+		return 0, err
+	}
+
+	err = op.DB.Model(&exists).Updates(updates).Error
+	if err != nil {
+		klog.Errorf("update dev_app err %v", err)
+		return 0, err
+	}
+	appId = int64(exists.ID)
+	return appId, nil
+}
+
+func UpdateDevAppState(name string, state string) error {
+	updates := map[string]interface{}{
+		"state": state,
+	}
+	_, err := UpdateDevApp(name, updates)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type InstallationResponseData struct {
@@ -863,5 +910,157 @@ func WaitForUninstall(name, token string, kubeConfig *rest.Config) error {
 		}
 
 		return false, nil
+	})
+}
+
+type App struct {
+	Name string `json:"name"`
+}
+
+func (h *handlers) createApp(ctx *fiber.Ctx) error {
+	var app App
+	err := ctx.BodyParser(&app)
+	if err != nil {
+		klog.Error("parse app info error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
+	}
+	appData := model.DevApp{
+		AppName: app.Name,
+		AppType: db.CommunityApp,
+		State:   empty,
+	}
+	appId, err := InsertDevApp(&appData)
+	if err != nil {
+		klog.Errorf("create app err %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app err %v", err),
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
+	})
+}
+
+func (h *handlers) fillApp(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	var cfg command.CreateWithOneDockerConfig
+
+	err := ctx.BodyParser(&cfg)
+	if err != nil {
+		klog.Errorf("parse create config err %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
+	}
+
+	if errs := command.ValidateStruct(cfg); len(errs) > 0 {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", errs),
+		})
+	}
+	at := command.AppTemplate{}
+	at.WithDockerCfg(&cfg).WithDockerDeployment(&cfg).
+		WithDockerService(&cfg).WithDockerChartMetadata(&cfg).WithDockerOwner(&cfg)
+	err = at.WriteDockerFile(&cfg, BaseDir)
+	if err != nil {
+		klog.Errorf("write docker file err %v", err)
+		e := os.RemoveAll(filepath.Join(BaseDir, name))
+		if e != nil {
+			klog.Errorf("remove dir %s err %v", name, e)
+		}
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app err %v", err),
+		})
+	}
+
+	updates := map[string]interface{}{
+		"app_type": db.CommunityApp,
+		"dev_env":  "default",
+		"state":    undeploy,
+	}
+	appId, err := UpdateDevApp(cfg.Name, updates)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("update app err %v", err),
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
+	})
+}
+
+func (h *handlers) appState(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	var app *model.DevApp
+
+	op := db.NewDbOperator()
+	err := op.DB.Where("app_name = ?", name).First(&app).Error
+	if err != nil {
+		klog.Errorf("get app name=%s err %v", name, err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("get state err %v", err),
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"state": app.State,
+		},
+	})
+}
+
+func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+
+	err := command.CreateAppWithHelloWorldConfig(BaseDir, name)
+	if err != nil {
+		klog.Errorf("write docker file err %v", err)
+		e := os.RemoveAll(filepath.Join(BaseDir, name))
+		if e != nil {
+			klog.Errorf("remove dir %s err %v", name, e)
+		}
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app err %v", err),
+		})
+	}
+
+	//appData := model.DevApp{
+	//	AppName: name,
+	//	AppType: db.CommunityApp,
+	//}
+	updates := map[string]interface{}{
+		"app_type": db.CommunityApp,
+		"dev_env":  "default",
+	}
+
+	appId, err := UpdateDevApp(name, updates)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("update app err %v", err),
+		})
+	}
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
 	})
 }

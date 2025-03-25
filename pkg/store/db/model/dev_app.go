@@ -10,6 +10,7 @@ type DevApp struct {
 	Description string    `gorm:"type:text;column:description" json:"description"`
 	CreateTime  time.Time `gorm:"default:CURRENT_TIMESTAMP;column:create_time" json:"createTime"`
 	UpdateTime  time.Time `gorm:"default:CURRENT_TIMESTAMP;column:update_time;index:update_time" json:"updateTime"`
+	State       string    `gorm:"type:varchar(20);column:state" json:"state"`
 
 	AppID         string                         `gorm:"-" json:"appID"`
 	Chart         string                         `gorm:"-" json:"chart"`
