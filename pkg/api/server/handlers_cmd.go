@@ -1048,6 +1048,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 	updates := map[string]interface{}{
 		"app_type": db.CommunityApp,
 		"dev_env":  "default",
+		"state":    undeploy,
 	}
 
 	appId, err := UpdateDevApp(name, updates)

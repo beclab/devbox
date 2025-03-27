@@ -18,6 +18,7 @@ func TestValidateStruct(t *testing.T) {
 				},
 				RequiredCpu:    "1Gi",
 				LimitedCpu:     "",
+				GpuVendor:      "nvidia",
 				RequiredMemory: "1Gi",
 				LimitedMemory:  "",
 				RequiredGpu:    false,
