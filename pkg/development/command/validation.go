@@ -54,6 +54,14 @@ func validateName(fl jvalidator.FieldLevel) bool {
 	return match
 }
 
+func validateGpuVendor(fl jvalidator.FieldLevel) bool {
+	value := fl.Field().String()
+	if value == "nvidia" || value == "amd" || value == "intel" || value == "" {
+		return true
+	}
+	return false
+}
+
 func validateImage(fl jvalidator.FieldLevel) bool {
 	value := fl.Field().String()
 	_, err := refdocker.ParseDockerRef(value)
@@ -77,6 +85,7 @@ func init() {
 	validate.RegisterValidation("limitedMemory", validateLimitedMemory)
 	validate.RegisterValidation("name", validateName)
 	validate.RegisterValidation("image", validateImage)
+	validate.RegisterValidation("gpuVendor", validateGpuVendor)
 }
 
 func ValidateStruct(data interface{}) []ErrorResponse {

@@ -119,6 +119,9 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 
 	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", app, "http://chartmuseum-studio:8080")
 	if err != nil {
+		if len(output) > 0 {
+			return errors.New(output)
+		}
 		return err
 	}
 	result := strings.Split(output, "\n")

@@ -214,7 +214,8 @@ func (h *handlers) updateDevAppRepo(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *handlers) installDevApp(ctx *fiber.Ctx) (err error) {
+func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
+	var err error
 	app := make(map[string]string)
 	err = ctx.BodyParser(&app)
 	if err != nil {
@@ -330,7 +331,10 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) (err error) {
 		})
 	}
 	return ctx.JSON(fiber.Map{
-		"code":    http.StatusOK,
+		"code": http.StatusOK,
+		"data": map[string]string{
+			"namespace": devNamespace,
+		},
 		"message": "Install success",
 	})
 }
@@ -1048,6 +1052,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 	updates := map[string]interface{}{
 		"app_type": db.CommunityApp,
 		"dev_env":  "default",
+		"state":    undeploy,
 	}
 
 	appId, err := UpdateDevApp(name, updates)

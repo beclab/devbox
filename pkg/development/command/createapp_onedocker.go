@@ -21,6 +21,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+var vendorGpuMap = map[string]string{
+	"nvidia": "nvidia.com/gpu",
+	"amd":    "amd.com/gpu",
+	"intel":  "gpu.intel.com/i915",
+}
+
 var validate = jvalidator.New()
 
 type CreateWithOneDockerConfig struct {
@@ -32,6 +38,7 @@ type CreateWithOneDockerConfig struct {
 	RequiredMemory string                       `json:"requiredMemory" validate:"required,requiredMemory"`
 	LimitedMemory  string                       `json:"limitedMemory" validate:"limitedMemory"`
 	RequiredGpu    bool                         `json:"requiredGpu"`
+	GpuVendor      string                       `json:"gpuVendor" validate:"gpuVendor"`
 	NeedPg         bool                         `json:"needPg"`
 	NeedRedis      bool                         `json:"needRedis"`
 	Env            map[string]string            `json:"env"`
@@ -269,6 +276,13 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 	if len(config.Container.StartCmdArgs) > 0 {
 		deployment.Spec.Template.Spec.Containers[0].Args = []string{config.Container.StartCmdArgs}
 	}
+	if len(config.GpuVendor) > 0 {
+		limitKey := corev1.ResourceName(vendorGpuMap[config.GpuVendor])
+		deployment.Spec.Template.Spec.Containers[0].Resources.Limits[limitKey] = func() resource.Quantity {
+			gpu, _ := resource.ParseQuantity("1")
+			return gpu
+		}()
+	}
 
 	ports := make([]corev1.ContainerPort, 0)
 	ports = append(ports, corev1.ContainerPort{
@@ -364,12 +378,29 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			MountPath: "/userdata",
 		})
 	}
+
+	volumes := make([]corev1.Volume, 0)
+	t := corev1.HostPathDirectoryOrCreate
+
+	for hostPath, mountPath := range config.Mounts {
+		volumeMounts = append(volumeMounts, corev1.VolumeMount{
+			Name:      formatPathToVolumeName(hostPath),
+			MountPath: mountPath,
+		})
+		volumes = append(volumes, corev1.Volume{
+			Name: formatPathToVolumeName(hostPath),
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Type: &t,
+					Path: hostPath,
+				},
+			},
+		})
+	}
 	if len(volumeMounts) > 0 {
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	}
 
-	volumes := make([]corev1.Volume, 0)
-	t := corev1.HostPathDirectoryOrCreate
 	if at.appCfg.Permission.AppCache {
 		volumes = append(volumes, corev1.Volume{
 			Name: "appcache",
@@ -571,5 +602,11 @@ func ParseCommand(cmd string) []string {
 		result = append(result, current.String())
 	}
 
+	return result
+}
+
+func formatPathToVolumeName(path string) string {
+	trimmed := strings.Trim(path, "/")
+	result := strings.ReplaceAll(trimmed, "/", "-")
 	return result
 }
