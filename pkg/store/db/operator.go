@@ -80,6 +80,12 @@ func createTableIfNotExists() (err error) {
 				return err
 			}
 		}
+		if db.Migrator().HasColumn(&model.DevAppContainers{}, "PodSelector") {
+			err = db.Migrator().AlterColumn(&model.DevAppContainers{}, "PodSelector")
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
