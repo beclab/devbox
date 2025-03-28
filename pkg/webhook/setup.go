@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultCaPath              = "/etc/certs/ca.crt"
-	webhookServiceName         = "devbox-server"
+	webhookServiceName         = "studio-server"
 	devContainerWebhookCfgName = "devcontainer-mutate-webhooks"
 	imageManagerWebhookCfgName = "imagemanager-mutate-webhooks"
 	imageManagerWebhookPrefix  = "imagemanager-webhook"
@@ -43,7 +43,7 @@ var (
 	// Deserializer is used to decode the admission request body
 	Deserializer = codecs.UniversalDeserializer()
 
-	UUIDAnnotation = "devbox.bytetrade.io/proxy-uuid"
+	UUIDAnnotation = "studio.bytetrade.io/proxy-uuid"
 )
 
 type Webhook struct {
