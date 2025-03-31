@@ -276,7 +276,7 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 	if len(config.Container.StartCmdArgs) > 0 {
 		deployment.Spec.Template.Spec.Containers[0].Args = []string{config.Container.StartCmdArgs}
 	}
-	if len(config.GpuVendor) > 0 {
+	if config.RequiredGpu && len(config.GpuVendor) > 0 {
 		limitKey := corev1.ResourceName(vendorGpuMap[config.GpuVendor])
 		deployment.Spec.Template.Spec.Containers[0].Resources.Limits[limitKey] = func() resource.Quantity {
 			gpu, _ := resource.ParseQuantity("1")
