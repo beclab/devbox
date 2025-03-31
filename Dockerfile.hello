@@ -1,0 +1,12 @@
+FROM golang:1.22.0 AS builder
+
+WORKDIR /workspace
+COPY hello.go hello.go
+
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -a -o hello hello.go
+
+
+FROM alpine:latest
+WORKDIR /
+COPY --from=builder /workspace/hello /hello
+ENTRYPOINT ["/hello"]

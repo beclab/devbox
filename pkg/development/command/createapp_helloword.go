@@ -2,8 +2,8 @@ package command
 
 var createConfigExample = &CreateWithOneDockerConfig{
 	Container: CreateWithOneDockerContainer{
-		Image: "bytetrade/devbox-app:0.0.1",
-		Port:  8080,
+		Image: "beclab/studio-app:0.0.1",
+		Port:  80,
 	},
 	RequiredCpu:    "50m",
 	RequiredMemory: "100Mi",
