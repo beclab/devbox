@@ -65,8 +65,8 @@ func (c *install) Run(ctx context.Context, app string, token string) (string, er
 	if ok && int(code.(float64)) == 0 {
 		data := ret["data"].(map[string]interface{})
 		code, ok := data["code"]
-		if ok && int(code.(float64)) == http.StatusBadRequest {
-			return fmt.Sprintf("resource: %s, message: %s", data["resource"], data["message"]), nil
+		if ok && int(code.(float64)) != http.StatusOK {
+			return "", fmt.Errorf("resource: %s, message: %s", data["resource"], data["message"])
 		}
 
 	}

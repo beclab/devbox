@@ -78,6 +78,10 @@ func (s *server) Start() {
 	command.Post("/uninstall/:name", s.handlers.uninstall)
 	command.Post("/upload-app-archive", s.handlers.createAppByArchive)
 
+	command.Post("/apps/create", s.handlers.createApp)
+	command.Post("/apps/:name/create", s.handlers.fillApp)
+	command.Post("/apps/:name/example/create", s.handlers.fillAppWithExample)
+
 	// files /api/files
 	files := api.Group("files")
 	files.Get("/*", s.handlers.getFiles)
@@ -91,8 +95,8 @@ func (s *server) Start() {
 	api.Post("/unbind-container", s.handlers.unbindContainer)
 	api.Get("/list-app-containers", s.handlers.listAppContainersInChart)
 	api.Get("/list-my-containers", s.handlers.listMyContainers)
-	api.Get("/app-cfg", s.handlers.getAppConfig)
-	api.Post("/app-cfg", s.handlers.updateAppConfig)
+	//api.Get("/app-cfg", s.handlers.getAppConfig)
+	//api.Post("/app-cfg", s.handlers.updateAppConfig)
 
 	api.Get("/app-state", s.handlers.getAppState)
 	api.Get("/app-status", s.handlers.getAppStatus)
@@ -100,6 +104,8 @@ func (s *server) Start() {
 	api.Get("/dev-container/:name", s.handlers.getDevContainer)
 	api.Delete("/dev-container/:name", s.handlers.delDevContainer)
 	api.Patch("/dev-container/:name", s.handlers.updateDevContainer)
+
+	api.Get("/apps/:name/status", s.handlers.appState)
 
 	api.Get("/dev-containers/:id", s.handlers.getDevContainer)
 	// webhooks /webhook

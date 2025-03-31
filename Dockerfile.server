@@ -12,7 +12,7 @@ COPY cmd/ cmd/
 COPY containers/ containers/
 COPY pkg/ pkg/
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o devbox cmd/devbox/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -a -o devbox cmd/devbox/main.go
 
 
 FROM alpine:latest as builder2
