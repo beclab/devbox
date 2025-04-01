@@ -20,10 +20,10 @@ func TestWithDockerAppCfg(t *testing.T) {
 		LimitedMemory:  "20Mi",
 		GpuVendor:      "nvidia",
 		RequiredGpu:    false,
-		NeedPg:         false,
+		NeedPg:         true,
 		NeedRedis:      true,
 		Env:            map[string]string{},
-		Mounts:         map[string]string{"/boot": "/boot", "/etc/hosts": "/etc/hosts"},
+		Mounts:         map[string]string{"/app/data/aaa": "/aaa", "/app/cache/bbb": "/bbb", "/Home/ccc": "/ccc", "/app/data/aaa2": "/aaa2"},
 	}
 	at := AppTemplate{}
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)

@@ -69,7 +69,7 @@ func (c *createWithOneDocker) WithDir(dir string) *createWithOneDocker {
 
 func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig) error {
 	at := AppTemplate{}
-	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
+	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
 
 	baseDir := c.dir
 	if baseDir == "" {
@@ -97,7 +97,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 	configType := "app"
 
 	appcfg := oachecker.AppConfiguration{
-		ConfigVersion: "v1",
+		ConfigVersion: "0.8.0",
 		ConfigType:    configType,
 		Metadata: oachecker.AppMetaData{
 			Name:        config.Name,
@@ -106,7 +106,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 			AppID:       config.Name,
 			Version:     "0.0.1",
 			Title:       config.Name,
-			Categories:  []string{"dev"},
+			Categories:  []string{"Utilities"},
 		},
 		Spec: oachecker.AppSpec{
 			RequiredMemory: config.RequiredMemory,
@@ -119,14 +119,14 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 		},
 	}
 
-	appcfg.Permission.AppData = at.checkMountPath(config.Mounts, "{{ .Values.userspace.appData }}")
-	appcfg.Permission.AppCache = at.checkMountPath(config.Mounts, "{{ .Values.userspace.appCache }}")
+	appcfg.Permission.AppData = at.checkMountPath(config.Mounts, "/app/data/")
+	appcfg.Permission.AppCache = at.checkMountPath(config.Mounts, "/app/cache/")
 	//  {{ .Values.sharedlib }}
 	appcfg.Permission.UserData = make([]string, 0)
-	if at.checkMountPath(config.Mounts, "{{ .Values.userspace.userData }}") {
+	if at.checkMountPath(config.Mounts, "/Home/") {
 		for key := range config.Mounts {
-			if strings.HasPrefix(key, "{{ .Values.userspace.userData }})") {
-				appcfg.Permission.UserData = append(appcfg.Permission.UserData, config.Mounts[key])
+			if strings.HasPrefix(key, "/Home/") {
+				appcfg.Permission.UserData = append(appcfg.Permission.UserData, key)
 			}
 		}
 	}
@@ -360,24 +360,24 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 
 	volumeMounts := make([]corev1.VolumeMount, 0)
 	//klog.Info("cfg.AppCache: ", cfg.AppCache)
-	if at.appCfg.Permission.AppCache {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "appcache",
-			MountPath: "/appcache",
-		})
-	}
-	if at.appCfg.Permission.AppData {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "appdata",
-			MountPath: "/appdata",
-		})
-	}
-	if len(at.appCfg.Permission.UserData) > 0 {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "userdata",
-			MountPath: "/userdata",
-		})
-	}
+	//if at.appCfg.Permission.AppCache {
+	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//		Name:      "appcache",
+	//		MountPath: "/appcache",
+	//	})
+	//}
+	//if at.appCfg.Permission.AppData {
+	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//		Name:      "appdata",
+	//		MountPath: "/appdata",
+	//	})
+	//}
+	//if len(at.appCfg.Permission.UserData) > 0 {
+	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//		Name:      "userdata",
+	//		MountPath: "/userdata",
+	//	})
+	//}
 
 	volumes := make([]corev1.Volume, 0)
 	t := corev1.HostPathDirectoryOrCreate
@@ -392,7 +392,7 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
 					Type: &t,
-					Path: hostPath,
+					Path: replacePath(hostPath),
 				},
 			},
 		})
@@ -401,41 +401,42 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	}
 
-	if at.appCfg.Permission.AppCache {
-		volumes = append(volumes, corev1.Volume{
-			Name: "appcache",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Type: &t,
-					Path: "{{ .Values.userspace.appCache }}/" + config.Name,
-				},
-			},
-		})
-	}
+	//if at.appCfg.Permission.AppCache {
+	//	volumes = append(volumes, corev1.Volume{
+	//		Name: "appcache",
+	//		VolumeSource: corev1.VolumeSource{
+	//			HostPath: &corev1.HostPathVolumeSource{
+	//				Type: &t,
+	//				Path: "{{ .Values.userspace.appCache }}/Studio/" + config.Name,
+	//			},
+	//		},
+	//	})
+	//}
 
-	if at.appCfg.Permission.AppData {
-		volumes = append(volumes, corev1.Volume{
-			Name: "appdata",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Type: &t,
-					Path: "{{ .Values.userspace.appData }}/" + config.Name,
-				},
-			},
-		})
-	}
+	//if at.appCfg.Permission.AppData {
+	//	volumes = append(volumes, corev1.Volume{
+	//		Name: "appdata",
+	//		VolumeSource: corev1.VolumeSource{
+	//			HostPath: &corev1.HostPathVolumeSource{
+	//				Type: &t,
+	//				Path: "{{ .Values.userspace.appData }}/Studio/" + config.Name,
+	//			},
+	//		},
+	//	})
+	//}
 
-	for key := range at.appCfg.Permission.UserData {
-		volumes = append(volumes, corev1.Volume{
-			Name: "userdata",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Type: &t,
-					Path: "{{ .Values.userspace.userData }}" + "/" + at.appCfg.Permission.UserData[key],
-				},
-			},
-		})
-	}
+	//for i := range at.appCfg.Permission.UserData {
+	//	volumeName := "userdata" + strings.ToLower(strings.ReplaceAll(at.appCfg.Permission.UserData[i], "/", "-"))
+	//	volumes = append(volumes, corev1.Volume{
+	//		Name: volumeName,
+	//		VolumeSource: corev1.VolumeSource{
+	//			HostPath: &corev1.HostPathVolumeSource{
+	//				Type: &t,
+	//				Path: "{{ .Values.userspace.userData }}" + "/" + strings.Trim(at.appCfg.Permission.UserData[i], "/Home/"),
+	//			},
+	//		},
+	//	})
+	//}
 	if len(volumes) > 0 {
 		deployment.Spec.Template.Spec.Volumes = volumes
 	}
@@ -607,6 +608,22 @@ func ParseCommand(cmd string) []string {
 
 func formatPathToVolumeName(path string) string {
 	trimmed := strings.Trim(path, "/")
-	result := strings.ReplaceAll(trimmed, "/", "-")
+	result := strings.ToLower(strings.ReplaceAll(trimmed, "/", "-"))
+	return result
+
+}
+
+func replacePath(input string) string {
+	replacements := map[string]string{
+		"/app/data/":  "{{ .Values.userspace.appCache }}/",
+		"/app/cache/": "{{ .Values.userspace.appData }}/",
+		"/Home/":      "{{ .Values.userspace.userData }}/",
+	}
+
+	result := input
+	for oldPath, newPath := range replacements {
+		result = strings.Replace(result, oldPath, newPath, -1)
+	}
+
 	return result
 }

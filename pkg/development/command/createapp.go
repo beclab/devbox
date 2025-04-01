@@ -129,7 +129,7 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 		configType = "app"
 	}
 	appcfg := oachecker.AppConfiguration{
-		ConfigVersion: "v1",
+		ConfigVersion: "0.8.0",
 		ConfigType:    configType,
 		Metadata: oachecker.AppMetaData{
 			Name:        cfg.Name,
@@ -424,47 +424,47 @@ func (at *AppTemplate) WithDeployment(cfg *CreateConfig) *AppTemplate {
 
 	volumeMounts := make([]corev1.VolumeMount, 0)
 	klog.Info("cfg.AppCache: ", cfg.AppCache)
-	if cfg.AppCache {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "appcache",
-			MountPath: "/appcache",
-		})
-	}
-	if len(cfg.UserData) > 0 {
-		volumeMounts = append(volumeMounts, corev1.VolumeMount{
-			Name:      "userdata",
-			MountPath: "/userdata",
-		})
-	}
+	//if cfg.AppCache {
+	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//		Name:      "appcache",
+	//		MountPath: "/appcache",
+	//	})
+	//}
+	//if len(cfg.UserData) > 0 {
+	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
+	//		Name:      "userdata",
+	//		MountPath: "/userdata",
+	//	})
+	//}
 	if len(volumeMounts) > 0 {
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	}
 
 	volumes := make([]corev1.Volume, 0)
-	t := corev1.HostPathDirectoryOrCreate
-	if cfg.AppCache {
-		volumes = append(volumes, corev1.Volume{
-			Name: "appcache",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Type: &t,
-					Path: "{{ .Values.userspace.appCache }}/" + cfg.Name,
-				},
-			},
-		})
-	}
+	//t := corev1.HostPathDirectoryOrCreate
+	//if cfg.AppCache {
+	//	volumes = append(volumes, corev1.Volume{
+	//		Name: "appcache",
+	//		VolumeSource: corev1.VolumeSource{
+	//			HostPath: &corev1.HostPathVolumeSource{
+	//				Type: &t,
+	//				Path: "{{ .Values.userspace.appCache }}/" + cfg.Name,
+	//			},
+	//		},
+	//	})
+	//}
 
-	if len(cfg.UserData) > 0 {
-		volumes = append(volumes, corev1.Volume{
-			Name: "userdata",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Type: &t,
-					Path: "{{ .Values.userspace.userData }}",
-				},
-			},
-		})
-	}
+	//if len(cfg.UserData) > 0 {
+	//	volumes = append(volumes, corev1.Volume{
+	//		Name: "userdata",
+	//		VolumeSource: corev1.VolumeSource{
+	//			HostPath: &corev1.HostPathVolumeSource{
+	//				Type: &t,
+	//				Path: "{{ .Values.userspace.userData }}",
+	//			},
+	//		},
+	//	})
+	//}
 	if len(volumes) > 0 {
 		deployment.Spec.Template.Spec.Volumes = volumes
 	}
