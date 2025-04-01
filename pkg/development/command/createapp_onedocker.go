@@ -392,7 +392,7 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
 					Type: &t,
-					Path: replacePath(hostPath),
+					Path: replacePath(hostPath, config.Name),
 				},
 			},
 		})
@@ -613,10 +613,10 @@ func formatPathToVolumeName(path string) string {
 
 }
 
-func replacePath(input string) string {
+func replacePath(input string, name string) string {
 	replacements := map[string]string{
-		"/app/data/":  "{{ .Values.userspace.appCache }}/",
-		"/app/cache/": "{{ .Values.userspace.appData }}/",
+		"/app/data/":  "{{ .Values.userspace.appCache }}/" + name + "/",
+		"/app/cache/": "{{ .Values.userspace.appData }}/" + name + "/",
 		"/Home/":      "{{ .Values.userspace.userData }}/",
 	}
 
