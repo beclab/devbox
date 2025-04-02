@@ -1,4 +1,4 @@
-name: Build Server
+name: Build Server(main)
 
 on:
   workflow_dispatch:
@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - "main"
-    tags:
-      - "v*"
 
 jobs:
   update_dockerhub:
@@ -20,30 +18,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASS }}
-
-      - name: Download release check-chart
-        uses: dsaltares/fetch-gh-release-asset@master
-        with:
-          file: check-chart_0.0.5_linux_amd64.tar.gz
-          repo: beclab/check-chart
-          target: check-chart.tar.gz
-          version: tags/v0.0.5
       - name: get latest tag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
         id: get-latest-tag
         with:
           fallback: latest
 
-      - name: unpack check-chart
-        run: |
-          tar zxvf check-chart.tar.gz
-          pwd
-          ls
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: beclab/devbox-server:${{ steps.get-latest-tag.outputs.tag }}
+          tags: beclab/studio-server:${{ steps.get-latest-tag.outputs.tag }}
           file: Dockerfile.server

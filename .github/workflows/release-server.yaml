@@ -31,6 +31,6 @@ jobs:
               with:
                   push: true
                   context: .
-                  tags: beclab/devbox-server:${{ github.event.inputs.tags }}
+                  tags: beclab/studio-server:${{ github.event.inputs.tags }}
                   file: Dockerfile.server
                   platforms: linux/amd64,linux/arm64
