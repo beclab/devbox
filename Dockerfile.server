@@ -1,7 +1,5 @@
 FROM golang:1.22.0 AS builder
 
-RUN apt-get update && apt-get install -y gcc git musl-dev musl-tools wget
-
 WORKDIR /workspace
 COPY go.mod .
 COPY go.sum .
@@ -12,7 +10,7 @@ COPY cmd/ cmd/
 COPY containers/ containers/
 COPY pkg/ pkg/
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -a -o devbox cmd/devbox/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -a -o studio cmd/devbox/main.go
 
 
 FROM alpine:latest as builder2
@@ -48,9 +46,9 @@ WORKDIR /
 VOLUME [ "/charts" ]
 VOLUME [ "/data" ]
 
-COPY --from=builder /workspace/devbox /devbox
+COPY --from=builder /workspace/studio /studio
 COPY --from=builder2 /usr/bin/helm /usr/bin/helm
 COPY --from=builder2 /root/.helm /root/.helm
 
 
-ENTRYPOINT ["/devbox"]
+ENTRYPOINT ["/studio"]
