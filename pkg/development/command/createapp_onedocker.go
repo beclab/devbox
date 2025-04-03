@@ -615,8 +615,8 @@ func formatPathToVolumeName(path string) string {
 
 func replacePath(input string, name string) string {
 	replacements := map[string]string{
-		"/app/data/":  "{{ .Values.userspace.appCache }}/" + name + "/",
-		"/app/cache/": "{{ .Values.userspace.appData }}/" + name + "/",
+		"/app/data/":  "{{ .Values.userspace.appData }}/" + name + "/",
+		"/app/cache/": "{{ .Values.userspace.appCache }}/" + name + "/",
 		"/Home/":      "{{ .Values.userspace.userData }}/",
 	}
 
