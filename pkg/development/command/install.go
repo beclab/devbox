@@ -66,7 +66,7 @@ func (c *install) Run(ctx context.Context, app string, token string) (string, er
 		data := ret["data"].(map[string]interface{})
 		code, ok := data["code"]
 		if ok && int(code.(float64)) != http.StatusOK {
-			return "", fmt.Errorf("resource: %s, message: %s", data["resource"], data["message"])
+			return "", fmt.Errorf("message: %s", data["message"])
 		}
 
 	}

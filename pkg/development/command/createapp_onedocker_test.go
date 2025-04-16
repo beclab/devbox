@@ -1,7 +1,11 @@
 package command
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
+
+	"sigs.k8s.io/yaml"
 )
 
 func TestWithDockerAppCfg(t *testing.T) {
@@ -27,8 +31,7 @@ func TestWithDockerAppCfg(t *testing.T) {
 	}
 	at := AppTemplate{}
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
-	//b, _ := json.Marshal(at.appcfg)
-	//yml, _ := yaml.JSONToYAML(b)
-	//fmt.Println(string(yml))
-	at.WriteDockerFile(cfg, "/Users/hys/code/beclab/devbox/tmp")
+	b, _ := json.Marshal(at.appCfg)
+	yml, _ := yaml.JSONToYAML(b)
+	fmt.Println(string(yml))
 }

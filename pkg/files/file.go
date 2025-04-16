@@ -181,6 +181,70 @@ func (i *FileInfo) readListing(checker rules.Checker, readHeader bool) error {
 
 		if file.IsDir {
 			listing.NumDirs++
+
+			dirListing := &Listing{
+				Items:    []*FileInfo{},
+				NumDirs:  0,
+				NumFiles: 0,
+			}
+			file.Listing = dirListing
+
+			subDir, err := afs.ReadDir(fPath)
+			if err == nil {
+				for _, subF := range subDir {
+					subName := subF.Name()
+					subPath := path.Join(fPath, subName)
+
+					if !checker.Check(subPath) {
+						continue
+					}
+
+					subIsSymlink, subIsInvalidLink := false, false
+					if IsSymlink(subF.Mode()) {
+						subIsSymlink = true
+						subInfo, err := i.Fs.Stat(subPath)
+						if err == nil {
+							subF = subInfo
+						} else {
+							subIsInvalidLink = true
+						}
+					}
+
+					subFile := &FileInfo{
+						Fs:        i.Fs,
+						Name:      subName,
+						Size:      subF.Size(),
+						ModTime:   subF.ModTime(),
+						Mode:      subF.Mode(),
+						IsDir:     subF.IsDir(),
+						IsSymlink: subIsSymlink,
+						Extension: filepath.Ext(subName),
+						Path:      subPath,
+					}
+
+					if subFile.IsDir {
+						dirListing.NumDirs++
+						subFile.Listing = &Listing{
+							Items:    []*FileInfo{},
+							NumDirs:  0,
+							NumFiles: 0,
+						}
+					} else {
+						dirListing.NumFiles++
+					}
+
+					if subIsInvalidLink {
+						subFile.Type = "invalid_link"
+					} else if !subFile.IsDir {
+						err := subFile.detectType(true, false, readHeader)
+						if err != nil {
+							klog.Warningf("Failed to detect type for %s: %v", subPath, err)
+						}
+					}
+
+					dirListing.Items = append(dirListing.Items, subFile)
+				}
+			}
 		} else {
 			listing.NumFiles++
 
