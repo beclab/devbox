@@ -81,6 +81,7 @@ func (s *server) Start() {
 	command.Post("/apps/create", s.handlers.createApp)
 	command.Post("/apps/:name/create", s.handlers.fillApp)
 	command.Post("/apps/:name/example/create", s.handlers.fillAppWithExample)
+	command.Post("/apps/:name/vscode/create", s.handlers.fillAppWithDevContainer)
 
 	// files /api/files
 	files := api.Group("files")

@@ -483,7 +483,7 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 
 	// unbind app's containers
 	err = h.db.DB.Where("app_id = ?", devApp.ID).Delete(&model.DevAppContainers{}).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		klog.Error("exec sql error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
@@ -491,8 +491,17 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
+	klog.Infof("devApp.ID: %v", devApp.ID)
 	err = h.db.DB.Where("id = ?", devApp.ID).Delete(&model.DevApp{}).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		klog.Error("exec sql error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Exec sql Failed: %v", err),
+		})
+	}
+	err = h.db.DB.Where("name = ?", devApp.AppName).Delete(&model.DevContainers{}).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		klog.Error("exec sql error, ", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
@@ -1062,6 +1071,101 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("update app err %v", err),
 		})
 	}
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
+	})
+}
+
+type BindData struct {
+	ContainerId      *int
+	AppId            int64
+	PodSelector      string
+	ContainerName    string
+	DevEnv           *string
+	DevContainerName string
+	Image            string
+}
+
+func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
+	name := ctx.Params("name")
+	klog.Infof("fillAppWithDevContainer: name: %v", name)
+
+	var cfg command.CreateDevContainerConfig
+
+	err := ctx.BodyParser(&cfg)
+	if err != nil {
+		klog.Errorf("parse create dev container config err %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
+	}
+	if errs := command.ValidateStruct(cfg); len(errs) > 0 {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", errs),
+		})
+	}
+	klog.Infof("fillAppWithDevContainer: name2: %v", name)
+
+	err = command.CreateAppWithDevConfig(BaseDir, name, &cfg)
+	if err != nil {
+		klog.Errorf("write dev docker file err %v", err)
+		e := os.RemoveAll(filepath.Join(BaseDir, name))
+		if e != nil {
+			klog.Errorf("remove dir %s err %v", name, e)
+		}
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app err %v", err),
+		})
+	}
+
+	updates := map[string]interface{}{
+		"app_type": db.CommunityApp,
+		"dev_env":  cfg.DevEnv,
+		"state":    undeploy,
+	}
+
+	appId, err := UpdateDevApp(name, updates)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("update app err %v", err),
+		})
+	}
+
+	containers, err := GetAppContainersInChart(name)
+	if err != nil || len(containers) == 0 {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("get bind containers err %v", err),
+		})
+	}
+
+	bindData := &BindData{
+		AppId:            appId,
+		PodSelector:      containers[0].PodSelector,
+		ContainerName:    containers[0].ContainerName,
+		DevEnv:           &cfg.DevEnv,
+		DevContainerName: name,
+		Image:            containers[0].Image,
+	}
+	err = BindContainer(bindData)
+	if err != nil {
+		e := h.db.DB.Where("app_id = ?", appId).Delete(&model.DevAppContainers{}).Error
+		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
+			klog.Errorf("delete devAppContainer app_id=%d err %v", appId, e)
+		}
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("bind container err %v", err),
+		})
+	}
+
 	return ctx.JSON(fiber.Map{
 		"code": http.StatusOK,
 		"data": map[string]interface{}{

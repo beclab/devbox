@@ -45,6 +45,22 @@ func validateLimitedMemory(fl jvalidator.FieldLevel) bool {
 	return validateQuantity(value)
 }
 
+func validateRequiredDisk(fl jvalidator.FieldLevel) bool {
+	value := fl.Field().String()
+	if value == "" {
+		return true
+	}
+	return validateQuantity(value)
+}
+
+func validateLimitedDisk(fl jvalidator.FieldLevel) bool {
+	value := fl.Field().String()
+	if value == "" {
+		return true
+	}
+	return validateQuantity(value)
+}
+
 func validateName(fl jvalidator.FieldLevel) bool {
 	value := fl.Field().String()
 	//if errs := validation.IsDNS1123Label(value); len(errs) > 0 {
@@ -83,6 +99,8 @@ func init() {
 	validate.RegisterValidation("requiredMemory", validateRequiredMemory)
 	validate.RegisterValidation("limitedCpu", validateLimitedCPU)
 	validate.RegisterValidation("limitedMemory", validateLimitedMemory)
+	validate.RegisterValidation("requiredDisk", validateRequiredDisk)
+	validate.RegisterValidation("limitedDisk", validateLimitedDisk)
 	validate.RegisterValidation("name", validateName)
 	validate.RegisterValidation("image", validateImage)
 	validate.RegisterValidation("gpuVendor", validateGpuVendor)
