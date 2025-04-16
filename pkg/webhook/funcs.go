@@ -338,9 +338,9 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 
 			addToEnv := func(key, value string) {
 				found := false
-				for i, env := range pod.Spec.Containers[i].Env {
+				for index, env := range pod.Spec.Containers[i].Env {
 					if env.Name == key {
-						pod.Spec.Containers[i].Env[i].Value = value
+						pod.Spec.Containers[i].Env[index].Value = value
 						found = true
 					}
 				}

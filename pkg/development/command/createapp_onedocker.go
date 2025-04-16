@@ -37,6 +37,8 @@ type CreateWithOneDockerConfig struct {
 	LimitedCpu     string                       `json:"limitedCpu" validate:"limitedCpu"`
 	RequiredMemory string                       `json:"requiredMemory" validate:"required,requiredMemory"`
 	LimitedMemory  string                       `json:"limitedMemory" validate:"limitedMemory"`
+	RequiredDisk   string                       `json:"requiredDisk" validate:"requiredDisk"`
+	LimitedDisk    string                       `json:"limitedDisk" validate:"limitedDisk"`
 	RequiredGpu    bool                         `json:"requiredGpu"`
 	GpuVendor      string                       `json:"gpuVendor" validate:"gpuVendor"`
 	NeedPg         bool                         `json:"needPg"`
@@ -169,8 +171,6 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 
 	if config.RequiredGpu {
 		appcfg.Spec.RequiredGPU = "1"
-	} else {
-		appcfg.Spec.RequiredGPU = "0"
 	}
 
 	appcfg.Spec.RequiredCPU = config.RequiredCpu
@@ -191,6 +191,10 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 	requiredMemory, _ := resource.ParseQuantity(appcfg.Spec.RequiredMemory)
 	limitedCPU, _ := resource.ParseQuantity(appcfg.Spec.LimitedCPU)
 	limitedMemory, _ := resource.ParseQuantity(appcfg.Spec.LimitedMemory)
+	if config.RequiredDisk != "" {
+		//requiredDisk, _ := resource.ParseQuantity(config.RequiredDisk)
+		appcfg.Spec.RequiredDisk = config.RequiredDisk
+	}
 
 	if requiredCPU.Cmp(limitedCPU) > 0 {
 		appcfg.Spec.LimitedCPU = appcfg.Spec.RequiredCPU

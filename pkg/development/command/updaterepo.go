@@ -117,7 +117,7 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 		return err
 	}
 
-	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", app, "http://chartmuseum-studio:8080")
+	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", app, "http://chartmuseum-studio:8080", "--debug")
 	if err != nil {
 		if len(output) > 0 {
 			return errors.New(output)

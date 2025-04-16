@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/beclab/devbox/pkg/development/command"
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/helm"
+	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
 	"github.com/beclab/devbox/pkg/utils"
 	"github.com/beclab/oachecker"
@@ -27,6 +29,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/pointer"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
@@ -398,6 +401,12 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 	}
 	values["svcs"] = map[string]interface{}{}
 	values["cluster"] = map[string]interface{}{}
+	values["GPU"] = map[string]interface{}{
+		"Type": "nvidia",
+		"Cuda": os.Getenv("CUDA_VERSION"),
+	}
+
+	values["gpu"] = "nvidia"
 
 	path := getAppPath(app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
@@ -412,8 +421,6 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 
 	appcfg, err := utils.GetAppConfig(data)
 
-	//var appcfg application.AppConfiguration
-	//err = yaml.Unmarshal(data, &appcfg)
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
 		klog.Error(string(data))
@@ -782,4 +789,221 @@ func (h *handlers) updateDevContainer(ctx *fiber.Ctx) error {
 		"code": http.StatusOK,
 		"data": map[string]string{},
 	})
+}
+
+func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
+
+	appName := fmt.Sprintf("%s-dev", app)
+	testNamespace := fmt.Sprintf("%s-%s", appName, constants.Owner)
+
+	// mock vals
+	values := make(map[string]interface{})
+	values["bfl"] = map[string]interface{}{
+		"username": "bfl-username",
+	}
+	values["user"] = map[string]interface{}{
+		"zone": "user-zone",
+	}
+	values["schedule"] = map[string]interface{}{
+		"nodeName": "node",
+	}
+	values["userspace"] = map[string]interface{}{
+		"appCache": "appcache",
+		"userData": "userspace/Home",
+	}
+	values["os"] = map[string]interface{}{
+		"appKey":    "appKey",
+		"appSecret": "appSecret",
+	}
+	values["domain"] = map[string]interface{}{}
+	values["dep"] = map[string]interface{}{}
+	values["postgres"] = map[string]interface{}{
+		"username":  "username",
+		"databases": map[string]interface{}{},
+		"password":  "password",
+	}
+	values["redis"] = map[string]interface{}{
+		"username":  "username",
+		"databases": map[string]interface{}{},
+		"password":  "password",
+	}
+	values["mongodb"] = map[string]interface{}{
+		"username":  "username",
+		"databases": map[string]interface{}{},
+		"password":  "password",
+	}
+	values["zinc"] = map[string]interface{}{
+		"username": "username",
+		"indexes":  map[string]interface{}{},
+		"password": "password",
+	}
+	values["svcs"] = map[string]interface{}{}
+	values["cluster"] = map[string]interface{}{}
+	values["GPU"] = map[string]interface{}{
+		"Type": "nvidia",
+		"Cuda": os.Getenv("CUDA_VERSION"),
+	}
+
+	values["gpu"] = "nvidia"
+
+	path := getAppPath(app)
+	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
+	data, err := os.ReadFile(appCfgPath)
+	if err != nil {
+		klog.Error("read app cfg error, ", err, ", ", app, ", ", appCfgPath)
+		return nil, err
+	}
+
+	appcfg, err := utils.GetAppConfig(data)
+
+	if err != nil {
+		klog.Error("parse app cfg error, ", err)
+		klog.Error(string(data))
+		return nil, err
+	}
+
+	entries := make(map[string]interface{})
+	for _, e := range appcfg.Entrances {
+		entries[e.Name] = "dryrun"
+	}
+	values["domain"] = entries
+	kubeConfig, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	manifest, err := helm.DryRun(context.TODO(), kubeConfig, testNamespace, appName, getAppPath(app), values)
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := helm.DecodeManifest(manifest)
+	if err != nil {
+		return nil, err
+	}
+	op := db.NewDbOperator()
+
+	var da *model.DevApp
+	err = op.DB.Where("app_name = ?", app).First(&da).Error
+	if err != nil {
+		klog.Errorf("GetAppContainersInchar: app_name:%s,err:%v", app, err)
+		return nil, err
+	}
+
+	containers := helm.FindContainers(resources)
+	client, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		klog.Error("get kubernetes client error, ", err)
+		return nil, err
+	}
+
+	for i := range containers {
+		containers[i].AppID = pointer.Int(int(da.ID))
+		if container.IsSysAppDevImage(containers[i].Image) {
+			containers[i].DevPath = pointer.String("/proxy/3000/")
+			userspace := "user-space-" + constants.Owner
+			pods, err := client.CoreV1().Pods(userspace).List(context.TODO(), metav1.ListOptions{
+				LabelSelector: containers[i].PodSelector,
+			})
+
+			if err != nil {
+				klog.Error("get pods status error, ", err, ", ", containers[i].PodSelector)
+			} else {
+				if len(pods.Items) > 0 {
+					if pods.Items[0].Status.Phase == "Running" {
+						containers[i].State = pointer.String(string(pods.Items[0].Status.Phase))
+					}
+				} else {
+					klog.Warning("pods not found, ", containers[i].PodSelector)
+				}
+			}
+		}
+
+		var dac *model.DevAppContainers
+		err = op.DB.Where("app_id = ?", da.ID).Where("container_name", containers[i].ContainerName).First(&dac).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			continue
+		}
+		var dc *model.DevContainers
+		err = op.DB.Where("id = ?", dac.ContainerID).First(&dc).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+		if err == nil {
+			containers[i].DevContainerName = dc.Name
+		}
+	}
+
+	return containers, nil
+}
+
+func BindContainer(data *BindData) error {
+	op := db.NewDbOperator()
+	var containerId int
+	if data.ContainerId == nil {
+		// create a new dev container
+		if data.DevEnv == nil {
+			err := errors.New("unknown dev-env to create a dev container")
+			return err
+		}
+
+		devContainer := model.DevContainers{
+			DevEnv: *data.DevEnv,
+			Name:   data.DevContainerName,
+		}
+		err := op.DB.Where("name = ?", devContainer.Name).First(&model.DevContainers{}).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+
+		if err == nil {
+			return fmt.Errorf("devcontainer %s already exists", devContainer.Name)
+		}
+
+		err = op.DB.Create(&devContainer).Error
+		if err != nil {
+			klog.Error("exec sql error, ", err)
+			return err
+		}
+
+		containerId = int(devContainer.ID)
+		if err != nil {
+			klog.Error("get last insert id error, ", err)
+			return err
+		}
+
+	} else {
+		containerId = *data.ContainerId
+
+		// container can be bind to just one app
+		var existsContainers *model.DevAppContainers
+		err := op.DB.Where("container_id = ?", containerId).First(&existsContainers).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			klog.Error("exec sql error, ", err)
+			return err
+		}
+
+		if err == nil {
+			return nil
+		}
+	}
+
+	appContainer := model.DevAppContainers{
+		AppID:         uint(data.AppId),
+		ContainerID:   uint(containerId),
+		PodSelector:   data.PodSelector,
+		ContainerName: data.ContainerName,
+		Image:         data.Image,
+	}
+
+	err := op.DB.Create(&appContainer).Error
+	if err != nil {
+		klog.Error("exec sql error, ", err)
+		return err
+	}
+
+	return nil
 }
