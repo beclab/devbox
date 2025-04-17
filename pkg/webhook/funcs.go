@@ -367,7 +367,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			var newVols []corev1.Volume
 			for _, v := range volumes {
 				switch v.Name {
-				case "gh-config-dev", "workspace-dev", "nginx-config-dev":
+				case "user-cache-dir":
 					continue
 				}
 
@@ -379,7 +379,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			var newVolMnts []corev1.VolumeMount
 			for _, vm := range volumeMounts {
 				switch vm.Name {
-				case "gh-config-dev", "workspace-dev", "nginx-config-dev":
+				case "user-cache-dir":
 					continue
 				}
 
@@ -387,71 +387,25 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			}
 
 			volumeMounts = newVolMnts
-
-			// github config path
-			// <userspace>/Application/<container id>/gh-config
-			applicationDir, err := wh.getUserApplicationDir(ctx)
-			if err != nil {
-				return nil, err
-			}
-			applicationDir = filepath.Join(applicationDir, "containers")
-
 			directoryOrCreateType := corev1.HostPathDirectoryOrCreate
-			volumeName := "gh-config-dev"
-			volumes = append(volumes, corev1.Volume{
-				Name: volumeName,
-				VolumeSource: corev1.VolumeSource{
-					HostPath: &corev1.HostPathVolumeSource{
-						Type: &directoryOrCreateType,
-						Path: filepath.Join(applicationDir, strconv.Itoa(int(devcontainer.ContainerID)), "gh-config"),
-					},
-				},
-			})
 
-			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      volumeName,
-				MountPath: "/root/.config/gh",
-			})
-
-			// workspace path
-			// <userspace>/Home/Code/<container id>/workspace
-			homeDir, err := wh.getUserHomeDir(ctx)
+			userCacheDir, err := wh.getUserCacheDir(ctx)
 			if err != nil {
 				return nil, err
 			}
-
-			volumeName = "workspace-dev"
+			volumeName := "user-cache-dir"
 			volumes = append(volumes, corev1.Volume{
 				Name: volumeName,
 				VolumeSource: corev1.VolumeSource{
 					HostPath: &corev1.HostPathVolumeSource{
 						Type: &directoryOrCreateType,
-						Path: filepath.Join(homeDir, "Code", "containers", strconv.Itoa(int(devcontainer.ContainerID)), "workspace"),
+						Path: filepath.Join(userCacheDir, "studio", devcontainer.ContainerName),
 					},
 				},
 			})
-
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      volumeName,
-				MountPath: "/Code",
-			})
-
-			// nginx conf path
-			// <userspace>/Application/<container id>/nginx-config
-			volumeName = "nginx-config-dev"
-			volumes = append(volumes, corev1.Volume{
-				Name: volumeName,
-				VolumeSource: corev1.VolumeSource{
-					HostPath: &corev1.HostPathVolumeSource{
-						Type: &directoryOrCreateType,
-						Path: filepath.Join(applicationDir, strconv.Itoa(int(devcontainer.ContainerID)), "nginx-config"),
-					},
-				},
-			})
-
-			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      volumeName,
-				MountPath: "/etc/nginx/conf.d/dev",
+				MountPath: "/root",
 			})
 
 			pod.Spec.Volumes = volumes
@@ -479,6 +433,21 @@ func (wh *Webhook) getUserspaceDir(ctx context.Context) (string, error) {
 		return "", errors.New("userspace not found")
 	}
 
+	return dir, nil
+}
+
+func (wh *Webhook) getUserCacheDir(ctx context.Context) (string, error) {
+	namespace := "user-space-" + constants.Owner
+	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
+	if err != nil {
+		klog.Error("get user's bfl error, ", err)
+		return "", err
+	}
+	dir, ok := bfl.Annotations["appcache_hostpath"]
+	if !ok {
+		klog.Error("user's cache dir not found, ", err)
+		return "", errors.New("user cache dir not found")
+	}
 	return dir, nil
 }
 
