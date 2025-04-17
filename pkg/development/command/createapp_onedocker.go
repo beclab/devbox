@@ -309,6 +309,8 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			Value: "Etc/UTC",
 		},
 	}
+	envMap := make(map[string]int)
+
 	if config.NeedPg {
 		postgresEnv := []corev1.EnvVar{
 			{
@@ -355,33 +357,21 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 		}
 		env = append(env, redisEnv...)
 	}
+	for i, e := range env {
+		envMap[e.Name] = i
+	}
 	if config.Env != nil {
 		for name, value := range config.Env {
-			env = append(env, corev1.EnvVar{Name: name, Value: value})
+			if idx, exists := envMap[name]; exists {
+				env[idx].Value = value
+			} else {
+				env = append(env, corev1.EnvVar{Name: name, Value: value})
+			}
 		}
 	}
 	deployment.Spec.Template.Spec.Containers[0].Env = env
 
 	volumeMounts := make([]corev1.VolumeMount, 0)
-	//klog.Info("cfg.AppCache: ", cfg.AppCache)
-	//if at.appCfg.Permission.AppCache {
-	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
-	//		Name:      "appcache",
-	//		MountPath: "/appcache",
-	//	})
-	//}
-	//if at.appCfg.Permission.AppData {
-	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
-	//		Name:      "appdata",
-	//		MountPath: "/appdata",
-	//	})
-	//}
-	//if len(at.appCfg.Permission.UserData) > 0 {
-	//	volumeMounts = append(volumeMounts, corev1.VolumeMount{
-	//		Name:      "userdata",
-	//		MountPath: "/userdata",
-	//	})
-	//}
 
 	volumes := make([]corev1.Volume, 0)
 	t := corev1.HostPathDirectoryOrCreate
@@ -405,42 +395,6 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 		deployment.Spec.Template.Spec.Containers[0].VolumeMounts = volumeMounts
 	}
 
-	//if at.appCfg.Permission.AppCache {
-	//	volumes = append(volumes, corev1.Volume{
-	//		Name: "appcache",
-	//		VolumeSource: corev1.VolumeSource{
-	//			HostPath: &corev1.HostPathVolumeSource{
-	//				Type: &t,
-	//				Path: "{{ .Values.userspace.appCache }}/Studio/" + config.Name,
-	//			},
-	//		},
-	//	})
-	//}
-
-	//if at.appCfg.Permission.AppData {
-	//	volumes = append(volumes, corev1.Volume{
-	//		Name: "appdata",
-	//		VolumeSource: corev1.VolumeSource{
-	//			HostPath: &corev1.HostPathVolumeSource{
-	//				Type: &t,
-	//				Path: "{{ .Values.userspace.appData }}/Studio/" + config.Name,
-	//			},
-	//		},
-	//	})
-	//}
-
-	//for i := range at.appCfg.Permission.UserData {
-	//	volumeName := "userdata" + strings.ToLower(strings.ReplaceAll(at.appCfg.Permission.UserData[i], "/", "-"))
-	//	volumes = append(volumes, corev1.Volume{
-	//		Name: volumeName,
-	//		VolumeSource: corev1.VolumeSource{
-	//			HostPath: &corev1.HostPathVolumeSource{
-	//				Type: &t,
-	//				Path: "{{ .Values.userspace.userData }}" + "/" + strings.Trim(at.appCfg.Permission.UserData[i], "/Home/"),
-	//			},
-	//		},
-	//	})
-	//}
 	if len(volumes) > 0 {
 		deployment.Spec.Template.Spec.Volumes = volumes
 	}
