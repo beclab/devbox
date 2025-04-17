@@ -366,10 +366,10 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			// clear prev volume defines
 			var newVols []corev1.Volume
 			for _, v := range volumes {
-				//switch v.Name {
-				//case "gh-config-dev", "workspace-dev", "nginx-config-dev":
-				//	continue
-				//}
+				switch v.Name {
+				case "user-cache-dir":
+					continue
+				}
 
 				newVols = append(newVols, v)
 			}
@@ -378,10 +378,10 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 
 			var newVolMnts []corev1.VolumeMount
 			for _, vm := range volumeMounts {
-				//switch vm.Name {
-				//case "gh-config-dev", "workspace-dev", "nginx-config-dev":
-				//	continue
-				//}
+				switch vm.Name {
+				case "user-cache-dir":
+					continue
+				}
 
 				newVolMnts = append(newVolMnts, vm)
 			}
