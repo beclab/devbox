@@ -2,12 +2,15 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/beclab/devbox/pkg/development/command"
 	"github.com/beclab/devbox/pkg/files"
 	"github.com/beclab/oachecker"
 
@@ -49,22 +52,19 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
 	content := ctx.Body()
 
-	if strings.HasSuffix(path, "/OlaresManifest.yaml") {
-		err := ManifestLint(content)
-		if err != nil {
-			return ctx.JSON(fiber.Map{
-				"code":    http.StatusBadRequest,
-				"message": fmt.Sprintf("lint OlaresManifest.yaml failed: %v", err),
-			})
-		}
-	}
-
-	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), path, bytes.NewReader(content))
-	if err != nil {
-		klog.Error("write file error, ", err, ", ", path)
+	pathParts := strings.SplitN(path, "/", 2)
+	if len(pathParts) == 0 {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Write file error : %v path: %s", err, path),
+			"message": "Invalid path format",
+		})
+	}
+	appName := pathParts[0]
+	file, err := WriteFileAndLint(ctx.Context(), path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
 		})
 	}
 
@@ -72,6 +72,51 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 		"code": http.StatusOK,
 		"data": file,
 	})
+}
+
+func WriteFileAndLint(ctx context.Context, originFilePath, name string, content io.Reader, lintFunc func(context.Context, string) error) (os.FileInfo, error) {
+	exists := PathExists("/charts/tmp")
+	if !exists {
+		err := os.MkdirAll("/charts/tmp", 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tempFile, err := os.CreateTemp("/charts/tmp", "bak-*"+filepath.Base(originFilePath))
+	if err != nil {
+		return nil, fmt.Errorf("create bak temp file failed %v", tempFile)
+	}
+
+	bakContent, err := os.ReadFile(filepath.Join(BaseDir, originFilePath))
+	if err != nil {
+		return nil, fmt.Errorf("read origin file %s failed %v", originFilePath, err)
+	}
+
+	_, err = tempFile.Write(bakContent)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), originFilePath, content)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = lintFunc(ctx, name); err != nil {
+		if restoreErr := os.Rename(tempFile.Name(), filepath.Join(BaseDir, originFilePath)); restoreErr != nil {
+			return nil, fmt.Errorf("lint failed: %v, and restore bak failed: %v", err, restoreErr)
+		}
+		return nil, fmt.Errorf("lint failed: %v", err)
+	}
+	if _, err = os.Stat(tempFile.Name()); err == nil {
+		e := os.Remove(tempFile.Name())
+		if e != nil {
+			klog.Infof("remove temp file failed %v", e)
+		}
+	}
+
+	return file, nil
 }
 
 func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
