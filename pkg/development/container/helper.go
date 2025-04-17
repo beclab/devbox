@@ -24,6 +24,7 @@ const (
 	DevContainerPortEnv = "DEV_CONTAINER_PORT"
 )
 
+// DevEnvImage return env image
 func DevEnvImage(env string) string {
 	switch env {
 	case "NodeJS":
@@ -32,10 +33,11 @@ func DevEnvImage(env string) string {
 		return "beclab/go-dev:0.1.1"
 	case "Python":
 		return "beclab/python-dev:0.1.1"
+	case "default":
+		return "beclab/node-ts-dev:0.1.1"
 	}
 
-	// TODO: default general dev container
-	return "beclab/node-ts-dev:0.1.1"
+	return env
 }
 
 func IsSysAppDevImage(image string) bool {

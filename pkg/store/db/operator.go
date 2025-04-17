@@ -68,12 +68,25 @@ func createTableIfNotExists() (err error) {
 				return err
 			}
 		}
+		if db.Migrator().HasColumn(&model.DevApp{}, "DevEnv") {
+			err = db.Migrator().AlterColumn(&model.DevApp{}, "DevEnv")
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if !db.Migrator().HasTable(model.DevContainers{}) {
 		err = db.Migrator().CreateTable(model.DevContainers{})
 		if err != nil {
 			return err
+		}
+	} else {
+		if db.Migrator().HasColumn(&model.DevContainers{}, "DevEnv") {
+			err = db.Migrator().AlterColumn(&model.DevContainers{}, "DevEnv")
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if !db.Migrator().HasTable(model.DevAppContainers{}) {

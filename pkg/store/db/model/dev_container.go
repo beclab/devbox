@@ -4,7 +4,7 @@ import "time"
 
 type DevContainers struct {
 	ID         uint      `gorm:"primarykey" json:"id"`
-	DevEnv     string    `gorm:"type:varchar(50);not null;column:dev_env" json:"devEnv"`
+	DevEnv     string    `gorm:"type:varchar(256);not null;column:dev_env" json:"devEnv"`
 	Name       string    `gorm:"type:varchar(256);not null;column:name" json:"devContainerName"`
 	CreateTime time.Time `gorm:"default:CURRENT_TIMESTAMP;column:create_time" json:"createTime"`
 	UpdateTime time.Time `gorm:"default:CURRENT_TIMESTAMP;column:update_time" json:"updateTime"`
