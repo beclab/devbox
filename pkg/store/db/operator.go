@@ -74,6 +74,12 @@ func createTableIfNotExists() (err error) {
 				return err
 			}
 		}
+		if !db.Migrator().HasColumn(&model.DevApp{}, "Title") {
+			err = db.Migrator().AddColumn(&model.DevApp{}, "Title")
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if !db.Migrator().HasTable(model.DevContainers{}) {
@@ -103,6 +109,12 @@ func createTableIfNotExists() (err error) {
 		}
 		if db.Migrator().HasColumn(&model.DevAppContainers{}, "PodSelector") {
 			err = db.Migrator().AlterColumn(&model.DevAppContainers{}, "PodSelector")
+			if err != nil {
+				return err
+			}
+		}
+		if !db.Migrator().HasColumn(&model.DevAppContainers{}, "AppName") {
+			err = db.Migrator().AddColumn(&model.DevAppContainers{}, "AppName")
 			if err != nil {
 				return err
 			}

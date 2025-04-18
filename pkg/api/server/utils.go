@@ -127,3 +127,12 @@ func findChartPath(chartDirPath string) string {
 
 	return ""
 }
+
+func removeSpecialCharsMap(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r == ' ' || r == '.' || r == '_' || r == '-' {
+			return -1
+		}
+		return r
+	}, s)
+}

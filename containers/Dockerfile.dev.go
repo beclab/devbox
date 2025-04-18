@@ -14,6 +14,6 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/
 
 EXPOSE 8080
 
-CMD [ "/bin/sh", "-c", "nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
+CMD [ "/bin/sh", "-c", "PATH=\"/go/bin:/usr/local/go/bin:$PATH\" nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
 
 

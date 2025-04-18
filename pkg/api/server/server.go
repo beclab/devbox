@@ -92,8 +92,8 @@ func (s *server) Start() {
 	files.Patch("/*", s.handlers.resourcePatchHandler)
 
 	// front end api  /api
-	api.Post("/bind-container", s.handlers.bindContainer)
-	api.Post("/unbind-container", s.handlers.unbindContainer)
+	//api.Post("/bind-container", s.handlers.bindContainer)
+	//api.Post("/unbind-container", s.handlers.unbindContainer)
 	api.Get("/list-app-containers", s.handlers.listAppContainersInChart)
 	api.Get("/list-my-containers", s.handlers.listMyContainers)
 	//api.Get("/app-cfg", s.handlers.getAppConfig)
@@ -101,7 +101,7 @@ func (s *server) Start() {
 
 	api.Get("/app-state", s.handlers.getAppState)
 	api.Get("/app-status", s.handlers.getAppStatus)
-	api.Post("/apps/:name/cancel", s.handlers.cancel)
+	//api.Post("/apps/:name/cancel", s.handlers.cancel)
 	api.Get("/dev-container/:name", s.handlers.getDevContainer)
 	api.Delete("/dev-container/:name", s.handlers.delDevContainer)
 	api.Patch("/dev-container/:name", s.handlers.updateDevContainer)

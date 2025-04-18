@@ -30,7 +30,7 @@ func DevEnvImage(env string) string {
 	case "NodeJS":
 		return "beclab/node-ts-dev:0.1.1"
 	case "Golang":
-		return "beclab/go-dev:0.1.1"
+		return "beclab/go-dev:0.1.2"
 	case "Python":
 		return "beclab/python-dev:0.1.1"
 	case "default":
