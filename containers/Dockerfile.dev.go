@@ -11,9 +11,11 @@ COPY containers/root/. /opt/html/.
 COPY containers/conf/. /etc/nginx/conf.d/.
 
 RUN ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log
+RUN echo 'export PATH="/go/bin:/usr/local/go/bin:$PATH"' >> /etc/profile
+
 
 EXPOSE 8080
 
-CMD [ "/bin/sh", "-c", "PATH=\"/go/bin:/usr/local/go/bin:$PATH\" nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
+CMD [ "/bin/sh", "-c", "nginx && exec /usr/bin/code-server --bind-addr \"0.0.0.0:3000\" --auth=none --log=debug" ]
 
 
