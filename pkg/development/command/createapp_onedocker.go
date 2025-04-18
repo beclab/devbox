@@ -31,6 +31,7 @@ var validate = jvalidator.New()
 
 type CreateWithOneDockerConfig struct {
 	ID             string                       `json:"id"`
+	Title          string                       `json:"title"`
 	Name           string                       `json:"name" validate:"required,name"`
 	Container      CreateWithOneDockerContainer `json:"container"`
 	RequiredCpu    string                       `json:"requiredCpu" validate:"required,requiredCpu"`
@@ -107,7 +108,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 			Description: fmt.Sprintf("app %s", config.Name),
 			AppID:       config.Name,
 			Version:     "0.0.1",
-			Title:       config.Name,
+			Title:       config.Title,
 			Categories:  []string{"Utilities"},
 		},
 		Spec: oachecker.AppSpec{

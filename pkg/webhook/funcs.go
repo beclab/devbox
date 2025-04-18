@@ -399,7 +399,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 				VolumeSource: corev1.VolumeSource{
 					HostPath: &corev1.HostPathVolumeSource{
 						Type: &directoryOrCreateType,
-						Path: filepath.Join(userCacheDir, "studio", devcontainer.ContainerName),
+						Path: filepath.Join(userCacheDir, "studio", devcontainer.AppName),
 					},
 				},
 			})
@@ -481,7 +481,7 @@ func (wh *Webhook) MutateIm(ctx context.Context, raw []byte, proxyUUID uuid.UUID
 	from dev_apps a
 	join dev_app_containers ac on a.id = ac.app_id
 	join dev_containers dc on ac.container_id = dc.id
-	where app_name = '%s'`
+	where a.app_name = '%s'`
 	sql = fmt.Sprintf(sql, originAppName)
 	list := make([]*model.DevContainerInfo, 0)
 	db := db.NewDbOperator()

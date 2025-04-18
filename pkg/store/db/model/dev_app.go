@@ -4,6 +4,7 @@ import "time"
 
 type DevApp struct {
 	ID          uint      `gorm:"primarykey" json:"id"`
+	Title       string    `gorm:"type:varchar(50);column:title;index:title" json:"title"`
 	AppName     string    `gorm:"type:varchar(50);not null;column:app_name;index:app_name" json:"appName"`
 	DevEnv      string    `gorm:"type:varchar(256);not null;column:dev_env" json:"devEnv"`
 	AppType     string    `gorm:"type:varchar(20);column:app_type" json:"appType"`

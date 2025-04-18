@@ -2,6 +2,7 @@ package command
 
 type CreateDevContainerConfig struct {
 	DevEnv         string `json:"devEnv"`
+	Title          string `json:"title"`
 	RequiredCpu    string `json:"requiredCpu"`
 	RequiredMemory string `json:"requiredMemory"`
 	RequiredDisk   string `json:"requiredDisk"`
@@ -22,6 +23,7 @@ var createConfigDev = &CreateWithOneDockerConfig{
 
 func CreateAppWithDevConfig(baseDir string, name string, cfg *CreateDevContainerConfig) error {
 	createConfigDev.Name = name
+	createConfigDev.Title = cfg.Title
 	if cfg != nil {
 		if cfg.RequiredCpu != "" {
 			createConfigDev.RequiredCpu = cfg.RequiredCpu

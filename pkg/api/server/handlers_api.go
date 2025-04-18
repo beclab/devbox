@@ -993,6 +993,7 @@ func BindContainer(data *BindData) error {
 
 	appContainer := model.DevAppContainers{
 		AppID:         uint(data.AppId),
+		AppName:       data.AppName,
 		ContainerID:   uint(containerId),
 		PodSelector:   data.PodSelector,
 		ContainerName: data.ContainerName,

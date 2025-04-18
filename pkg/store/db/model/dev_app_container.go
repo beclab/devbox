@@ -4,6 +4,7 @@ import "time"
 
 type DevAppContainers struct {
 	ID            uint      `gorm:"primarykey" json:"id"`
+	AppName       string    `gorm:"type:varchar(50);column:app_name" json:"appName"`
 	AppID         uint      `gorm:"column:app_id" json:"appId"`
 	ContainerID   uint      `gorm:"column:container_id" json:"containerId"`
 	PodSelector   string    `gorm:"type:varchar(128);column:pod_selector" json:"podSelector"`

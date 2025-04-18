@@ -13,6 +13,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -36,6 +37,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
+
+var regxPattern = "^[a-zA-Z][a-zA-Z0-9 ._-]{0,30}$"
 
 func (h *handlers) createDevApp(ctx *fiber.Ctx) error {
 	var config command.CreateConfig
@@ -927,7 +930,7 @@ func WaitForUninstall(name, token string, kubeConfig *rest.Config) error {
 }
 
 type App struct {
-	Name string `json:"name"`
+	Title string `json:"title"`
 }
 
 func (h *handlers) createApp(ctx *fiber.Ctx) error {
@@ -940,8 +943,40 @@ func (h *handlers) createApp(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad Request: %v", err),
 		})
 	}
+	appName := removeSpecialCharsMap(strings.ToLower(app.Title))
+
+	if app.Title == "tmp" || appName == "tmp" {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("name %s is reserved word", app.Title),
+		})
+	}
+
+	regex := regexp.MustCompile(regxPattern)
+	if !regex.MatchString(app.Title) {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: this field must conform to the pattern ^[a-zA-Z][a-zA-Z0-9 ._-]{0,29}$"),
+		})
+	}
+	err = h.db.DB.Where("title = ?", app.Title).First(&model.DevApp{}).Error
+	if err == nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app failed, app ID %s already exists", appName),
+		})
+	}
+	err = h.db.DB.Where("app_name = ?", appName).First(&model.DevApp{}).Error
+	if err == nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app failed, app ID %s already exists", appName),
+		})
+	}
+
 	appData := model.DevApp{
-		AppName: app.Name,
+		Title:   app.Title,
+		AppName: appName,
 		AppType: db.CommunityApp,
 		State:   empty,
 	}
@@ -1041,7 +1076,16 @@ func (h *handlers) appState(ctx *fiber.Ctx) error {
 func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
 
-	err := command.CreateAppWithHelloWorldConfig(BaseDir, name)
+	var app App
+	err := ctx.BodyParser(&app)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
+	}
+
+	err = command.CreateAppWithHelloWorldConfig(BaseDir, name, app.Title)
 	if err != nil {
 		klog.Errorf("write docker file err %v", err)
 		e := os.RemoveAll(filepath.Join(BaseDir, name))
@@ -1054,10 +1098,6 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 		})
 	}
 
-	//appData := model.DevApp{
-	//	AppName: name,
-	//	AppType: db.CommunityApp,
-	//}
 	updates := map[string]interface{}{
 		"app_type": db.CommunityApp,
 		"dev_env":  "default",
@@ -1081,6 +1121,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 
 type BindData struct {
 	ContainerId      *int
+	AppName          string
 	AppId            int64
 	PodSelector      string
 	ContainerName    string
@@ -1091,8 +1132,6 @@ type BindData struct {
 
 func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
-	klog.Infof("fillAppWithDevContainer: name: %v", name)
-
 	var cfg command.CreateDevContainerConfig
 
 	err := ctx.BodyParser(&cfg)
@@ -1109,7 +1148,6 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad Request: %v", errs),
 		})
 	}
-	klog.Infof("fillAppWithDevContainer: name2: %v", name)
 
 	err = command.CreateAppWithDevConfig(BaseDir, name, &cfg)
 	if err != nil {
@@ -1148,6 +1186,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 
 	bindData := &BindData{
 		AppId:            appId,
+		AppName:          name,
 		PodSelector:      containers[0].PodSelector,
 		ContainerName:    containers[0].ContainerName,
 		DevEnv:           &cfg.DevEnv,
