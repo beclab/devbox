@@ -536,7 +536,7 @@ func (h *handlers) getAppState(ctx *fiber.Ctx) error {
 		})
 	}
 
-	url := "http://app-service.os-system:6755/app-service/v1/apps/" + appName + "/operate"
+	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/operate"
 	client := resty.New().SetTimeout(2 * time.Second)
 
 	resp, err := client.R().SetDebug(true).
@@ -592,7 +592,7 @@ func (h *handlers) getAppStatus(ctx *fiber.Ctx) error {
 		})
 	}
 
-	url := "http://app-service.os-system:6755/app-service/v1/apps/" + appName + "/status"
+	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/status"
 	client := resty.New().SetTimeout(2 * time.Second)
 
 	resp, err := client.R().SetDebug(true).
@@ -648,7 +648,7 @@ func (h *handlers) cancel(ctx *fiber.Ctx) error {
 		})
 	}
 
-	url := "http://app-service.os-system:6755/app-service/v1/apps/" + appName + "/cancel"
+	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/cancel"
 	client := resty.New().SetTimeout(2 * time.Second)
 
 	resp, err := client.R().SetDebug(true).
