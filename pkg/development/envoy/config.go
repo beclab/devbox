@@ -178,7 +178,7 @@ func (cb *ConfigBuilder) Build() (string, error) {
 									//					http_service:
 									//					  path_prefix: '/api/verify/'
 									//					  server_uri:
-									//						uri: authelia-backend.os-system:9091
+									//						uri: authelia-backend.os-framework:9091
 									//						cluster: authelia
 									//						timeout: 2s
 									//					  authorization_request:
@@ -272,7 +272,7 @@ func (cb *ConfigBuilder) Build() (string, error) {
 		//             - endpoint:
 		//                 address:
 		//                   socket_address:
-		//                     address: authelia-backend.os-system
+		//                     address: authelia-backend.os-framework
 		//                     port_value: 9091
 
 		{
