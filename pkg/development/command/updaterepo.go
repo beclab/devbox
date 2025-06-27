@@ -26,29 +26,32 @@ func (c *updateRepo) WithDir(dir string) *updateRepo {
 	return c
 }
 
-func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
+func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string, error) {
 	if app == "" {
-		return errors.New("repo path must be specified")
+		return "", errors.New("repo path must be specified")
 	}
 	realPath := filepath.Join(c.baseCommand.dir, app)
 
 	chart, err := helm.LoadChart(realPath)
 	if err != nil {
 		klog.Error("load chart to upgrade repo error, ", err, ", ", realPath)
-		return err
+		return "", err
 	}
 
 	klog.Info("upgrade chart version, ", app)
 	version, err := helm.GetChartVersion(chart)
 	if err != nil {
-		return err
+		return "", err
 	}
 	newVersion := version.IncPatch()
+	uploadChartVersion := version.String()
 	if !notExist {
+		uploadChartVersion = newVersion.String()
+		klog.Infof("uploadChartVersion: %s", uploadChartVersion)
 		err = helm.UpgradeChartVersion(chart, app, realPath, &newVersion)
 		if err != nil {
 			klog.Error("upgrade chart version error, ", err)
-			return err
+			return "", err
 		}
 	}
 
@@ -86,21 +89,21 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 	chartYamlBak := filepath.Join(realPath, "Chart.bak")
 	chartDeferFunc, err := backupAndRestoreFile(chartYaml, chartYamlBak)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer chartDeferFunc()
 
 	err = helm.UpdateChartName(chart, app, realPath)
 	if err != nil {
 		klog.Error("update chart name error, ", err)
-		return err
+		return "", err
 	}
 
 	if !notExist {
 		err = helm.UpdateAppCfgVersion(realPath, &newVersion)
 		if err != nil {
 			klog.Error("update OlaresManifest.yaml metadata.version error, ", err)
-			return err
+			return "", err
 		}
 	}
 
@@ -108,21 +111,21 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 	appcfgBak := filepath.Join(realPath, "OlaresManifest.yaml.bak")
 	appcfgDeferFunc, err := backupAndRestoreFile(appcfg, appcfgBak)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer appcfgDeferFunc()
 
 	err = helm.UpdateAppCfgName(app, realPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", app, "http://localhost:8888", "--debug")
 	if err != nil {
 		if len(output) > 0 {
-			return errors.New(output)
+			return "", errors.New(output)
 		}
-		return err
+		return "", err
 	}
 	result := strings.Split(output, "\n")
 	if len(result) > 0 && result[len(result)-2] == "Done." {
@@ -134,7 +137,8 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) error {
 		}
 
 	}
-	return nil
+	klog.Infof("update repo app %s, newVersion: %s", app, uploadChartVersion)
+	return uploadChartVersion, nil
 
 }
 
