@@ -202,7 +202,7 @@ func (h *handlers) updateDevAppRepo(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), name, false)
+	_, err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), name, false)
 	if err != nil {
 		klog.Error("command upgraderepo error, ", err, ", ", name)
 		return ctx.JSON(fiber.Map{
@@ -303,10 +303,10 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Check namespace failed: %v", err),
 		})
 	}
-
+	version := "0.0.1"
 	if source != "cli" {
 		klog.Info("auto update repo")
-		err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), name, releaseNotExist)
+		version, err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), name, releaseNotExist)
 		if err != nil {
 			klog.Error("command upgraderepo error, ", err, ", ", name)
 			return ctx.JSON(fiber.Map{
@@ -316,7 +316,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		}
 	}
 
-	_, err = command.Install().Run(ctx.Context(), devName, token)
+	_, err = command.Install().Run(ctx.Context(), devName, token, version)
 
 	if err != nil {
 		klog.Error("command install error, ", err, ", ", name)
@@ -648,12 +648,9 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 		klog.Errorf("update dev app state to undeploy err %v", err)
 	}
 
-	klog.Infof("res: %#v", res.Data)
 	return ctx.JSON(fiber.Map{
 		"code": http.StatusOK,
-		"data": map[string]string{
-			"uid": res.Data.Data.UID,
-		},
+		"data": res,
 	})
 }
 
@@ -859,25 +856,19 @@ type SystemServerWrap struct {
 	Data    InstallationResponse `json:"data"`
 }
 
-func uninstall(name, token string) (data *SystemServerWrap, err error) {
-	url := fmt.Sprintf("http://%s/system-server/v1alpha1/app/service.appstore/v1/UninstallDevApp", constants.SystemServer)
-	accessToken, err := command.GetAccessToken()
-	if err != nil {
-		return data, err
-	}
+func uninstall(name, token string) (data map[string]interface{}, err error) {
+	url := fmt.Sprintf("http://appstore-service.os-framework:81/app-store/api/v2/apps/%s", name)
 
 	client := resty.New().SetTimeout(5 * time.Second)
 	resp, err := client.R().
 		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
 		SetHeader("X-Authorization", token).
-		SetHeader("X-Access-Token", accessToken).
-		SetBody(map[string]interface{}{
-			"name": name,
-		}).Post(url)
+		Delete(url)
 	if err != nil {
+		klog.Errorf("failed to send request to uninstall app %s, err=%v", name, err)
 		return data, err
 	}
-	klog.Info("resp.StatusCode: ", resp.StatusCode())
+	klog.Info("request uninstall resp.StatusCode: ", resp.StatusCode())
 	if resp.StatusCode() != http.StatusOK {
 		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
 		if e == nil {
@@ -889,11 +880,6 @@ func uninstall(name, token string) (data *SystemServerWrap, err error) {
 	err = json.Unmarshal(resp.Body(), &data)
 	if err != nil {
 		return nil, err
-	}
-
-	code := data.Code
-	if code != 0 {
-		return nil, errors.New(data.Message)
 	}
 
 	return data, nil

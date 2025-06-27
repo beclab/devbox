@@ -163,6 +163,7 @@ func UpdateAppCfgName(name, path string) error {
 	}
 
 	appCfg.Metadata.Name = appDevName
+	appCfg.Metadata.AppID = appDevName
 	appCfg.Metadata.Title = appDevName
 
 	//if version != nil {

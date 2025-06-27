@@ -20,7 +20,7 @@ func TestCreateApp(t *testing.T) {
 }
 
 func TestInstall(t *testing.T) {
-	_, err := Install().Run(context.Background(), "newapp", "test")
+	_, err := Install().Run(context.Background(), "newapp", "test", "0.0.1")
 	if err != nil {
 		klog.Error(err)
 		t.Fail()
@@ -30,7 +30,7 @@ func TestInstall(t *testing.T) {
 }
 
 func TestUpdateRepo(t *testing.T) {
-	err := UpdateRepo().WithDir("/tmp").Run(context.Background(), "newapp", false)
+	_, err := UpdateRepo().WithDir("/tmp").Run(context.Background(), "newapp", false)
 	if err != nil {
 		klog.Error(err)
 		t.Fail()
