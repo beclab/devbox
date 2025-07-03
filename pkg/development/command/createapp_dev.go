@@ -21,7 +21,7 @@ var createConfigDev = &CreateWithOneDockerConfig{
 	NeedRedis:      false,
 }
 
-func CreateAppWithDevConfig(baseDir string, name string, cfg *CreateDevContainerConfig) error {
+func CreateAppWithDevConfig(baseDir string, owner, name string, cfg *CreateDevContainerConfig) error {
 	createConfigDev.Name = name
 	createConfigDev.Title = cfg.Title
 	if cfg != nil {
@@ -38,7 +38,7 @@ func CreateAppWithDevConfig(baseDir string, name string, cfg *CreateDevContainer
 	at := AppTemplate{}
 	at.WithDockerCfg(createConfigDev).WithDockerDeployment(createConfigDev).
 		WithDockerService(createConfigDev).WithDockerChartMetadata(createConfigDev).WithDockerOwner(createConfigDev)
-	err := at.WriteDockerFile(createConfigDev, baseDir)
+	err := at.WriteDockerFile(createConfigDev, owner, baseDir)
 	if err != nil {
 		return err
 	}

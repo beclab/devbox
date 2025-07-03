@@ -3,9 +3,7 @@ package utils
 import (
 	"context"
 
-	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/oachecker"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
@@ -48,14 +46,14 @@ func GetAdminUsername(ctx context.Context) (string, error) {
 	return admin, nil
 }
 
-func GetAppConfig(data []byte) (*oachecker.AppConfiguration, error) {
+func GetAppConfig(owner string, data []byte) (*oachecker.AppConfiguration, error) {
 	admin, err := GetAdminUsername(context.TODO())
 	if err != nil {
 		return nil, err
 	}
 	opts := []func(map[string]interface{}){
 		oachecker.WithAdmin(admin),
-		oachecker.WithOwner(constants.Owner),
+		oachecker.WithOwner(owner),
 	}
 	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
 	return appcfg, nil

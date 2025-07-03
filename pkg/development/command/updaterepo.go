@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,11 +27,11 @@ func (c *updateRepo) WithDir(dir string) *updateRepo {
 	return c
 }
 
-func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string, error) {
+func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) (string, error) {
 	if app == "" {
 		return "", errors.New("repo path must be specified")
 	}
-	realPath := filepath.Join(c.baseCommand.dir, app)
+	realPath := filepath.Join(c.baseCommand.dir, owner, app)
 
 	chart, err := helm.LoadChart(realPath)
 	if err != nil {
@@ -100,7 +101,7 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string
 	}
 
 	if !notExist {
-		err = helm.UpdateAppCfgVersion(realPath, &newVersion)
+		err = helm.UpdateAppCfgVersion(owner, realPath, &newVersion)
 		if err != nil {
 			klog.Error("update OlaresManifest.yaml metadata.version error, ", err)
 			return "", err
@@ -115,12 +116,12 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string
 	}
 	defer appcfgDeferFunc()
 
-	err = helm.UpdateAppCfgName(app, realPath)
+	err = helm.UpdateAppCfgName(owner, app, realPath)
 	if err != nil {
 		return "", err
 	}
 
-	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", app, "http://localhost:8888", "--debug")
+	output, err := c.baseCommand.run(ctx, "helm", "cm-push", "-f", fmt.Sprintf("--context-path=%s", owner), owner+"/"+app, "http://localhost:8888", "--debug")
 	if err != nil {
 		if len(output) > 0 {
 			return "", errors.New(output)
@@ -130,7 +131,7 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string
 	result := strings.Split(output, "\n")
 	if len(result) > 0 && result[len(result)-2] == "Done." {
 		if !notExist {
-			err = deleteOldTgz(app+"-dev", newVersion.String())
+			err = deleteOldTgz(owner, app+"-dev", newVersion.String())
 			if err != nil {
 				klog.Info("delete chartmuseum old tgz error, ", err)
 			}
@@ -142,8 +143,8 @@ func (c *updateRepo) Run(ctx context.Context, app string, notExist bool) (string
 
 }
 
-func deleteOldTgz(name, notDeleteVersion string) error {
-	chartVersions, err := getChartVersions(name)
+func deleteOldTgz(owner, name, notDeleteVersion string) error {
+	chartVersions, err := getChartVersions(owner, name)
 	if err != nil {
 		return err
 	}
@@ -152,7 +153,7 @@ func deleteOldTgz(name, notDeleteVersion string) error {
 		if cv.Version == notDeleteVersion {
 			continue
 		}
-		err = deleteChartVersion(name, cv.Version)
+		err = deleteChartVersion(owner, name, cv.Version)
 		if err != nil {
 			errs = append(errs, err)
 		}

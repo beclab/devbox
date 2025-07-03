@@ -5,17 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/beclab/devbox/pkg/constants"
-
 	"github.com/go-resty/resty/v2"
 	helm_repo "helm.sh/helm/v3/pkg/repo"
 	"sigs.k8s.io/yaml"
 )
 
-func getChartVersions(name string) (helm_repo.ChartVersions, error) {
+func getChartVersions(owner, name string) (helm_repo.ChartVersions, error) {
 	chartVersions := make(helm_repo.ChartVersions, 0)
 	client := resty.New().SetTimeout(5 * time.Second)
-	url := fmt.Sprintf("http://chartmuseum-studio.user-space-%s:8080/api/charts/%s", constants.Owner, name)
+	url := fmt.Sprintf("http://127.0.0.1:8888/%s/api/charts/%s", owner, name)
 	resp, err := client.R().Get(url)
 	if err != nil {
 		return chartVersions, err
@@ -29,9 +27,9 @@ func getChartVersions(name string) (helm_repo.ChartVersions, error) {
 	return chartVersions, nil
 }
 
-func deleteChartVersion(name, version string) error {
+func deleteChartVersion(owner, name, version string) error {
 	client := resty.New().SetTimeout(5 * time.Second)
-	url := fmt.Sprintf("http://chartmuseum-studio.user-space-%s:8080/api/charts/%s/%s", constants.Owner, name, version)
+	url := fmt.Sprintf("http://127.0.0.1:8888/%s/api/charts/%s/%s", owner, name, version)
 	resp, err := client.R().Delete(url)
 	if err != nil {
 		return err

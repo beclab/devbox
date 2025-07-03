@@ -84,7 +84,7 @@ func (c *createApp) WithDir(dir string) *createApp {
 	return c
 }
 
-func (c *createApp) Run(ctx context.Context, cfg *CreateConfig) error {
+func (c *createApp) Run(ctx context.Context, cfg *CreateConfig, owner string) error {
 	at := AppTemplate{}
 	at.WithAppCfg(cfg).WithDeployment(cfg).WithService(cfg).WithChartMetadata(cfg).WithOwner(cfg)
 	if cfg.Traefik {
@@ -98,7 +98,7 @@ func (c *createApp) Run(ctx context.Context, cfg *CreateConfig) error {
 		}
 	}
 
-	return at.WriteFile(cfg, baseDir)
+	return at.WriteFile(cfg, baseDir, owner)
 }
 
 type AppTemplate struct {
@@ -898,8 +898,8 @@ func (at *AppTemplate) WithTraefik(cfg *CreateConfig) *AppTemplate {
 	return at
 }
 
-func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string) (err error) {
-	path := filepath.Join(baseDir, cfg.Name)
+func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string, owner string) (err error) {
+	path := filepath.Join(baseDir, owner, cfg.Name)
 	if existDir(path) {
 		return os.ErrExist
 	}

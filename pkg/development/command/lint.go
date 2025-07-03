@@ -20,8 +20,8 @@ func (l *lint) WithDir(dir string) *lint {
 	return l
 }
 
-func (l *lint) Run(ctx context.Context, chart string) error {
-	chartPath := filepath.Join(l.baseCommand.dir, chart)
+func (l *lint) Run(ctx context.Context, owner, chart string) error {
+	chartPath := filepath.Join(l.baseCommand.dir, owner, chart)
 	err := oachecker.LintWithDifferentOwnerAdmin(chartPath, "owner", "admin")
 	if err != nil {
 		return err

@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
 	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -27,13 +27,17 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	runtimeSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
+	ctrl "sigs.k8s.io/controller-runtime"
 	yml "sigs.k8s.io/yaml"
 )
 
@@ -113,7 +117,7 @@ func UpdateChartName(chart *chart.Chart, name, path string) error {
 	return nil
 }
 
-func UpdateAppCfgVersion(path string, version *semver.Version) error {
+func UpdateAppCfgVersion(owner, path string, version *semver.Version) error {
 	appCfgYaml := filepath.Join(path, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgYaml)
 	if err != nil {
@@ -123,7 +127,7 @@ func UpdateAppCfgVersion(path string, version *semver.Version) error {
 	//var appCfg application.AppConfiguration
 	//err = yaml.Unmarshal(data, &appCfg)
 
-	appCfg, err := utils.GetAppConfig(data)
+	appCfg, err := utils.GetAppConfig(owner, data)
 	if err != nil {
 		klog.Error("parse appcfg error, ", err)
 		return err
@@ -145,7 +149,7 @@ func UpdateAppCfgVersion(path string, version *semver.Version) error {
 	return nil
 }
 
-func UpdateAppCfgName(name, path string) error {
+func UpdateAppCfgName(owner, name, path string) error {
 	appDevName := name + "-dev"
 	appCfgYaml := filepath.Join(path, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgYaml)
@@ -156,7 +160,7 @@ func UpdateAppCfgName(name, path string) error {
 
 	//var appCfg application.AppConfiguration
 	//err = yaml.Unmarshal(data, &appCfg)
-	appCfg, err := utils.GetAppConfig(data)
+	appCfg, err := utils.GetAppConfig(owner, data)
 	if err != nil {
 		klog.Error("parse OlaresManifest.yaml error, ", err)
 		return err
@@ -393,25 +397,35 @@ func FindContainers(objs []runtime.Object) []*ContainerInfo {
 	return infos
 }
 
-func GetAppCfg(app string, baseDir string) (*oachecker.AppConfiguration, error) {
-	if app == "" {
-		return nil, errors.New("repo path must be specified")
-	}
-	realPath := filepath.Join(baseDir, app)
-
-	appCfgYaml := filepath.Join(realPath, constants.AppCfgFileName)
-	data, err := os.ReadFile(appCfgYaml)
+func GetAppCfg(appManagerName string) (*appcfg.ApplicationConfig, error) {
+	config, err := ctrl.GetConfig()
 	if err != nil {
-		klog.Error("read OlaresManifest.yaml error, ", err, ", ", appCfgYaml)
+		klog.Errorf("failed to get kubeconfig %v", err)
+		return nil, err
+	}
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		klog.Errorf("failed to creat dynamic client %v", err)
+		return nil, err
+	}
+	gvr := runtimeSchema.GroupVersionResource{
+		Group:    "app.bytetrade.io",
+		Version:  "v1alpha1",
+		Resource: "applicationmanagers",
+	}
+	am, err := dynamicClient.Resource(gvr).Namespace("").Get(context.TODO(), appManagerName, metav1.GetOptions{})
+	if am == nil || err != nil {
+		klog.Errorf("failed to get app manager name=%s, err=%v", appManagerName, err)
 		return nil, err
 	}
 
-	var appCfg oachecker.AppConfiguration
-	err = yaml.Unmarshal(data, &appCfg)
+	data, _, _ := unstructured.NestedString(am.Object, "spec", "config")
+	var applicationConfig appcfg.ApplicationConfig
+	err = json.Unmarshal([]byte(data), &applicationConfig)
 	if err != nil {
-		klog.Error("parse OlaresManifest.yaml error, ", err)
+		klog.Errorf("failed to unmarshal application manager config err=%v", err)
 		return nil, err
 	}
+	return &applicationConfig, nil
 
-	return &appCfg, nil
 }

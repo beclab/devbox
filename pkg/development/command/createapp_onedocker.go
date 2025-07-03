@@ -70,7 +70,7 @@ func (c *createWithOneDocker) WithDir(dir string) *createWithOneDocker {
 	return c
 }
 
-func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig) error {
+func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig, owner string) error {
 	at := AppTemplate{}
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
 
@@ -82,7 +82,7 @@ func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig) error {
 		}
 	}
 
-	return at.WriteDockerFile(cfg, baseDir)
+	return at.WriteDockerFile(cfg, owner, baseDir)
 }
 
 func (at *AppTemplate) checkMountPath(mounts map[string]string, prefix string) bool {
@@ -456,8 +456,8 @@ func (at *AppTemplate) WithDockerOwner(cfg *CreateWithOneDockerConfig) *AppTempl
 	return at
 }
 
-func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, baseDir string) (err error) {
-	path := filepath.Join(baseDir, cfg.Name)
+func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, owner, baseDir string) (err error) {
+	path := filepath.Join(baseDir, owner, cfg.Name)
 	if existDir(path) {
 		return os.ErrExist
 	}

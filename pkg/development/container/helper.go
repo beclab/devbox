@@ -2,13 +2,9 @@ package container
 
 import (
 	"context"
-	"errors"
-	"strconv"
 	"strings"
 
 	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/store/db/model"
-
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -52,71 +48,71 @@ func IsSysAppDevImage(image string) bool {
 	return false
 }
 
-func GetContainerStatus(ctx context.Context, kubeconfig *rest.Config, container *model.DevContainerInfo) (string, string, error) {
-	client, err := kubernetes.NewForConfig(kubeconfig)
-	if err != nil {
-		klog.Error("get kubernetes client error, ", err)
-		return UnknownStatus, "", err
-	}
+//func GetContainerStatus(ctx context.Context, kubeconfig *rest.Config, container *model.DevContainerInfo) (string, string, error) {
+//	client, err := kubernetes.NewForConfig(kubeconfig)
+//	if err != nil {
+//		klog.Error("get kubernetes client error, ", err)
+//		return UnknownStatus, "", err
+//	}
+//
+//	namespace := *container.AppName + "-dev-" + constants.Owner
+//	userspace := "user-space-" + constants.Owner
+//	pods, err := client.CoreV1().Pods("").List(ctx, metav1.ListOptions{
+//		LabelSelector: *container.PodSelector,
+//	})
+//
+//	if err != nil {
+//		klog.Error("find pods of container error, ", err)
+//		return UnknownStatus, "", err
+//	}
+//
+//	for _, p := range pods.Items {
+//		if p.Namespace == namespace || p.Namespace == userspace {
+//			for _, c := range p.Status.ContainerStatuses {
+//				if c.Name == *container.ContainerName {
+//					for _, con := range p.Spec.Containers {
+//						if con.Name == c.Name {
+//							state := UnknownStatus
+//							port := ""
+//							for _, e := range con.Env {
+//								switch {
+//								case e.Name == DevContainerEnv && e.Value == strconv.Itoa(int(container.ID)):
+//									switch {
+//									case c.State.Waiting != nil:
+//										state = "Waiting"
+//									case c.State.Running != nil:
+//										state = "Running"
+//									case c.State.Terminated != nil:
+//										state = "Terminated"
+//									}
+//
+//								case e.Name == DevContainerPortEnv:
+//									port = e.Value
+//								}
+//							}
+//
+//							if state != UnknownStatus {
+//								return state, port, nil
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	klog.Error("container not found, ", *container)
+//	return UnknownStatus, "", errors.New("container not found")
+//}
 
-	namespace := *container.AppName + "-dev-" + constants.Owner
-	userspace := "user-space-" + constants.Owner
-	pods, err := client.CoreV1().Pods("").List(ctx, metav1.ListOptions{
-		LabelSelector: *container.PodSelector,
-	})
-
-	if err != nil {
-		klog.Error("find pods of container error, ", err)
-		return UnknownStatus, "", err
-	}
-
-	for _, p := range pods.Items {
-		if p.Namespace == namespace || p.Namespace == userspace {
-			for _, c := range p.Status.ContainerStatuses {
-				if c.Name == *container.ContainerName {
-					for _, con := range p.Spec.Containers {
-						if con.Name == c.Name {
-							state := UnknownStatus
-							port := ""
-							for _, e := range con.Env {
-								switch {
-								case e.Name == DevContainerEnv && e.Value == strconv.Itoa(int(container.ID)):
-									switch {
-									case c.State.Waiting != nil:
-										state = "Waiting"
-									case c.State.Running != nil:
-										state = "Running"
-									case c.State.Terminated != nil:
-										state = "Terminated"
-									}
-
-								case e.Name == DevContainerPortEnv:
-									port = e.Value
-								}
-							}
-
-							if state != UnknownStatus {
-								return state, port, nil
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	klog.Error("container not found, ", *container)
-	return UnknownStatus, "", errors.New("container not found")
-}
-
-func CreateOrUpdateDevNamespace(ctx context.Context, kubeconfig *rest.Config, app string) (string, error) {
+func CreateOrUpdateDevNamespace(ctx context.Context, kubeconfig *rest.Config, owner, app string) (string, error) {
 	client, err := kubernetes.NewForConfig(kubeconfig)
 	if err != nil {
 		klog.Error("get kubernetes client error, ", err)
 		return "", err
 	}
 
-	namespaceName := app + "-" + constants.Owner
+	namespaceName := app + "-" + owner
 
 	ns, err := client.CoreV1().Namespaces().Get(ctx, namespaceName, metav1.GetOptions{})
 	if err != nil {
@@ -128,7 +124,7 @@ func CreateOrUpdateDevNamespace(ctx context.Context, kubeconfig *rest.Config, ap
 				ObjectMeta: metav1.ObjectMeta{
 					Name: namespaceName,
 					Labels: map[string]string{
-						constants.DevOwnerLabel: constants.Owner,
+						constants.DevOwnerLabel: "true",
 					},
 				},
 			}
@@ -141,7 +137,7 @@ func CreateOrUpdateDevNamespace(ctx context.Context, kubeconfig *rest.Config, ap
 		}
 	} else {
 		retry.RetryOnConflict(retry.DefaultRetry, func() error {
-			ns.Labels[constants.DevOwnerLabel] = constants.Owner
+			ns.Labels[constants.DevOwnerLabel] = "true"
 			_, err = client.CoreV1().Namespaces().Update(ctx, ns, metav1.UpdateOptions{})
 			return err
 		})

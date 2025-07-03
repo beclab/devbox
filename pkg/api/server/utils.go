@@ -17,8 +17,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func getAppPath(app string) string {
-	return filepath.Join(BaseDir, app)
+func getAppPath(owner, app string) string {
+	return filepath.Join(BaseDir, owner, app)
 }
 
 func UnArchive(src, dstDir string) error {
@@ -43,20 +43,20 @@ func CheckDir(dirname string) error {
 	return err
 }
 
-func readCfgFromFile(chartDir string) (*oachecker.AppConfiguration, error) {
+func readCfgFromFile(owner, chartDir string) (*oachecker.AppConfiguration, error) {
 	cfgFile := findAppCfgFile(chartDir)
 	klog.Infof("readCfgFromFile: %s", cfgFile)
 	if len(cfgFile) == 0 {
 		return nil, errors.New("not found OlaresManifest.yaml file")
 	}
-	appcfg, err := readAppInfo(cfgFile)
+	appcfg, err := readAppInfo(owner, cfgFile)
 	if err != nil {
 		return nil, err
 	}
 	return appcfg, nil
 }
 
-func readAppInfo(cfgFile string) (*oachecker.AppConfiguration, error) {
+func readAppInfo(owner, cfgFile string) (*oachecker.AppConfiguration, error) {
 	f, err := os.Open(cfgFile)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func readAppInfo(cfgFile string) (*oachecker.AppConfiguration, error) {
 	}
 	opts := []func(map[string]interface{}){
 		oachecker.WithAdmin(admin),
-		oachecker.WithOwner(constants.Owner),
+		oachecker.WithOwner(owner),
 	}
 	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
 	return appcfg, nil
