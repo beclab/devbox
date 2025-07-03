@@ -21,9 +21,10 @@ import (
 
 func (h *handlers) getFiles(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
+	username := ctx.Locals("username").(string)
 
 	file, err := files.NewFileInfo(files.FileOptions{
-		Fs:         afero.NewBasePathFs(afero.NewOsFs(), BaseDir),
+		Fs:         afero.NewBasePathFs(afero.NewOsFs(), BaseDir+"/"+username),
 		Path:       path,
 		Modify:     true,
 		Expand:     true,
@@ -59,8 +60,9 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 			"message": "Invalid path format",
 		})
 	}
+	username := ctx.Locals("username").(string)
 	appName := pathParts[0]
-	file, err := WriteFileAndLint(ctx.Context(), path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
+	file, err := WriteFileAndLint(ctx.Context(), username, path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
 	if err != nil {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
@@ -74,7 +76,7 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	})
 }
 
-func WriteFileAndLint(ctx context.Context, originFilePath, name string, content io.Reader, lintFunc func(context.Context, string) error) (os.FileInfo, error) {
+func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, content io.Reader, lintFunc func(context.Context, string, string) error) (os.FileInfo, error) {
 	exists := PathExists("/charts/tmp")
 	if !exists {
 		err := os.MkdirAll("/charts/tmp", 0755)
@@ -103,8 +105,8 @@ func WriteFileAndLint(ctx context.Context, originFilePath, name string, content 
 		return nil, err
 	}
 
-	if err = lintFunc(ctx, name); err != nil {
-		if restoreErr := os.Rename(tempFile.Name(), filepath.Join(BaseDir, originFilePath)); restoreErr != nil {
+	if err = lintFunc(ctx, owner, name); err != nil {
+		if restoreErr := os.Rename(tempFile.Name(), filepath.Join(BaseDir, owner, originFilePath)); restoreErr != nil {
 			return nil, fmt.Errorf("lint failed: %v, and restore bak failed: %v", err, restoreErr)
 		}
 		return nil, fmt.Errorf("lint failed: %v", err)

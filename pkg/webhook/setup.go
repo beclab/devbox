@@ -100,7 +100,7 @@ func (wh *Webhook) CreateOrUpdateDevContainerMutatingWebhook() error {
 				{
 					Key:      constants.DevOwnerLabel,
 					Operator: metav1.LabelSelectorOpIn,
-					Values:   []string{constants.Owner},
+					Values:   []string{"true"},
 				},
 			},
 		},
@@ -252,7 +252,7 @@ func (wh *Webhook) CreateOrUpdateImageManagerMutatingWebhook() error {
 				{
 					Key:      constants.DevOwnerLabel,
 					Operator: metav1.LabelSelectorOpIn,
-					Values:   []string{constants.Owner},
+					Values:   []string{"true"},
 				},
 			},
 		},

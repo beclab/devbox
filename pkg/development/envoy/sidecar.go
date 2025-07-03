@@ -6,19 +6,21 @@ import (
 	"strconv"
 
 	"github.com/beclab/oachecker"
-
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/beclab/devbox/pkg/appcfg"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/pointer"
 )
 
 func InjectSidecar(ctx context.Context, kubeClient *kubernetes.Clientset, namespace string,
-	pod *corev1.Pod, devcontainers []*DevcontainerEndpoint, proxyUUID string, appcfg *oachecker.AppConfiguration) error {
+	pod *corev1.Pod, devcontainers []*DevcontainerEndpoint, proxyUUID string, appConfig *appcfg.ApplicationConfig) error {
 	injected, _ := IsInjectedPod(pod)
-	sidecarConfig := &ConfigBuilder{}
+	sidecarConfig := &ConfigBuilder{
+		owner: appConfig.OwnerName,
+	}
 	sidecarConfig.WithDevcontainers(devcontainers)
 	if injected {
 		klog.Info("envoy sidecar injected pod")
@@ -26,7 +28,7 @@ func InjectSidecar(ctx context.Context, kubeClient *kubernetes.Clientset, namesp
 			klog.Info("websocket sidecar injected pod")
 			sidecarConfig.WithWebsocket()
 		}
-	} else if appcfg.Options.WsConfig != nil && appcfg.Options.WsConfig.URL != "" {
+	} else if appConfig.WsConfig.URL != "" {
 		sidecarConfig.WithWebsocket()
 	}
 
@@ -74,7 +76,7 @@ func InjectSidecar(ctx context.Context, kubeClient *kubernetes.Clientset, namesp
 		pod.Spec.Containers = append(pod.Spec.Containers, getEnvoySidecarContainerSpec(pod))
 		if sidecarConfig.Websocket() {
 			klog.Info("inject websocket sidecar")
-			pod.Spec.Containers = append(pod.Spec.Containers, getWebSocketSideCarContainerSpec(appcfg.Options.WsConfig))
+			pod.Spec.Containers = append(pod.Spec.Containers, getWebSocketSideCarContainerSpec(&appConfig.WsConfig))
 		}
 	}
 	return nil

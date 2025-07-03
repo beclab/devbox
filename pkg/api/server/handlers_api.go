@@ -40,8 +40,9 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Application not found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
-	path := getAppPath(app)
+	path := getAppPath(username, app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgPath)
 	if err != nil {
@@ -57,7 +58,7 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 	//var appcfg application.AppConfiguration
 	//err = yaml.Unmarshal(data, &appcfg)
 
-	appcfg, err := utils.GetAppConfig(data)
+	appcfg, err := utils.GetAppConfig(username, data)
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
 		klog.Error(string(data))
@@ -74,6 +75,7 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 }
 
 func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
+
 	app := ctx.Query("app")
 	if app == "" {
 		return ctx.JSON(fiber.Map{
@@ -81,8 +83,9 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Application not found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
-	path := getAppPath(app)
+	path := getAppPath(username, app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 
 	var appcfg oachecker.AppConfiguration
@@ -122,7 +125,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Save OlaresManifest.yaml error: %v", err),
 		})
 	}
-	err = command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), app)
+	err = command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), username, app)
 	if err != nil {
 		klog.Error("check app cfg error, ", err)
 		return ctx.JSON(fiber.Map{
@@ -138,58 +141,58 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 
 }
 
-func (h *handlers) listMyContainers(ctx *fiber.Ctx) error {
-	sql := `select a.*, b.pod_selector, b.app_id, b.container_name, c.app_name
-	from dev_containers a
-	left join dev_app_containers b on a.id = b.container_id
-	left join dev_apps c on b.app_id = c.id
-	order by a.create_time desc`
-	list := make([]*model.DevContainerInfo, 0)
-
-	err := h.db.DB.Raw(sql).Scan(&list).Error
-	if err != nil {
-		klog.Error("exec sql error, ", err, ", ", sql)
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Exec sql failed: %v", err),
-		})
-	}
-
-	unbind := ctx.Query("unbind") == "true"
-	ret := make([]*model.DevContainerInfo, 0, len(list))
-
-	for i, c := range list {
-		ret = append(ret, list[i])
-		if c.AppID != nil {
-
-			// filter binding dev container
-			if unbind {
-				ret = append(ret[:i], ret[i+1:]...)
-				continue
-			}
-			// container is bind into an app, check the container running status
-			// ignore error, cause state is not a critical message
-			state, devPort, _ := container.GetContainerStatus(ctx.Context(), h.kubeConfig, c)
-			c.State = &state
-
-			port := "/proxy/" + devPort + "/"
-			c.DevPath = &port
-			appcfg, err := readAppInfo(filepath.Join(BaseDir, *c.AppName, constants.AppCfgFileName))
-			if err != nil {
-				klog.Error("readCfgFromFile error, ", err)
-				continue
-			}
-
-			list[i].Icon = &appcfg.Metadata.Icon
-		}
-	}
-
-	return ctx.JSON(fiber.Map{
-		"code": http.StatusOK,
-		"data": ret,
-	})
-
-}
+//func (h *handlers) listMyContainers(ctx *fiber.Ctx) error {
+//	sql := `select a.*, b.pod_selector, b.app_id, b.container_name, c.app_name
+//	from dev_containers a
+//	left join dev_app_containers b on a.id = b.container_id
+//	left join dev_apps c on b.app_id = c.id
+//	order by a.create_time desc`
+//	list := make([]*model.DevContainerInfo, 0)
+//
+//	err := h.db.DB.Raw(sql).Scan(&list).Error
+//	if err != nil {
+//		klog.Error("exec sql error, ", err, ", ", sql)
+//		return ctx.JSON(fiber.Map{
+//			"code":    http.StatusBadRequest,
+//			"message": fmt.Sprintf("Exec sql failed: %v", err),
+//		})
+//	}
+//
+//	unbind := ctx.Query("unbind") == "true"
+//	ret := make([]*model.DevContainerInfo, 0, len(list))
+//
+//	for i, c := range list {
+//		ret = append(ret, list[i])
+//		if c.AppID != nil {
+//
+//			// filter binding dev container
+//			if unbind {
+//				ret = append(ret[:i], ret[i+1:]...)
+//				continue
+//			}
+//			// container is bind into an app, check the container running status
+//			// ignore error, cause state is not a critical message
+//			state, devPort, _ := container.GetContainerStatus(ctx.Context(), h.kubeConfig, c)
+//			c.State = &state
+//
+//			port := "/proxy/" + devPort + "/"
+//			c.DevPath = &port
+//			appcfg, err := readAppInfo(filepath.Join(BaseDir, *c.AppName, constants.AppCfgFileName))
+//			if err != nil {
+//				klog.Error("readCfgFromFile error, ", err)
+//				continue
+//			}
+//
+//			list[i].Icon = &appcfg.Metadata.Icon
+//		}
+//	}
+//
+//	return ctx.JSON(fiber.Map{
+//		"code": http.StatusOK,
+//		"data": ret,
+//	})
+//
+//}
 
 func (h *handlers) bindContainer(ctx *fiber.Ctx) error {
 	var postData struct {
@@ -354,9 +357,10 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Application Not Found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
 	appName := fmt.Sprintf("%s-dev", app)
-	testNamespace := fmt.Sprintf("%s-%s", appName, constants.Owner)
+	testNamespace := fmt.Sprintf("%s-%s", appName, username)
 
 	// mock vals
 	values := make(map[string]interface{})
@@ -408,7 +412,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 
 	values["gpu"] = "nvidia"
 
-	path := getAppPath(app)
+	path := getAppPath(username, app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgPath)
 	if err != nil {
@@ -419,7 +423,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		})
 	}
 
-	appcfg, err := utils.GetAppConfig(data)
+	appcfg, err := utils.GetAppConfig(username, data)
 
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
@@ -436,7 +440,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 	}
 	values["domain"] = entries
 
-	manifest, err := helm.DryRun(ctx.Context(), h.kubeConfig, testNamespace, appName, getAppPath(app), values)
+	manifest, err := helm.DryRun(ctx.Context(), h.kubeConfig, testNamespace, appName, getAppPath(username, app), values)
 	if err != nil {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
@@ -475,7 +479,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 		containers[i].AppID = pointer.Int(int(da.ID))
 		if container.IsSysAppDevImage(containers[i].Image) {
 			containers[i].DevPath = pointer.String("/proxy/3000/")
-			userspace := "user-space-" + constants.Owner
+			userspace := "os-framework"
 			pods, err := client.CoreV1().Pods(userspace).List(ctx.Context(), metav1.ListOptions{
 				LabelSelector: containers[i].PodSelector,
 			})
@@ -791,10 +795,10 @@ func (h *handlers) updateDevContainer(ctx *fiber.Ctx) error {
 	})
 }
 
-func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
+func GetAppContainersInChart(owner, app string) ([]*helm.ContainerInfo, error) {
 
 	appName := fmt.Sprintf("%s-dev", app)
-	testNamespace := fmt.Sprintf("%s-%s", appName, constants.Owner)
+	testNamespace := fmt.Sprintf("%s-%s", appName, owner)
 
 	// mock vals
 	values := make(map[string]interface{})
@@ -846,7 +850,7 @@ func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
 
 	values["gpu"] = "nvidia"
 
-	path := getAppPath(app)
+	path := getAppPath(owner, app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 	data, err := os.ReadFile(appCfgPath)
 	if err != nil {
@@ -854,7 +858,7 @@ func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
 		return nil, err
 	}
 
-	appcfg, err := utils.GetAppConfig(data)
+	appcfg, err := utils.GetAppConfig(owner, data)
 
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
@@ -872,7 +876,7 @@ func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
 		return nil, err
 	}
 
-	manifest, err := helm.DryRun(context.TODO(), kubeConfig, testNamespace, appName, getAppPath(app), values)
+	manifest, err := helm.DryRun(context.TODO(), kubeConfig, testNamespace, appName, getAppPath(owner, app), values)
 	if err != nil {
 		return nil, err
 	}
@@ -901,7 +905,7 @@ func GetAppContainersInChart(app string) ([]*helm.ContainerInfo, error) {
 		containers[i].AppID = pointer.Int(int(da.ID))
 		if container.IsSysAppDevImage(containers[i].Image) {
 			containers[i].DevPath = pointer.String("/proxy/3000/")
-			userspace := "user-space-" + constants.Owner
+			userspace := "os-framework"
 			pods, err := client.CoreV1().Pods(userspace).List(context.TODO(), metav1.ListOptions{
 				LabelSelector: containers[i].PodSelector,
 			})

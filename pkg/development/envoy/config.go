@@ -2,8 +2,7 @@ package envoy
 
 import (
 	"encoding/json"
-
-	"github.com/beclab/devbox/pkg/constants"
+	"fmt"
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -24,6 +23,7 @@ import (
 type ConfigBuilder struct {
 	containers []*DevcontainerEndpoint
 	websocket  bool
+	owner      string
 }
 
 func (cb *ConfigBuilder) WithDevcontainers(containers []*DevcontainerEndpoint) *ConfigBuilder {
@@ -120,15 +120,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 			//	  filter_chains:
 			FilterChains: []*listenerv3.FilterChain{
 				{
-					//		- filters:
-					//			- name: envoy.filters.network.http_connection_manager
-					//			  typed_config:
-					//				"@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-					//				stat_prefix: desktop_http
-					//				upgrade_configs:
-					//				- upgrade_type: websocket
-					//				skip_xff_append: false
-					//				codec_type: AUTO
 					Filters: []*listenerv3.Filter{
 						{
 							Name: "envoy.filters.network.http_connection_manager",
@@ -143,22 +134,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 									SkipXffAppend: false,
 									CodecType:     http_connection_manager_v3.HttpConnectionManager_AUTO,
 									RouteSpecifier: &http_connection_manager_v3.HttpConnectionManager_RouteConfig{
-
-										//				route_config:
-										//				  name: local_route
-										//				  virtual_hosts:
-										//					- name: service
-										//					  domains: ["*"]
-										//					  routes:
-										//						- match:
-										//							prefix: "/proxy/5000"
-										//						  route:
-										//							cluster: dev1
-										//						- match:
-										//							prefix: "/"
-										//						  route:
-										//							cluster: original_dst
-										//							timeout: 180s
 										RouteConfig: &routev3.RouteConfiguration{
 											Name: "local_route",
 											VirtualHosts: []*routev3.VirtualHost{
@@ -170,57 +145,8 @@ func (cb *ConfigBuilder) Build() (string, error) {
 											},
 										},
 									},
-
-									//				http_filters:
-									//				- name: envoy.filters.http.ext_authz
-									//				  typed_config:
-									//					"@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-									//					http_service:
-									//					  path_prefix: '/api/verify/'
-									//					  server_uri:
-									//						uri: authelia-backend.os-framework:9091
-									//						cluster: authelia
-									//						timeout: 2s
-									//					  authorization_request:
-									//						allowed_headers:
-									//						  patterns:
-									//							- exact: accept
-									//							- exact: cookie
-									//							- exact: proxy-authorization
-									//							- prefix: x-unauth-
-									//							- exact: x-authorization
-									//							- exact: x-bfl-user
-									//							- exact: terminus-nonce
-									//						headers_to_add:
-									//						  - key: X-Forwarded-Method
-									//							value: '%REQ(:METHOD)%'
-									//						  - key: X-Forwarded-Proto
-									//							value: '%REQ(:SCHEME)%'
-									//						  - key: X-Forwarded-Host
-									//							value: '%REQ(:AUTHORITY)%'
-									//						  - key: X-Forwarded-Uri
-									//							value: '%REQ(:PATH)%'
-									//						  - key: X-Forwarded-For
-									//							value: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'
-									//					  authorization_response:
-									//						allowed_upstream_headers:
-									//						  patterns:
-									//							- exact: authorization
-									//							- exact: proxy-authorization
-									//							- prefix: remote-
-									//							- prefix: authelia-
-									//						allowed_client_headers:
-									//						  patterns:
-									//							- exact: set-cookie
-									//						allowed_client_headers_on_success:
-									//						  patterns:
-									//							- exact: set-cookie
-									//					failure_mode_allow: false
-									//				- name: envoy.filters.http.router
-									//				  typed_config:
-									//					"@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 									HttpFilters: []*http_connection_manager_v3.HttpFilter{
-										authFilter(),
+										authFilter(cb.owner),
 										{
 											Name: "envoy.filters.http.router",
 											ConfigType: &http_connection_manager_v3.HttpFilter_TypedConfig{
@@ -244,10 +170,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 	}
 
 	clusters := []*clusterv3.Cluster{
-		//   - name: original_dst
-		//     connect_timeout: 5000s
-		//     type: ORIGINAL_DST
-		//     lb_policy: CLUSTER_PROVIDED
 		{
 			Name: "original_dst",
 			ClusterDiscoveryType: &clusterv3.Cluster_Type{
@@ -258,22 +180,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 			},
 			LbPolicy: clusterv3.Cluster_CLUSTER_PROVIDED,
 		},
-
-		//   - name: authelia
-		//     connect_timeout: 2s
-		//     type: LOGICAL_DNS
-		//     dns_lookup_family: V4_ONLY
-		//     dns_refresh_rate: 600s
-		//     lb_policy: ROUND_ROBIN
-		//     load_assignment:
-		//       cluster_name: authelia
-		//       endpoints:
-		//         - lb_endpoints:
-		//             - endpoint:
-		//                 address:
-		//                   socket_address:
-		//                     address: authelia-backend.os-framework
-		//                     port_value: 9091
 
 		{
 			Name: "authelia",
@@ -299,7 +205,7 @@ func (cb *ConfigBuilder) Build() (string, error) {
 										Address: &corev3.Address{
 											Address: &corev3.Address_SocketAddress{
 												SocketAddress: &corev3.SocketAddress{
-													Address: "authelia-backend.user-system-" + constants.Owner,
+													Address: fmt.Sprintf("authelia-backend.user-system-%s", cb.owner),
 													PortSpecifier: &corev3.SocketAddress_PortValue{
 														PortValue: 9091,
 													},
@@ -316,21 +222,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 		},
 	}
 
-	// - name: ws_original_dst
-	// connect_timeout: 5000s
-	// type: LOGICAL_DNS
-	// dns_lookup_family: V4_ONLY
-	// dns_refresh_rate: 600s
-	// lb_policy: ROUND_ROBIN
-	// load_assignment:
-	//   cluster_name: ws_original_dst
-	//   endpoints:
-	// 	- lb_endpoints:
-	// 		- endpoint:
-	// 			address:
-	// 			  socket_address:
-	// 				address: localhost
-	// 				port_value: 40010
 	if cb.websocket {
 		clusters = append(clusters, &clusterv3.Cluster{
 			Name: "ws_gateway",
@@ -458,7 +349,7 @@ func (cb *ConfigBuilder) Build() (string, error) {
 	return string(config), err
 }
 
-func authFilter() *http_connection_manager_v3.HttpFilter {
+func authFilter(owner string) *http_connection_manager_v3.HttpFilter {
 	return &http_connection_manager_v3.HttpFilter{
 		Name: "envoy.filters.http.ext_authz",
 		ConfigType: &http_connection_manager_v3.HttpFilter_TypedConfig{
@@ -467,7 +358,7 @@ func authFilter() *http_connection_manager_v3.HttpFilter {
 					HttpService: &envoy_authz_v3.HttpService{
 						PathPrefix: "/api/verify/",
 						ServerUri: &corev3.HttpUri{
-							Uri: "authelia-backend.user-system-" + constants.Owner + ":9091",
+							Uri: fmt.Sprintf("authelia-backend.user-system-%s:9091", owner),
 							HttpUpstreamType: &corev3.HttpUri_Cluster{
 								Cluster: "authelia",
 							},

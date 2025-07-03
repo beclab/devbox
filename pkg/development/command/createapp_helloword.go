@@ -12,13 +12,13 @@ var createConfigExample = &CreateWithOneDockerConfig{
 	NeedRedis:      false,
 }
 
-func CreateAppWithHelloWorldConfig(baseDir string, name, title string) error {
+func CreateAppWithHelloWorldConfig(baseDir string, owner, name, title string) error {
 	createConfigExample.Name = name
 	createConfigExample.Title = title
 	at := AppTemplate{}
 	at.WithDockerCfg(createConfigExample).WithDockerDeployment(createConfigExample).
 		WithDockerService(createConfigExample).WithDockerChartMetadata(createConfigExample).WithDockerOwner(createConfigExample)
-	err := at.WriteDockerFile(createConfigExample, baseDir)
+	err := at.WriteDockerFile(createConfigExample, owner, baseDir)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/webhook"
-
+	"github.com/beclab/devbox/pkg/middlewares"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -62,10 +62,11 @@ func (s *server) Start() {
 	app.Use(logger.New())
 
 	api := app.Group("api")
+	api.Use(middlewares.TokenAuth())
 
 	// commands /api/command
 	command := api.Group("command")
-	command.Post("/create-app", s.handlers.createDevApp)
+	//command.Post("/create-app", s.handlers.createDevApp)
 	command.Get("/list-app", s.handlers.listDevApps)
 	command.Get("/apps/:name", s.handlers.getDevApp)
 	command.Post("/update-app-repo", s.handlers.updateDevAppRepo)
@@ -95,7 +96,7 @@ func (s *server) Start() {
 	//api.Post("/bind-container", s.handlers.bindContainer)
 	//api.Post("/unbind-container", s.handlers.unbindContainer)
 	api.Get("/list-app-containers", s.handlers.listAppContainersInChart)
-	api.Get("/list-my-containers", s.handlers.listMyContainers)
+	//api.Get("/list-my-containers", s.handlers.listMyContainers)
 	//api.Get("/app-cfg", s.handlers.getAppConfig)
 	//api.Post("/app-cfg", s.handlers.updateAppConfig)
 
@@ -109,7 +110,8 @@ func (s *server) Start() {
 	api.Get("/apps/:name/status", s.handlers.appState)
 
 	api.Get("/dev-containers/:id", s.handlers.getDevContainer)
-	// webhooks /webhook
+
+	// webhooks /webhook, do not need auth token
 	wh := webhookServer.Group("webhook")
 	wh.Post("/devcontainer", s.webhooks.devcontainer)
 	wh.Post("/imagemanager", s.webhooks.imageManager)

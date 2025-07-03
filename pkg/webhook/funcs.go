@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/envoy"
 	"github.com/beclab/devbox/pkg/development/helm"
@@ -228,8 +228,10 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 		}
 		pod.Annotations[envoy.UUIDAnnotation] = proxyUUID.String()
 
-		realapp := strings.TrimSuffix(app, "-dev")
-		appcfg, err := helm.GetAppCfg(realapp, baseDir)
+		appManagerName := fmt.Sprintf("%s-%s", namespace, app)
+
+		//realapp := strings.TrimSuffix(app, "-dev")
+		appcfg, err := helm.GetAppCfg(appManagerName)
 		if err != nil {
 			return nil, err
 		}
@@ -389,7 +391,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			volumeMounts = newVolMnts
 			directoryOrCreateType := corev1.HostPathDirectoryOrCreate
 
-			userCacheDir, err := wh.getUserCacheDir(ctx)
+			//userCacheDir, err := wh.getUserCacheDir(ctx)
 			if err != nil {
 				return nil, err
 			}
@@ -399,7 +401,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 				VolumeSource: corev1.VolumeSource{
 					HostPath: &corev1.HostPathVolumeSource{
 						Type: &directoryOrCreateType,
-						Path: filepath.Join(userCacheDir, "studio", devcontainer.AppName),
+						Path: filepath.Join(os.Getenv("ROOTFS_DIR"), "studio", devcontainer.AppName),
 					},
 				},
 			})
@@ -419,53 +421,53 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 	return nil, nil
 }
 
-func (wh *Webhook) getUserspaceDir(ctx context.Context) (string, error) {
-	namespace := "user-space-" + constants.Owner
-	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
-	if err != nil {
-		klog.Error("get user's bfl error, ", err)
-		return "", err
-	}
+//func (wh *Webhook) getUserspaceDir(ctx context.Context) (string, error) {
+//	namespace := "user-space-" + constants.Owner
+//	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
+//	if err != nil {
+//		klog.Error("get user's bfl error, ", err)
+//		return "", err
+//	}
+//
+//	dir, ok := bfl.Annotations["userspace_hostpath"]
+//	if !ok {
+//		klog.Error("user's space not found, ", err)
+//		return "", errors.New("userspace not found")
+//	}
+//
+//	return dir, nil
+//}
 
-	dir, ok := bfl.Annotations["userspace_hostpath"]
-	if !ok {
-		klog.Error("user's space not found, ", err)
-		return "", errors.New("userspace not found")
-	}
+//func (wh *Webhook) getUserCacheDir(ctx context.Context) (string, error) {
+//	namespace := "user-space-" + constants.Owner
+//	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
+//	if err != nil {
+//		klog.Error("get user's bfl error, ", err)
+//		return "", err
+//	}
+//	dir, ok := bfl.Annotations["appcache_hostpath"]
+//	if !ok {
+//		klog.Error("user's cache dir not found, ", err)
+//		return "", errors.New("user cache dir not found")
+//	}
+//	return dir, nil
+//}
 
-	return dir, nil
-}
+//func (wh *Webhook) getUserApplicationDir(ctx context.Context) (string, error) {
+//	dir, err := wh.getUserspaceDir(ctx)
+//	if err != nil {
+//		return "", err
+//	}
+//	return filepath.Join(dir, "Application"), nil
+//}
 
-func (wh *Webhook) getUserCacheDir(ctx context.Context) (string, error) {
-	namespace := "user-space-" + constants.Owner
-	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
-	if err != nil {
-		klog.Error("get user's bfl error, ", err)
-		return "", err
-	}
-	dir, ok := bfl.Annotations["appcache_hostpath"]
-	if !ok {
-		klog.Error("user's cache dir not found, ", err)
-		return "", errors.New("user cache dir not found")
-	}
-	return dir, nil
-}
-
-func (wh *Webhook) getUserApplicationDir(ctx context.Context) (string, error) {
-	dir, err := wh.getUserspaceDir(ctx)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, "Application"), nil
-}
-
-func (wh *Webhook) getUserHomeDir(ctx context.Context) (string, error) {
-	dir, err := wh.getUserspaceDir(ctx)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, "Home"), nil
-}
+//func (wh *Webhook) getUserHomeDir(ctx context.Context) (string, error) {
+//	dir, err := wh.getUserspaceDir(ctx)
+//	if err != nil {
+//		return "", err
+//	}
+//	return filepath.Join(dir, "Home"), nil
+//}
 
 func (wh *Webhook) MutateIm(ctx context.Context, raw []byte, proxyUUID uuid.UUID) (patch []byte, err error) {
 	var obj unstructured.Unstructured
