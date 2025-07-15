@@ -32,7 +32,7 @@ metadata:
   annotations:
     iam.kubesphere.io/uninitialized: "true"
     helm.sh/resource-policy: keep
-    bytetrade.io/owner-role: platform-admin
+    bytetrade.io/owner-role: owner
     bytetrade.io/terminus-name: "asds"
 spec:
   email: "asas"

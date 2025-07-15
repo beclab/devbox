@@ -69,9 +69,14 @@ func readAppInfo(owner, cfgFile string) (*oachecker.AppConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
+	isAdmin, err := utils.IsAdmin(context.TODO(), owner)
+	if err != nil {
+		return nil, err
+	}
 	opts := []func(map[string]interface{}){
 		oachecker.WithAdmin(admin),
 		oachecker.WithOwner(owner),
+		utils.WithIsAdmin(isAdmin),
 	}
 	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
 	return appcfg, nil
