@@ -64,6 +64,7 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	appName := pathParts[0]
 	file, err := WriteFileAndLint(ctx.Context(), username, path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
 	if err != nil {
+		klog.Errorf("failed to write app=%s file path=%s", appName, path)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": err.Error(),
@@ -81,32 +82,38 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 	if !exists {
 		err := os.MkdirAll("/charts/tmp", 0755)
 		if err != nil {
+			klog.Errorf("failed to mkdir dir=%s,err=%v", "/charts/tmp", err)
 			return nil, err
 		}
 	}
 
 	tempFile, err := os.CreateTemp("/charts/tmp", "bak-*"+filepath.Base(originFilePath))
 	if err != nil {
+		klog.Infof("failed to crate temp file %v", err)
 		return nil, fmt.Errorf("create bak temp file failed %v", tempFile)
 	}
 
-	bakContent, err := os.ReadFile(filepath.Join(BaseDir, originFilePath))
+	bakContent, err := os.ReadFile(filepath.Join(BaseDir, owner, originFilePath))
 	if err != nil {
+		klog.Errorf("failed to read origin file path=%s,err=%v", originFilePath, err)
 		return nil, fmt.Errorf("read origin file %s failed %v", originFilePath, err)
 	}
 
 	_, err = tempFile.Write(bakContent)
 	if err != nil {
+		klog.Errorf("failed to write bak content to temp file %v", err)
 		return nil, err
 	}
 
 	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), originFilePath, content)
 	if err != nil {
+		klog.Infof("failed to write file path=%s, err=%v", originFilePath, err)
 		return nil, err
 	}
 
 	if err = lintFunc(ctx, owner, name); err != nil {
 		if restoreErr := os.Rename(tempFile.Name(), filepath.Join(BaseDir, owner, originFilePath)); restoreErr != nil {
+			klog.Errorf("failed to lint and restore, path=%s,err=%v", filepath.Join(BaseDir, owner, originFilePath), restoreErr)
 			return nil, fmt.Errorf("lint failed: %v, and restore bak failed: %v", err, restoreErr)
 		}
 		return nil, fmt.Errorf("lint failed: %v", err)
@@ -114,7 +121,7 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 	if _, err = os.Stat(tempFile.Name()); err == nil {
 		e := os.Remove(tempFile.Name())
 		if e != nil {
-			klog.Infof("remove temp file failed %v", e)
+			klog.Infof("remove temp file path=%s failed %v", tempFile.Name(), e)
 		}
 	}
 
@@ -129,6 +136,7 @@ func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 		klog.Infof("resourcePostHandler mkdir: %s", filepath.Join(BaseDir, path))
 		err := os.MkdirAll(filepath.Join(BaseDir, path), 0755)
 		if err != nil {
+			klog.Errorf("failed to mkdir dir=%s, err=%v", filepath.Join(BaseDir, path), err)
 			return ctx.JSON(fiber.Map{
 				"code":    errToStatus(err),
 				"message": err.Error(),
@@ -151,7 +159,7 @@ func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 	}
 	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), path, bytes.NewReader(ctx.Body()))
 	if err != nil {
-		klog.Error("write file error, ", err, ", ", path)
+		klog.Infof("failed to write file path=%s, err=%v", path, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Write file failed: %v path: %s", err, path),
@@ -180,6 +188,7 @@ func (h *handlers) resourceDeleteHandler(ctx *fiber.Ctx) error {
 	}
 	err = os.RemoveAll(filepath.Join(BaseDir, path))
 	if err != nil {
+		klog.Errorf("failed to remove dir=%s, err=%v", filepath.Join(BaseDir, path), err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Delete file failed: %v", err),

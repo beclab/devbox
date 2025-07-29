@@ -18,10 +18,12 @@ func GetAdminUsername(ctx context.Context) (string, error) {
 	}
 	kubeConfig, err := ctrl.GetConfig()
 	if err != nil {
+		klog.Errorf("failed to get kube config %v", err)
 		return "", err
 	}
 	client, err := dynamic.NewForConfig(kubeConfig)
 	if err != nil {
+		klog.Errorf("failed get get client %v", err)
 		return "", err
 	}
 	data, err := client.Resource(gvr).List(ctx, metav1.ListOptions{})
@@ -49,10 +51,12 @@ func GetAdminUsername(ctx context.Context) (string, error) {
 func GetAppConfig(owner string, data []byte) (*oachecker.AppConfiguration, error) {
 	admin, err := GetAdminUsername(context.TODO())
 	if err != nil {
+		klog.Errorf("failed to get admin %v", err)
 		return nil, err
 	}
 	isAdmin, err := IsAdmin(context.TODO(), owner)
 	if err != nil {
+		klog.Errorf("failed to check user %s is admin %v", owner, err)
 		return nil, err
 	}
 
@@ -82,10 +86,12 @@ func GetAdminUserList(ctx context.Context) ([]string, error) {
 	}
 	kubeConfig, err := ctrl.GetConfig()
 	if err != nil {
+		klog.Errorf("failed to get kube config %v", err)
 		return adminUserList, err
 	}
 	client, err := dynamic.NewForConfig(kubeConfig)
 	if err != nil {
+		klog.Errorf("failed to new kube client %v", err)
 		return adminUserList, err
 	}
 	data, err := client.Resource(gvr).List(ctx, metav1.ListOptions{})
@@ -111,6 +117,7 @@ func GetAdminUserList(ctx context.Context) ([]string, error) {
 func IsAdmin(ctx context.Context, owner string) (bool, error) {
 	adminList, err := GetAdminUserList(ctx)
 	if err != nil {
+		klog.Errorf("failed to get admin user list %v", err)
 		return false, err
 	}
 	for _, user := range adminList {

@@ -28,11 +28,12 @@ func (c *install) Run(ctx context.Context, owner, app string, token string, vers
 
 	err := c.UploadChartToMarket(ctx, owner, app, token, version)
 	if err != nil {
+		klog.Errorf("failed to upload app=%s chart to market chart repo %v", app, err)
 		return "", err
 	}
 	err = c.waitForMarketUpdate(ctx, owner, app, version)
 	if err != nil {
-		klog.Errorf("wait market ready app: %s failed", app)
+		klog.Errorf("wait market ready app: %s failed, err=%v", app, err)
 		return "", err
 	}
 
@@ -51,25 +52,21 @@ func (c *install) Run(ctx context.Context, owner, app string, token string, vers
 		SetHeader("X-Authorization", token).
 		SetBody(body).Post(url)
 	if err != nil {
-		klog.Errorf("send install  request failed : %v", err)
+		klog.Errorf("send install request failed : %v", err)
 		return "", err
 	}
 	klog.Infof("install: statusCode: %d", resp.StatusCode())
 	if resp.StatusCode() != http.StatusOK {
-		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
-		if e == nil {
-			klog.Error("request bfl.InstallDevApp", string(dump))
-		}
+		klog.Errorf("get response from url=%s, with statusCode=%d,err=%v", url, resp.StatusCode(), resp.String())
 		return "", errors.New(string(resp.Body()))
 	}
-	klog.Infof("body: %s\n", string(resp.Body()))
 
 	return "", nil
 
 }
 
 func (c *install) UploadChartToMarket(ctx context.Context, owner, app string, token string, version string) error {
-	client := resty.New().SetTimeout(30 * time.Second)
+	client := resty.New().SetTimeout(2 * time.Minute)
 
 	chartFilePath := fmt.Sprintf("/storage/%s/%s-%s.tgz", owner, app, version)
 	klog.Infof("chartFilePath: %s", chartFilePath)
@@ -127,7 +124,7 @@ func (c *install) waitForMarketUpdate(ctx context.Context, owner, app, version s
 		case msg := <-msgChan:
 			var updateInfo MarketSystemUpdate
 			if err := json.Unmarshal(msg.Data, &updateInfo); err != nil {
-				klog.Errorf("failed to Unmarshal %v", err)
+				klog.Errorf("failed to unmarshal marketSystemUpdate %v", err)
 				continue
 			}
 			klog.Infof("message: %#v", updateInfo)
