@@ -32,7 +32,7 @@ func (c *packageChart) Run(pathToPackage string) (*bytes.Buffer, error) {
 
 	err := c.compress(realPath, &buf)
 	if err != nil {
-		klog.Error("compress chart error, ", err, ", ", pathToPackage, ", ", realPath)
+		klog.Errorf("failed to compress chart path=%s, err=%v", realPath, err)
 		return nil, err
 	}
 
@@ -47,6 +47,7 @@ func (c *packageChart) compress(src string, buf io.Writer) error {
 	// is file a folder?
 	fi, err := os.Stat(src)
 	if err != nil {
+		klog.Errorf("failed to stat path=%s, err=%v", src, err)
 		return err
 	}
 	mode := fi.Mode()
@@ -54,18 +55,22 @@ func (c *packageChart) compress(src string, buf io.Writer) error {
 		// get header
 		header, err := tar.FileInfoHeader(fi, src)
 		if err != nil {
+			klog.Errorf("failed to get file info header %v", err)
 			return err
 		}
 		// write header
 		if err := tw.WriteHeader(header); err != nil {
+			klog.Errorf("failed to write header %v", err)
 			return err
 		}
 		// get content
 		data, err := os.Open(src)
 		if err != nil {
+			klog.Errorf("failed to open path=%s, err=%v", src, err)
 			return err
 		}
 		if _, err := io.Copy(tw, data); err != nil {
+			klog.Errorf("failed to copy data %v", err)
 			return err
 		}
 	} else if mode.IsDir() { // folder
@@ -78,6 +83,7 @@ func (c *packageChart) compress(src string, buf io.Writer) error {
 			// generate tar header
 			header, err := tar.FileInfoHeader(fi, file)
 			if err != nil {
+				klog.Errorf("failed to generate tar header file=%s,err=%v", file, err)
 				return err
 			}
 
@@ -88,12 +94,14 @@ func (c *packageChart) compress(src string, buf io.Writer) error {
 
 			// write header
 			if err := tw.WriteHeader(header); err != nil {
+				klog.Errorf("failed to write header %v", err)
 				return err
 			}
 			// if not a dir, write file content
 			if !fi.IsDir() {
 				data, err := os.Open(file)
 				if err != nil {
+					klog.Errorf("failed to open file=%s, err=%v", file, err)
 					return err
 				}
 				if _, err := io.Copy(tw, data); err != nil {

@@ -233,6 +233,7 @@ func (h *handlers) bindContainer(ctx *fiber.Ctx) error {
 		}
 
 		if err == nil {
+			klog.Errorf("devcontainer %s already exists", devContainer.Name)
 			return ctx.JSON(fiber.Map{
 				"code":    http.StatusBadRequest,
 				"message": fmt.Sprintf("devcontainer %s already exists", devContainer.Name),
@@ -442,6 +443,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 
 	manifest, err := helm.DryRun(ctx.Context(), h.kubeConfig, testNamespace, appName, getAppPath(username, app), values)
 	if err != nil {
+		klog.Errorf("failed to dry run %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Dry run failed: %v", err),
@@ -450,6 +452,7 @@ func (h *handlers) listAppContainersInChart(ctx *fiber.Ctx) error {
 
 	resources, err := helm.DecodeManifest(manifest)
 	if err != nil {
+		klog.Errorf("failed to decode manifest %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Decode manifest failed: %v", err),
@@ -768,6 +771,7 @@ func (h *handlers) updateDevContainer(ctx *fiber.Ctx) error {
 	app := make(map[string]string)
 	err := ctx.BodyParser(&app)
 	if err != nil {
+		klog.Errorf("failed to parse body %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Parse body failed: %v", err),
@@ -784,6 +788,7 @@ func (h *handlers) updateDevContainer(ctx *fiber.Ctx) error {
 
 	err = h.db.DB.Model(&model.DevContainers{}).Where("name = ?", name).Update("name", newName).Error
 	if err != nil {
+		klog.Errorf("failed to update dev container name=%s, err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Update dev conainter failed: %v", err),
@@ -873,16 +878,19 @@ func GetAppContainersInChart(owner, app string) ([]*helm.ContainerInfo, error) {
 	values["domain"] = entries
 	kubeConfig, err := ctrl.GetConfig()
 	if err != nil {
+		klog.Errorf("failed to get kube config %v", err)
 		return nil, err
 	}
 
 	manifest, err := helm.DryRun(context.TODO(), kubeConfig, testNamespace, appName, getAppPath(owner, app), values)
 	if err != nil {
+		klog.Errorf("failed to parse manifest %v", err)
 		return nil, err
 	}
 
 	resources, err := helm.DecodeManifest(manifest)
 	if err != nil {
+		klog.Errorf("failed to decode manifest %v", err)
 		return nil, err
 	}
 	op := db.NewDbOperator()

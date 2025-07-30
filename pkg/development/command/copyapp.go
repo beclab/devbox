@@ -2,6 +2,7 @@ package command
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -32,6 +33,7 @@ func (c *copyApp) Run(src, dstApp string) error {
 
 	files, err := os.ReadDir(src)
 	if err != nil {
+		klog.Errorf("failed to read dir %s, err=%v", src, err)
 		return err
 	}
 
@@ -49,7 +51,7 @@ func (c *copyApp) Run(src, dstApp string) error {
 
 	srcChart, err := helm.LoadChart(src)
 	if err != nil {
-		klog.Error("load chart from source error, ", err, ", ", src)
+		klog.Errorf("failed to load chart from source %s, err=%v", src, err)
 		return err
 	}
 
@@ -58,28 +60,28 @@ func (c *copyApp) Run(src, dstApp string) error {
 	if existDir(realPath) {
 		dstChart, err := helm.LoadChart(realPath)
 		if err != nil {
-			klog.Error("load dest chart error, ", err)
+			klog.Errorf("failed to load dest chart %s, err=%v", realPath, err)
 		} else {
 			version, err := helm.GetChartVersion(dstChart)
 			if err != nil {
-				klog.Error("get dest chart version error, ", err)
+				klog.Errorf("failed to get dest chart %s version, err=%v", realPath, err)
 			} else {
 				err = helm.UpdateChartVersion(srcChart, dstApp, src, version)
 				if err != nil {
-					klog.Error("update source chart error, ", err)
+					klog.Errorf("failed to update chart name=%s,path=%s, to version=%s, err=%v", dstApp, src, version.String(), err)
 				}
 			}
 		}
 		err = os.RemoveAll(realPath)
 		if err != nil {
-			klog.Error("remove app chart path error, ", err, ", ", realPath)
-			return err
+			msg := fmt.Sprintf("failed to remove app chart path %s,err=%v", realPath, err)
+			return errors.New(msg)
 		}
 	}
 
 	err = copyDir(src, realPath)
 	if err != nil {
-		klog.Error("copy dir error, ", err, ", from ", src, " to ", realPath)
+		klog.Errorf("failed to copy dir from %s to %s, err=%v", src, realPath, err)
 	}
 	return err
 }

@@ -906,32 +906,41 @@ func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string, owner string
 	createPath := filepath.Join(path, "templates")
 	err = os.MkdirAll(createPath, os.ModePerm)
 	if err != nil {
+		klog.Errorf("failed to mkdir path %s err=%v", createPath, err)
 		return err
 	}
 	if at.appCfg != nil {
 		yml, err := ToYaml(at.appCfg)
 		if err != nil {
+			klog.Errorf("failed to convert appCfg to yaml %v", err)
 			return err
 		}
-		err = ioutil.WriteFile(filepath.Join(path, constants.AppCfgFileName), yml, 0644)
+		filename := filepath.Join(path, constants.AppCfgFileName)
+		err = ioutil.WriteFile(filename, yml, 0644)
 		if err != nil {
+			klog.Errorf("failed to write file %s err=%v", filename, err)
 			return err
 		}
 	}
 	if at.chartMetadata != nil {
 		yml, err := ToYaml(at.chartMetadata)
 		if err != nil {
+			klog.Errorf("failed to convert chart metadata to yaml %v", err)
 			return err
 		}
-		err = ioutil.WriteFile(filepath.Join(path, "Chart.yaml"), yml, 0644)
+		filename := filepath.Join(path, "Chart.yaml")
+		err = ioutil.WriteFile(filename, yml, 0644)
 		if err != nil {
+			klog.Errorf("failed to write file %s, err=%v", filename, err)
 			return err
 		}
 	}
 
 	if at.owner != nil {
-		err = ioutil.WriteFile(filepath.Join(path, "owners"), []byte{}, 0644)
+		filename := filepath.Join(path, "owners")
+		err = ioutil.WriteFile(filename, []byte{}, 0644)
 		if err != nil {
+			klog.Errorf("failed to write file %s, err=%v", filename, err)
 			return err
 		}
 	}
@@ -939,6 +948,7 @@ func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string, owner string
 	if at.deployment != nil {
 		yml, err = ToYaml(at.deployment)
 		if err != nil {
+			klog.Errorf("failed to convert deployment to yaml %v", err)
 			return err
 		}
 
@@ -947,17 +957,22 @@ func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string, owner string
 	if at.service != nil {
 		serviceYml, err := ToYaml(at.service)
 		if err != nil {
+			klog.Errorf("failed to convert service to yaml %v", err)
 			return err
 		}
 		yml = append(yml, sep...)
 		yml = append(yml, serviceYml...)
 	}
-	err = ioutil.WriteFile(filepath.Join(path, "templates", "deployment.yaml"), yml, 0644)
+	filename := filepath.Join(path, "templates", "deployment.yaml")
+	err = ioutil.WriteFile(filename, yml, 0644)
 	if err != nil {
+		klog.Errorf("failed to write file %s, err=%v", filename, err)
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(path, "values.yaml"), nil, 0644)
+	filename = filepath.Join(path, "values.yaml")
+	err = ioutil.WriteFile(filename, nil, 0644)
 	if err != nil {
+		klog.Errorf("failed to write file %s, err=%v", filename, err)
 		return err
 	}
 	if cfg.Traefik {
@@ -973,6 +988,7 @@ func (at *AppTemplate) WriteTraefikFile(path string) error {
 	// ServiceAccount
 	yml, err := ToYaml(at.traefik.sa)
 	if err != nil {
+		klog.Errorf("failed to convert traefik.sa to yaml %v", err)
 		return err
 	}
 	source := []byte("# Source: traefik/templates/rbac/serviceaccount.yaml\n")
@@ -981,6 +997,7 @@ func (at *AppTemplate) WriteTraefikFile(path string) error {
 	// PersistentVolumeClaim
 	pvcYml, err := ToYaml(at.traefik.pvc)
 	if err != nil {
+		klog.Errorf("failed to convert traefik.pvc to yaml %v", err)
 		return err
 	}
 	source = []byte("# Source: traefik/templates/pvc.yaml\n")
@@ -990,6 +1007,7 @@ func (at *AppTemplate) WriteTraefikFile(path string) error {
 	// Role
 	roleYml, err := ToYaml(at.traefik.role)
 	if err != nil {
+		klog.Errorf("failed to convert traefik.role to yaml %v", err)
 		return err
 	}
 	source = []byte("# Source: traefik/templates/rbac/clusterrole.yaml\n")
@@ -999,6 +1017,7 @@ func (at *AppTemplate) WriteTraefikFile(path string) error {
 	// RoleBinding
 	roleBindingYml, err := ToYaml(at.traefik.roleBinding)
 	if err != nil {
+		klog.Errorf("failed to convert traefik.roleBinding to yaml %v", err)
 		return err
 	}
 	source = []byte("# Source: traefik/templates/rbac/clusterrolebinding.yaml\n")
@@ -1008,6 +1027,7 @@ func (at *AppTemplate) WriteTraefikFile(path string) error {
 	// Service
 	svcYml, err := ToYaml(at.traefik.svc)
 	if err != nil {
+		klog.Errorf("failed to convert traefik.svc to yaml %v", err)
 		return err
 	}
 	source = []byte("# Source: traefik/templates/service.yaml\n")

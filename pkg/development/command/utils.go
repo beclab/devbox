@@ -24,11 +24,13 @@ func copyDir(src string, dest string) error {
 
 	f, err := os.Open(src)
 	if err != nil {
+		klog.Errorf("failed to open file path=%s, err=%v", src, err)
 		return err
 	}
 
 	file, err := f.Stat()
 	if err != nil {
+		klog.Errorf("failed to stat file path=%s, err=%v", src, err)
 		return err
 	}
 	if !file.IsDir() {
@@ -37,11 +39,13 @@ func copyDir(src string, dest string) error {
 
 	err = os.Mkdir(dest, 0755)
 	if err != nil {
+		klog.Errorf("failed to mkdir path=%v,err=%v", dest, err)
 		return err
 	}
 
 	files, err := os.ReadDir(src)
 	if err != nil {
+		klog.Errorf("failed to read dir path=%v,err=%v", src, err)
 		return err
 	}
 
@@ -51,6 +55,7 @@ func copyDir(src string, dest string) error {
 
 			err = copyDir(src+"/"+f.Name(), dest+"/"+f.Name())
 			if err != nil {
+				klog.Errorf("failed to copy dir from %s to %s, err=%v", src+"/"+f.Name(), dest+"/"+f.Name())
 				return err
 			}
 
@@ -60,12 +65,14 @@ func copyDir(src string, dest string) error {
 
 			content, err := os.ReadFile(src + "/" + f.Name())
 			if err != nil {
+				klog.Errorf("failed to read file path=%v, err=%v", src+"/"+f.Name(), err)
 				return err
 
 			}
 
 			err = os.WriteFile(dest+"/"+f.Name(), content, 0755)
 			if err != nil {
+				klog.Errorf("failed to write file path=%s,err=%v", dest+"/"+f.Name(), err)
 				return err
 
 			}
@@ -93,33 +100,34 @@ func AggregateErrs(errs []error) error {
 }
 
 func BackupAndRestoreFile(orig, bak string) (func(), error) {
-	klog.Info("backup ", orig)
+	klog.Infof("backup path=%s", orig)
 	data, err := os.ReadFile(orig)
 	if err != nil {
-		klog.Error("read origin file error, ", err, ", ", orig)
+		klog.Errorf("failed to read origin file path=%s,err=%v", orig, err)
 		return nil, err
 	}
 	err = os.MkdirAll(filepath.Dir(bak), 0755)
 	if err != nil {
+		klog.Errorf("failed to mkdir dir=%s, err=%v", filepath.Dir(bak), err)
 		return nil, err
 	}
 	err = os.WriteFile(bak, data, 0644)
 	if err != nil {
-		klog.Error("backup origin file error, ", err, ", ", bak)
+		klog.Errorf("failed to backup origin file %s, err=%v", bak, err)
 		return nil, err
 	}
 
 	return func() {
-		klog.Info("restore ", orig)
+		klog.Infof("restore path=%s", orig)
 		err = os.Remove(orig)
 		if err != nil {
-			klog.Error(err)
+			klog.Errorf("failed to remove path=%s", orig)
 			return
 		}
 
 		err = os.Rename(bak, orig)
 		if err != nil {
-			klog.Error(err)
+			klog.Errorf("failed to rename from %s to %s,err=%v", bak, orig, err)
 		}
 
 	}, nil

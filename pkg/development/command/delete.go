@@ -25,7 +25,7 @@ func (c *deleteChart) Run(pathToPackage string) error {
 
 	err := os.RemoveAll(realPath)
 	if err != nil {
-		klog.Error("remove chart dir error, ", err, ", ", realPath)
+		klog.Errorf("failed to remove chart dir %s, err=%v", realPath, err)
 	}
 
 	return err

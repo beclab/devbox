@@ -238,7 +238,6 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 
 	token := ctx.Locals("auth_token").(string)
 
-
 	name, ok := app["name"]
 	if !ok {
 		klog.Error("app name is empty, ", app)
@@ -257,6 +256,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 	}()
 	err = UpdateDevAppState(username, name, deploying)
 	if err != nil {
+		klog.Errorf("failed to update dev app state name=%s,err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app state err %v", err),
@@ -269,7 +269,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 
 	err = command.Lint().WithDir(BaseDir).Run(context.TODO(), username, name)
 	if err != nil {
-
+		klog.Errorf("failed to lint app=%s, err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": err.Error(),
@@ -299,6 +299,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 	klog.Info("preinstall, create a labeled namespace for webhook")
 	_, err = container.CreateOrUpdateDevNamespace(ctx.Context(), h.kubeConfig, username, devName)
 	if err != nil {
+		klog.Errorf("failed to check namespace %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Check namespace failed: %v", err),
@@ -329,6 +330,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 
 	err = UpdateDevAppState(username, name, deployed)
 	if err != nil {
+		klog.Errorf("failed to update app=%s state to deployed %v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app state to deployed err %v", err),
@@ -354,6 +356,7 @@ func (h *handlers) downloadDevAppChart(ctx *fiber.Ctx) error {
 
 	buf, err := command.PackageChart().WithDir(BaseDir).Run(app)
 	if err != nil {
+		klog.Errorf("failed to package app=%s chart %v", app, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Package chart Failed: %v", err),
@@ -515,6 +518,7 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 
 	err = command.DeleteChart().WithDir(BaseDir).Run(name)
 	if err != nil {
+		klog.Errorf("failed to delete chart %s, err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Delete Chart Failed: %v", err),
@@ -610,6 +614,7 @@ func (h *handlers) lintDevAppChart(ctx *fiber.Ctx) error {
 
 	err := command.Lint().WithDir(BaseDir).Run(ctx.Context(), username, app)
 	if err != nil {
+		klog.Errorf("failed to lint app %s, err=%v", app, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Lint Failed: %v", err),
@@ -643,6 +648,7 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 	devName := name + "-dev"
 	res, err := uninstall(devName, token)
 	if err != nil {
+		klog.Errorf("failed to uninstall %s, err=%v", devName, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Uninstall Failed: %v", err),
@@ -684,6 +690,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 	uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
 	err = UnArchive(filepath.Join("/tmp", file.Filename), filepath.Join("/tmp", uniqueId))
 	if err != nil {
+		klog.Errorf("failed to unarchive file %s, err=%v", filepath.Join("/tmp", file.Filename), err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("UnArchive failed: %v", err),
@@ -692,6 +699,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 
 	cfg, err := readCfgFromFile(username, filepath.Join("/tmp", uniqueId))
 	if err != nil {
+		klog.Errorf("failed to read cfg from file %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Read cfg frome file failed: %v", err),
@@ -706,6 +714,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 
 	err = command.Lint().WithDir(filepath.Dir(chartDir)).Run(context.TODO(), username, filepath.Base(chartDir))
 	if err != nil {
+		klog.Errorf("lint failed %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Lint failed: %v", err),
@@ -753,6 +762,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 		}
 		appID, err = InsertDevApp(&appData)
 		if err != nil {
+			klog.Errorf("failed to insert app %s,err=%v", cfg.Metadata.Name, err)
 			return ctx.JSON(fiber.Map{
 				"code":    http.StatusBadRequest,
 				"message": fmt.Sprintf("Insert app failed: %v", err),
@@ -767,6 +777,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 		if err != nil {
 			klog.Error(e)
 		}
+		klog.Errorf("failed to copy app dir %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Copy app withdir failed: %v", err),
@@ -1035,6 +1046,7 @@ func (h *handlers) fillApp(ctx *fiber.Ctx) error {
 	}
 	appId, err := UpdateDevApp(username, cfg.Name, updates)
 	if err != nil {
+		klog.Errorf("failed to update dev app %s, err=%v", cfg.Name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app err %v", err),
@@ -1077,6 +1089,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 	var app App
 	err := ctx.BodyParser(&app)
 	if err != nil {
+		klog.Errorf("failed to parse body %v", err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Bad Request: %v", err),
@@ -1104,6 +1117,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 
 	appId, err := UpdateDevApp(username, name, updates)
 	if err != nil {
+		klog.Errorf("failed to update app %s, err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app err %v", err),
@@ -1169,6 +1183,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 
 	appId, err := UpdateDevApp(username, name, updates)
 	if err != nil {
+		klog.Errorf("failed to update dev app %w,err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app err %v", err),
@@ -1177,6 +1192,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 
 	containers, err := GetAppContainersInChart(username, name)
 	if err != nil || len(containers) == 0 {
+		klog.Errorf("failed to get app containers in chart err=%v, len(containers)=%d", err, len(containers))
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("get bind containers err %v", err),
@@ -1194,6 +1210,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 	}
 	err = BindContainer(bindData)
 	if err != nil {
+		klog.Errorf("failed to bind container app=%s,err=%v", name, err)
 		e := h.db.DB.Where("app_id = ?", appId).Delete(&model.DevAppContainers{}).Error
 		if e != nil && !errors.Is(e, gorm.ErrRecordNotFound) {
 			klog.Errorf("delete devAppContainer app_id=%d err %v", appId, e)

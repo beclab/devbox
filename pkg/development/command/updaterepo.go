@@ -35,52 +35,53 @@ func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) 
 
 	chart, err := helm.LoadChart(realPath)
 	if err != nil {
-		klog.Error("load chart to upgrade repo error, ", err, ", ", realPath)
+		klog.Errorf("failed to load chart path=%s to repo,err=%v", realPath, err)
 		return "", err
 	}
 
-	klog.Info("upgrade chart version, ", app)
+	klog.Infof("start to upgrade chart version app=%s", app)
 	version, err := helm.GetChartVersion(chart)
 	if err != nil {
+		klog.Errorf("failed to get app=%s chart version %v", app, err)
 		return "", err
 	}
 	newVersion := version.IncPatch()
 	uploadChartVersion := version.String()
 	if !notExist {
 		uploadChartVersion = newVersion.String()
-		klog.Infof("uploadChartVersion: %s", uploadChartVersion)
+		klog.Infof("uploadChartVersion to %s", uploadChartVersion)
 		err = helm.UpgradeChartVersion(chart, app, realPath, &newVersion)
 		if err != nil {
-			klog.Error("upgrade chart version error, ", err)
+			klog.Errorf("failed to upgrade chart version,app=%s,version=%s,err=%v", app, uploadChartVersion, err)
 			return "", err
 		}
 	}
 
 	backupAndRestoreFile := func(orig, bak string) (func(), error) {
-		klog.Info("backup ", orig)
+		klog.Infof("backup origin path=%s", orig)
 		data, err := os.ReadFile(orig)
 		if err != nil {
-			klog.Error("read origin file error, ", err, ", ", orig)
+			klog.Errorf("failed to read origin file path=%s,err=%v", orig, err)
 			return nil, err
 		}
 
 		err = os.WriteFile(bak, data, 0644)
 		if err != nil {
-			klog.Error("backup origin file error, ", err, ", ", bak)
+			klog.Errorf("failed to backup origin file %s,err=%v", bak, err)
 			return nil, err
 		}
 
 		return func() {
-			klog.Info("restore ", orig)
+			klog.Infof("restore file path=%s", orig)
 			err = os.Remove(orig)
 			if err != nil {
-				klog.Error(err)
+				klog.Errorf("failed to remove file path=%s", orig)
 				return
 			}
 
 			err = os.Rename(bak, orig)
 			if err != nil {
-				klog.Error(err)
+				klog.Errorf("failed to rename from path=%s to path=%s", bak, orig)
 			}
 
 		}, nil
@@ -90,20 +91,21 @@ func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) 
 	chartYamlBak := filepath.Join(realPath, "Chart.bak")
 	chartDeferFunc, err := backupAndRestoreFile(chartYaml, chartYamlBak)
 	if err != nil {
+		klog.Errorf("failed to get chartDeferFunc %v", err)
 		return "", err
 	}
 	defer chartDeferFunc()
 
 	err = helm.UpdateChartName(chart, app, realPath)
 	if err != nil {
-		klog.Error("update chart name error, ", err)
+		klog.Errorf("failed to update chart app=%s,path=%s,err=%v", app, realPath, err)
 		return "", err
 	}
 
 	if !notExist {
 		err = helm.UpdateAppCfgVersion(owner, realPath, &newVersion)
 		if err != nil {
-			klog.Error("update OlaresManifest.yaml metadata.version error, ", err)
+			klog.Errorf("failed to update OlaresManifest.yaml metadata.version %v", err)
 			return "", err
 		}
 	}
@@ -112,12 +114,14 @@ func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) 
 	appcfgBak := filepath.Join(realPath, "OlaresManifest.yaml.bak")
 	appcfgDeferFunc, err := backupAndRestoreFile(appcfg, appcfgBak)
 	if err != nil {
+		klog.Errorf("failed to get appcfg defer func %v", err)
 		return "", err
 	}
 	defer appcfgDeferFunc()
 
 	err = helm.UpdateAppCfgName(owner, app, realPath)
 	if err != nil {
+		klog.Errorf("failed to update app cfg name app=%s,path=%s,err=%v", app, realPath, err)
 		return "", err
 	}
 
@@ -133,7 +137,7 @@ func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) 
 		if !notExist {
 			err = deleteOldTgz(owner, app+"-dev", newVersion.String())
 			if err != nil {
-				klog.Info("delete chartmuseum old tgz error, ", err)
+				klog.Errorf("failed to delete chart repo old tgz %v", err)
 			}
 		}
 
