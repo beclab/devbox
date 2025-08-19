@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/beclab/devbox/pkg/constants"
@@ -112,7 +113,7 @@ func CreateOrUpdateDevNamespace(ctx context.Context, kubeconfig *rest.Config, ow
 		return "", err
 	}
 
-	namespaceName := app + "-" + owner
+	namespaceName := fmt.Sprintf("%s-%s", app, owner)
 
 	ns, err := client.CoreV1().Namespaces().Get(ctx, namespaceName, metav1.GetOptions{})
 	if err != nil {

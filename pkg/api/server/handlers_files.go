@@ -12,6 +12,7 @@ import (
 
 	"github.com/beclab/devbox/pkg/development/command"
 	"github.com/beclab/devbox/pkg/files"
+	"github.com/beclab/devbox/pkg/utils"
 	"github.com/beclab/oachecker"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,8 +24,9 @@ func (h *handlers) getFiles(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
 	username := ctx.Locals("username").(string)
 
+	userBaseDir := utils.GetUserBaseDir(username)
 	file, err := files.NewFileInfo(files.FileOptions{
-		Fs:         afero.NewBasePathFs(afero.NewOsFs(), BaseDir+"/"+username),
+		Fs:         afero.NewBasePathFs(afero.NewOsFs(), userBaseDir),
 		Path:       path,
 		Modify:     true,
 		Expand:     true,
@@ -93,7 +95,9 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 		return nil, fmt.Errorf("create bak temp file failed %v", tempFile)
 	}
 
-	bakContent, err := os.ReadFile(filepath.Join(BaseDir, owner, originFilePath))
+	userBaseDir := utils.GetUserBaseDir(owner)
+	fullOriginFilePath := filepath.Join(userBaseDir, originFilePath)
+	bakContent, err := os.ReadFile(fullOriginFilePath)
 	if err != nil {
 		klog.Errorf("failed to read origin file path=%s,err=%v", originFilePath, err)
 		return nil, fmt.Errorf("read origin file %s failed %v", originFilePath, err)
@@ -105,15 +109,15 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 		return nil, err
 	}
 
-	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), originFilePath, content)
+	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), userBaseDir), originFilePath, content)
 	if err != nil {
 		klog.Infof("failed to write file path=%s, err=%v", originFilePath, err)
 		return nil, err
 	}
 
 	if err = lintFunc(ctx, owner, name); err != nil {
-		if restoreErr := os.Rename(tempFile.Name(), filepath.Join(BaseDir, owner, originFilePath)); restoreErr != nil {
-			klog.Errorf("failed to lint and restore, path=%s,err=%v", filepath.Join(BaseDir, owner, originFilePath), restoreErr)
+		if restoreErr := os.Rename(tempFile.Name(), fullOriginFilePath); restoreErr != nil {
+			klog.Errorf("failed to lint and restore, path=%s,err=%v", fullOriginFilePath, restoreErr)
 			return nil, fmt.Errorf("lint failed: %v, and restore bak failed: %v", err, restoreErr)
 		}
 		return nil, fmt.Errorf("lint failed: %v", err)
@@ -130,13 +134,17 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 
 func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
+	username := ctx.Locals("username").(string)
 	klog.Infof("resourcePostHandler: %s", path)
+	userBaseDir := utils.GetUserBaseDir(username)
+	fullPath := filepath.Join(userBaseDir, path)
+
 	isDir := ctx.Query("file_type") == "dir"
 	if isDir {
-		klog.Infof("resourcePostHandler mkdir: %s", filepath.Join(BaseDir, path))
-		err := os.MkdirAll(filepath.Join(BaseDir, path), 0755)
+		klog.Infof("resourcePostHandler mkdir: %s", fullPath)
+		err := os.MkdirAll(fullPath, 0755)
 		if err != nil {
-			klog.Errorf("failed to mkdir dir=%s, err=%v", filepath.Join(BaseDir, path), err)
+			klog.Errorf("failed to mkdir dir=%s, err=%v", fullPath, err)
 			return ctx.JSON(fiber.Map{
 				"code":    errToStatus(err),
 				"message": err.Error(),
@@ -148,7 +156,8 @@ func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 		})
 	}
 	klog.Infof("resource post override: %s", ctx.Query("override"))
-	_, err := os.Stat(filepath.Join(BaseDir, path))
+
+	_, err := os.Stat(fullPath)
 	if err == nil {
 		if ctx.Query("override") != "true" {
 			return ctx.JSON(fiber.Map{
@@ -157,7 +166,7 @@ func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 			})
 		}
 	}
-	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), BaseDir), path, bytes.NewReader(ctx.Body()))
+	file, err := files.WriteFile(afero.NewBasePathFs(afero.NewOsFs(), userBaseDir), path, bytes.NewReader(ctx.Body()))
 	if err != nil {
 		klog.Infof("failed to write file path=%s, err=%v", path, err)
 		return ctx.JSON(fiber.Map{
@@ -173,22 +182,25 @@ func (h *handlers) resourcePostHandler(ctx *fiber.Ctx) error {
 
 func (h *handlers) resourceDeleteHandler(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
+	username := ctx.Locals("username").(string)
 	if len(strings.Split(path, "/")) < 2 {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusForbidden,
 			"message": "Permission denied",
 		})
 	}
-	_, err := os.Stat(filepath.Join(BaseDir, path))
+	userBaseDir := utils.GetUserBaseDir(username)
+	fullPath := filepath.Join(userBaseDir, path)
+	_, err := os.Stat(fullPath)
 	if os.IsNotExist(err) {
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusNotFound,
 			"message": "No such file or directory",
 		})
 	}
-	err = os.RemoveAll(filepath.Join(BaseDir, path))
+	err = os.RemoveAll(fullPath)
 	if err != nil {
-		klog.Errorf("failed to remove dir=%s, err=%v", filepath.Join(BaseDir, path), err)
+		klog.Errorf("failed to remove dir=%s, err=%v", fullPath, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Delete file failed: %v", err),
@@ -202,20 +214,23 @@ func (h *handlers) resourceDeleteHandler(ctx *fiber.Ctx) error {
 
 func (h *handlers) resourcePatchHandler(ctx *fiber.Ctx) error {
 	path := ctx.Params("*1")
+	username := ctx.Locals("username").(string)
 	dst := ctx.Query("destination")
 	action := ctx.Query("action")
 	override := ctx.Query("override") == "true"
 
+	userBaseDir := utils.GetUserBaseDir(username)
+	dstFullPath := filepath.Join(userBaseDir, dst)
 	if !override {
-		if _, err := os.Stat(dst); err == nil {
+		if _, err := os.Stat(dstFullPath); err == nil {
 			return ctx.JSON(fiber.Map{
 				"code":    errToStatus(err),
 				"message": err.Error(),
 			})
 		}
 	}
-	src := filepath.Join(BaseDir, path)
-	dst = filepath.Join(BaseDir, dst)
+	src := filepath.Join(userBaseDir, path)
+	dst = dstFullPath
 	klog.Infof("src: %s", src)
 	klog.Infof("dst: %s", dst)
 	err := patchAction(action, src, dst)

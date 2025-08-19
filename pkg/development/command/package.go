@@ -10,11 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/beclab/devbox/pkg/utils"
+
 	"k8s.io/klog/v2"
 )
 
 type packageChart struct {
 	baseDir string
+	uername string
 }
 
 func PackageChart() *packageChart {
@@ -25,10 +28,14 @@ func (c *packageChart) WithDir(dir string) *packageChart {
 	c.baseDir = dir
 	return c
 }
+func (c *packageChart) WithUser(username string) *packageChart {
+	c.uername = username
+	return c
+}
 
 func (c *packageChart) Run(pathToPackage string) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
-	realPath := filepath.Join(c.baseDir, pathToPackage)
+	realPath := filepath.Join(utils.GetUserBaseDir(c.uername), pathToPackage)
 
 	err := c.compress(realPath, &buf)
 	if err != nil {
@@ -89,8 +96,15 @@ func (c *packageChart) compress(src string, buf io.Writer) error {
 
 			// must provide real name
 			// (see https://golang.org/src/archive/tar/common.go?#L626)
-			// strip base_dir
-			header.Name = strings.TrimPrefix(strings.TrimPrefix(filepath.ToSlash(file), c.baseDir), "/")
+			// strip base_dir and username prefix to get relative path starting from app name
+			relativePath := strings.TrimPrefix(strings.TrimPrefix(filepath.ToSlash(file), c.baseDir), "/")
+			// Remove username prefix (e.g., "olaresid/bbb/" -> "bbb/")
+			pathParts := strings.Split(relativePath, "/")
+			if len(pathParts) > 1 {
+				header.Name = strings.Join(pathParts[1:], "/")
+			} else {
+				header.Name = relativePath
+			}
 
 			// write header
 			if err := tw.WriteHeader(header); err != nil {

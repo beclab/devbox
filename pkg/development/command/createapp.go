@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/beclab/devbox/pkg/utils"
 	"github.com/beclab/oachecker"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -90,15 +91,8 @@ func (c *createApp) Run(ctx context.Context, cfg *CreateConfig, owner string) er
 	if cfg.Traefik {
 		at.WithTraefik(cfg)
 	}
-	baseDir := c.dir
-	if baseDir == "" {
-		baseDir = os.Getenv("BASE_DIR")
-		if baseDir == "" {
-			baseDir = "/tmp"
-		}
-	}
 
-	return at.WriteFile(cfg, baseDir, owner)
+	return at.WriteFile(cfg, owner)
 }
 
 type AppTemplate struct {
@@ -898,8 +892,8 @@ func (at *AppTemplate) WithTraefik(cfg *CreateConfig) *AppTemplate {
 	return at
 }
 
-func (at *AppTemplate) WriteFile(cfg *CreateConfig, baseDir string, owner string) (err error) {
-	path := filepath.Join(baseDir, owner, cfg.Name)
+func (at *AppTemplate) WriteFile(cfg *CreateConfig, owner string) (err error) {
+	path := utils.GetAppPath(owner, cfg.Name)
 	if existDir(path) {
 		return os.ErrExist
 	}

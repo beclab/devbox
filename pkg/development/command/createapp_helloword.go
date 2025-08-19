@@ -1,5 +1,9 @@
 package command
 
+import (
+	"github.com/beclab/devbox/pkg/utils"
+)
+
 var createConfigExample = &CreateWithOneDockerConfig{
 	Container: CreateWithOneDockerContainer{
 		Image: "beclab/studio-app:0.0.1",
@@ -12,13 +16,15 @@ var createConfigExample = &CreateWithOneDockerConfig{
 	NeedRedis:      false,
 }
 
-func CreateAppWithHelloWorldConfig(baseDir string, owner, name, title string) error {
+func CreateAppWithHelloWorldConfig(owner, name, title string) error {
+	at := &AppTemplate{}
 	createConfigExample.Name = name
 	createConfigExample.Title = title
-	at := AppTemplate{}
+
 	at.WithDockerCfg(createConfigExample).WithDockerDeployment(createConfigExample).
 		WithDockerService(createConfigExample).WithDockerChartMetadata(createConfigExample).WithDockerOwner(createConfigExample)
-	err := at.WriteDockerFile(createConfigExample, owner, baseDir)
+
+	err := at.WriteDockerFile(createConfigExample, utils.GetAppPath(owner, name))
 	if err != nil {
 		return err
 	}

@@ -4,9 +4,10 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/beclab/devbox/pkg/middlewares"
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/webhook"
-	"github.com/beclab/devbox/pkg/middlewares"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -49,7 +50,6 @@ func (s *server) Start() {
 	if dir != "" {
 		BaseDir = dir
 	}
-
 	tlsCert, tlsKey := defaultCertPath, defaultKeyPath
 	if os.Getenv(tlsCertEnv) != "" && os.Getenv(tlsKeyEnv) != "" {
 		tlsCert, tlsKey = os.Getenv(tlsCertEnv), os.Getenv(tlsKeyEnv)
@@ -74,7 +74,7 @@ func (s *server) Start() {
 	command.Get("/download-app-chart", s.handlers.downloadDevAppChart)
 	command.Post("/open-application", s.handlers.openApplication)
 	command.Post("/delete-app", s.handlers.deleteDevApp)
-	command.Post("/upload-app-chart", s.handlers.uploadDevAppChart)
+	//command.Post("/upload-app-chart", s.handlers.uploadDevAppChart)
 	command.Get("/lint-app-chart", s.handlers.lintDevAppChart)
 	command.Post("/uninstall/:name", s.handlers.uninstall)
 	command.Post("/upload-app-archive", s.handlers.createAppByArchive)
