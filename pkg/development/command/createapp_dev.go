@@ -1,5 +1,9 @@
 package command
 
+import (
+	"github.com/beclab/devbox/pkg/utils"
+)
+
 type CreateDevContainerConfig struct {
 	DevEnv         string `json:"devEnv"`
 	Title          string `json:"title"`
@@ -21,7 +25,9 @@ var createConfigDev = &CreateWithOneDockerConfig{
 	NeedRedis:      false,
 }
 
-func CreateAppWithDevConfig(baseDir string, owner, name string, cfg *CreateDevContainerConfig) error {
+func CreateAppWithDevConfig(cfg *CreateDevContainerConfig, owner, name string) error {
+	appPath := utils.GetAppPath(owner, name)
+
 	createConfigDev.Name = name
 	createConfigDev.Title = cfg.Title
 	if cfg != nil {
@@ -38,7 +44,7 @@ func CreateAppWithDevConfig(baseDir string, owner, name string, cfg *CreateDevCo
 	at := AppTemplate{}
 	at.WithDockerCfg(createConfigDev).WithDockerDeployment(createConfigDev).
 		WithDockerService(createConfigDev).WithDockerChartMetadata(createConfigDev).WithDockerOwner(createConfigDev)
-	err := at.WriteDockerFile(createConfigDev, owner, baseDir)
+	err := at.WriteDockerFile(createConfigDev, appPath)
 	if err != nil {
 		return err
 	}

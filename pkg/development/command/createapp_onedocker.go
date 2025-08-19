@@ -10,6 +10,7 @@ import (
 	"unicode"
 
 	"github.com/beclab/devbox/pkg/constants"
+	"github.com/beclab/devbox/pkg/utils"
 	"github.com/beclab/oachecker"
 
 	jvalidator "github.com/go-playground/validator/v10"
@@ -74,15 +75,9 @@ func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig, owner string) 
 	at := AppTemplate{}
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
 
-	baseDir := c.dir
-	if baseDir == "" {
-		baseDir = os.Getenv("BASE_DIR")
-		if baseDir == "" {
-			baseDir = "/tmp"
-		}
-	}
+	appPath := utils.GetAppPath(owner, cfg.Name)
 
-	return at.WriteDockerFile(cfg, owner, baseDir)
+	return at.WriteDockerFile(cfg, appPath)
 }
 
 func (at *AppTemplate) checkMountPath(mounts map[string]string, prefix string) bool {
@@ -456,8 +451,7 @@ func (at *AppTemplate) WithDockerOwner(cfg *CreateWithOneDockerConfig) *AppTempl
 	return at
 }
 
-func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, owner, baseDir string) (err error) {
-	path := filepath.Join(baseDir, owner, cfg.Name)
+func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, path string) (err error) {
 	if existDir(path) {
 		return os.ErrExist
 	}

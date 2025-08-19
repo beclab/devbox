@@ -10,6 +10,7 @@ import (
 
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/development/helm"
+	"github.com/beclab/devbox/pkg/utils"
 
 	"k8s.io/klog/v2"
 )
@@ -31,7 +32,8 @@ func (c *updateRepo) Run(ctx context.Context, owner, app string, notExist bool) 
 	if app == "" {
 		return "", errors.New("repo path must be specified")
 	}
-	realPath := filepath.Join(c.baseCommand.dir, owner, app)
+
+	realPath := utils.GetAppPath(owner, app)
 
 	chart, err := helm.LoadChart(realPath)
 	if err != nil {

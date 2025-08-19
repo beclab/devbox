@@ -13,7 +13,8 @@ import (
 )
 
 type copyApp struct {
-	baseDir string
+	baseDir  string
+	username string
 }
 
 func CopyApp() *copyApp {
@@ -22,6 +23,11 @@ func CopyApp() *copyApp {
 
 func (c *copyApp) WithDir(dir string) *copyApp {
 	c.baseDir = dir
+	return c
+}
+
+func (c *copyApp) WithUser(username string) *copyApp {
+	c.username = username
 	return c
 }
 
@@ -55,7 +61,7 @@ func (c *copyApp) Run(src, dstApp string) error {
 		return err
 	}
 
-	realPath := filepath.Join(c.baseDir, dstApp)
+	realPath := filepath.Join(c.baseDir, c.username, dstApp)
 
 	if existDir(realPath) {
 		dstChart, err := helm.LoadChart(realPath)

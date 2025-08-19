@@ -312,23 +312,16 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 
 			pod.Spec.Containers[i].Image = container.DevEnvImage(dc.DevEnv)
 
-			// make sure only one nginx is running in the pod
-			if firstMutateContainer {
-				// start code-server on custom port
-				pod.Spec.Containers[i].Command = []string{
-					"sh",
-					"-c",
-					`if [ ! -f /etc/nginx/conf.d/dev/dev.conf ]; then cp /etc/nginx/conf.d/dev.example /etc/nginx/conf.d/dev/dev.conf;fi;
-				nginx && 
-				exec /usr/bin/code-server --bind-addr "0.0.0.0:` + strconv.Itoa(devPort) + `" --auth=none --log=debug`,
-				}
-			} else {
-				pod.Spec.Containers[i].Command = []string{
-					"sh",
-					"-c",
-					`if [ ! -f /etc/nginx/conf.d/dev/dev.conf ]; then cp /etc/nginx/conf.d/dev.example /etc/nginx/conf.d/dev/dev.conf;fi;
-				exec /usr/bin/code-server --bind-addr "0.0.0.0:` + strconv.Itoa(devPort) + `" --auth=none --log=debug`,
-				}
+			// start code-server on custom port with error handling
+			pod.Spec.Containers[i].Command = []string{
+				"sh",
+				"-c",
+				`
+					echo "Starting code-server..."
+					exec /usr/bin/code-server \
+  					--bind-addr "0.0.0.0:` + strconv.Itoa(devPort) + `" \
+  					--auth=none \
+  					--log=debug`,
 			}
 
 			endpoint := &envoy.DevcontainerEndpoint{

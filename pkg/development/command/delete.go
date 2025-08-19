@@ -8,7 +8,8 @@ import (
 )
 
 type deleteChart struct {
-	baseDir string
+	baseDir  string
+	username string
 }
 
 func DeleteChart() *deleteChart {
@@ -19,9 +20,13 @@ func (c *deleteChart) WithDir(dir string) *deleteChart {
 	c.baseDir = dir
 	return c
 }
+func (c *deleteChart) WithUser(username string) *deleteChart {
+	c.username = username
+	return c
+}
 
 func (c *deleteChart) Run(pathToPackage string) error {
-	realPath := filepath.Join(c.baseDir, pathToPackage)
+	realPath := filepath.Join(c.baseDir, c.username, pathToPackage)
 
 	err := os.RemoveAll(realPath)
 	if err != nil {
