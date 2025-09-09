@@ -649,7 +649,7 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 		})
 	}
 	devName := fmt.Sprintf("%s-%s", name, "dev")
-	res, err := uninstall(devName, token)
+	res, err := uninstall(devName, token, username)
 	if err != nil {
 		klog.Errorf("failed to uninstall %s, err=%v", devName, err)
 		return ctx.JSON(fiber.Map{
@@ -877,14 +877,22 @@ type SystemServerWrap struct {
 	Data    InstallationResponse `json:"data"`
 }
 
-func uninstall(name, token string) (data map[string]interface{}, err error) {
-	url := fmt.Sprintf("http://appstore-service.os-framework:81/app-store/api/v2/apps/%s", name)
+func uninstall(name, token, owner string) (data map[string]interface{}, err error) {
+	uninstalled, err := checkIfAppIsUninstalled(name, token, owner)
+	if err != nil {
+		return data, err
+	}
+	if uninstalled {
+		return data, nil
+	}
+	url := fmt.Sprintf("http://app-service.os-framework:6755/app-service/v1/apps/%s/uninstall", name)
 
 	client := resty.New().SetTimeout(5 * time.Second)
 	resp, err := client.R().
 		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
 		SetHeader("X-Authorization", token).
-		Delete(url)
+		SetHeader("X-Bfl-User", owner).
+		Post(url)
 	if err != nil {
 		klog.Errorf("failed to send request to uninstall app %s, err=%v", name, err)
 		return data, err
@@ -907,7 +915,7 @@ func uninstall(name, token string) (data map[string]interface{}, err error) {
 }
 
 func WaitForUninstall(owner, name, token string, kubeConfig *rest.Config) error {
-	_, err := uninstall(name, token)
+	_, err := uninstall(name, token, owner)
 	if err != nil {
 		return err
 	}
@@ -1243,4 +1251,53 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 			"appId": appId,
 		},
 	})
+}
+
+func checkIfAppIsUninstalled(name, token, owner string) (bool, error) {
+	url := fmt.Sprintf("http://app-service.os-framework:6755/app-service/v1/apps/%s/status", name)
+	data := make(map[string]interface{})
+
+	client := resty.New().SetTimeout(5 * time.Second)
+	resp, err := client.R().
+		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
+		SetHeader("X-Authorization", token).
+		SetHeader("X-Bfl-User", owner).
+		Get(url)
+	if err != nil {
+		klog.Errorf("failed to send request to get app status %s, err=%v", name, err)
+		return false, err
+	}
+	klog.Info("request app %s status resp.StatusCode: %d", name, resp.StatusCode())
+	if resp.StatusCode() == http.StatusNotFound {
+		return true, nil
+	}
+	if resp.StatusCode() != http.StatusOK {
+		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
+		if e == nil {
+			klog.Error("request error, ", string(dump))
+		}
+		return false, errors.New(string(resp.Body()))
+	}
+	klog.Info("resp.Body: ", string(resp.Body()))
+	err = json.Unmarshal(resp.Body(), &data)
+	if err != nil {
+		return false, err
+	}
+	appStatus, ok := data["status"]
+	if !ok {
+		return false, fmt.Errorf("status filed not found")
+	}
+	statusMap, ok := appStatus.(map[string]interface{})
+	if !ok {
+		return false, fmt.Errorf("status is not a map")
+	}
+	state, ok := statusMap["state"].(string)
+	if !ok {
+		return false, fmt.Errorf("state is not a string")
+	}
+	if state != "uninstalled" {
+		return false, nil
+	}
+
+	return true, nil
 }
