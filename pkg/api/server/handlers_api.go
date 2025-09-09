@@ -542,12 +542,14 @@ func (h *handlers) getAppState(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Auth token not found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
 	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/operate"
 	client := resty.New().SetTimeout(2 * time.Second)
 
 	resp, err := client.R().SetDebug(true).
 		SetHeader("X-Authorization", token).
+		SetHeader("X-Bfl-User", username).
 		SetResult(&application.Operate{}).
 		Get(url)
 
@@ -598,12 +600,14 @@ func (h *handlers) getAppStatus(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Auth token not found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
 	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/status"
 	client := resty.New().SetTimeout(2 * time.Second)
 
 	resp, err := client.R().SetDebug(true).
 		SetHeader("X-Authorization", token).
+		SetHeader("X-Bfl-User", username).
 		SetResult(&application.Status{}).
 		Get(url)
 
@@ -654,6 +658,7 @@ func (h *handlers) cancel(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Auth token not found"),
 		})
 	}
+	username := ctx.Locals("username").(string)
 
 	url := "http://app-service.os-framework:6755/app-service/v1/apps/" + appName + "/cancel"
 	client := resty.New().SetTimeout(2 * time.Second)
@@ -662,6 +667,7 @@ func (h *handlers) cancel(ctx *fiber.Ctx) error {
 		SetHeader("X-Authorization", token).
 		SetHeader("Accept", "*/*").
 		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
+		SetHeader("X-Bfl-User", username).
 		SetResult(&InstallationResponse{}).
 		Post(url)
 
