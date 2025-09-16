@@ -27,13 +27,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
@@ -934,12 +932,6 @@ func uninstall(name, token, owner string) (data map[string]interface{}, err erro
 func WaitForUninstall(owner, name, token string, kubeConfig *rest.Config) error {
 	_, err := uninstall(name, token, owner)
 	if err != nil {
-		return err
-	}
-
-	client, err := kubernetes.NewForConfig(kubeConfig)
-	if err != nil {
-		klog.Error(err)
 		return err
 	}
 
