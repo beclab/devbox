@@ -23,15 +23,16 @@ func (l *lint) WithDir(dir string) *lint {
 
 func (l *lint) Run(ctx context.Context, owner, chart string) error {
 	chartPath := filepath.Join(l.baseCommand.dir, owner, chart)
-	err := oachecker.LintWithDifferentOwnerAdmin(chartPath, "owner", "admin")
+
+	err := oachecker.Lint(chartPath, oachecker.DefaultLintOptions().SkipSameVersion().WithOwner("owner").WithAdmin("admin"))
 	if err != nil {
 		klog.Errorf("failed to lint chart path=%s with different owner and admin %v", chartPath, err)
 		return err
 	}
-	err = oachecker.LintWithSameOwnerAdmin(chartPath, "owner")
+	err = oachecker.Lint(chartPath, oachecker.DefaultLintOptions().SkipSameVersion().WithOwner("admin").WithAdmin("admin"))
 	if err != nil {
 		klog.Errorf("failed to lint chart path=%s with same owner and admin %v", chartPath, err)
 		return err
 	}
-	return err
+	return nil
 }

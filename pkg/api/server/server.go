@@ -74,7 +74,7 @@ func (s *server) Start() {
 	command.Get("/download-app-chart", s.handlers.downloadDevAppChart)
 	command.Post("/open-application", s.handlers.openApplication)
 	command.Post("/delete-app", s.handlers.deleteDevApp)
-	//command.Post("/upload-app-chart", s.handlers.uploadDevAppChart)
+	command.Post("/upload-app-chart", s.handlers.uploadDevAppChart)
 	command.Get("/lint-app-chart", s.handlers.lintDevAppChart)
 	command.Post("/uninstall/:name", s.handlers.uninstall)
 	command.Post("/upload-app-archive", s.handlers.createAppByArchive)
