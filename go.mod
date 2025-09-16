@@ -17,11 +17,12 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/maruel/natural v1.1.0
 	github.com/mholt/archiver/v3 v3.5.1
+	github.com/nats-io/nats.go v1.36.0
 	github.com/spf13/afero v1.10.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/crypto v0.32.0
+	github.com/thoas/go-funk v0.9.3
 	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.5.11
@@ -44,11 +45,10 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/nats-io/nats.go v1.36.0 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nyaruka/phonenumbers v1.0.55 // indirect
-	github.com/thoas/go-funk v0.9.3 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
@@ -64,7 +64,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/beclab/oachecker v0.0.6
+	github.com/beclab/oachecker v0.0.7
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect

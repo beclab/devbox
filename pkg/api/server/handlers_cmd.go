@@ -23,15 +23,15 @@ import (
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
 	"github.com/beclab/devbox/pkg/utils"
-
 	"github.com/emicklei/go-restful/v3"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/storage/driver"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -534,76 +534,85 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 	})
 }
 
-//func (h *handlers) uploadDevAppChart(ctx *fiber.Ctx) error {
-//	app := ctx.FormValue("app")
-//	if app == "" {
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusNotFound,
-//			"message": fmt.Sprintf("Applcation Not Found"),
-//		})
-//	}
-//
-//	username := ctx.Locals("username").(string)
-//
-//	// parse incomming chart tgz/zip file
-//	fileHeader, err := ctx.FormFile("chart")
-//	if err != nil {
-//		klog.Error("read file from request error, ", err)
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusBadRequest,
-//			"message": fmt.Sprintf("Read file frome request Failed: %v", err),
-//		})
-//	}
-//
-//	uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
-//
-//	path := "/tmp/" + uniqueId + filepath.Ext(fileHeader.Filename)
-//	klog.Infof("path is: %s\n", path)
-//	err = ctx.SaveFile(fileHeader, path)
-//	if err != nil {
-//		klog.Error("save tmp file error, ", err)
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusBadRequest,
-//			"message": fmt.Sprintf("Save tmp file Failed: %v", err),
-//		})
-//	}
-//
-//	// uncompress tgz/zip
-//	untarPath := filepath.Join("/tmp", uniqueId)
-//	err = UnArchive(path, untarPath)
-//	if err != nil {
-//		klog.Error("unpackage chart error, ", err, ", ", untarPath)
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusBadRequest,
-//			"message": fmt.Sprintf("UnArchive Failed: %v", err),
-//		})
-//	}
-//
-//	err = command.Lint().WithDir(untarPath).Run(context.TODO(), username, app)
-//	if err != nil {
-//		klog.Error("check chart error, ", err)
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusBadRequest,
-//			"message": fmt.Sprintf("Lint Failed: %v", err),
-//		})
-//	}
-//
-//	// copy uploaded chart
-//	klog.Infof("upload dev Chart untarPath: %s, baseDir: %s, app: %s", untarPath, BaseDir, app)
-//	err = command.CopyApp().WithDir(BaseDir).Run(filepath.Join(untarPath, app), app)
-//	if err != nil {
-//		klog.Error("copy chart error, ", err, ", ")
-//		return ctx.JSON(fiber.Map{
-//			"code":    http.StatusBadRequest,
-//			"message": fmt.Sprintf("Copy Application failed: %v", err),
-//		})
-//	}
-//
-//	return ctx.JSON(fiber.Map{
-//		"code":    http.StatusOK,
-//		"message": "Upload chart to Application success",
-//	})
-//}
+func (h *handlers) uploadDevAppChart(ctx *fiber.Ctx) error {
+	app := ctx.FormValue("app")
+	if app == "" {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusNotFound,
+			"message": fmt.Sprintf("Applcation Not Found"),
+		})
+	}
+
+	username := ctx.Locals("username").(string)
+
+	// parse incomming chart tgz/zip file
+	fileHeader, err := ctx.FormFile("chart")
+	if err != nil {
+		klog.Error("read file from request error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Read file frome request Failed: %v", err),
+		})
+	}
+
+	uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
+
+	path := "/tmp/" + uniqueId + filepath.Ext(fileHeader.Filename)
+	klog.Infof("path is: %s\n", path)
+	err = ctx.SaveFile(fileHeader, path)
+	if err != nil {
+		klog.Error("save tmp file error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Save tmp file Failed: %v", err),
+		})
+	}
+
+	// uncompress tgz/zip
+	untarPath := filepath.Join("/tmp", uniqueId)
+	untarPathWithName := filepath.Join(untarPath, username)
+	err = os.MkdirAll(untarPathWithName, 0655)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("UnArchive Failed: %v", err),
+		})
+	}
+
+	err = UnArchive(path, untarPathWithName)
+	if err != nil {
+		klog.Error("unpackage chart error, ", err, ", ", untarPathWithName)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("UnArchive Failed: %v", err),
+		})
+	}
+
+	err = command.Lint().WithDir(untarPath).Run(context.TODO(), username, app)
+	if err != nil {
+		klog.Error("check chart error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Lint Failed: %v", err),
+		})
+	}
+
+	// copy uploaded chart
+	klog.Infof("upload dev Chart untarPath: %s, baseDir: %s, app: %s", untarPath, BaseDir, app)
+	err = command.CopyApp().WithDir(BaseDir).Run(filepath.Join(untarPathWithName, app), filepath.Join(username, app))
+	if err != nil {
+		klog.Error("copy chart error, ", err, ", ")
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Copy Application failed: %v", err),
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"code":    http.StatusOK,
+		"message": "Upload chart to Application success",
+	})
+}
 
 func (h *handlers) lintDevAppChart(ctx *fiber.Ctx) error {
 	app := ctx.Query("app")
@@ -680,8 +689,17 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Read file from request error: %v", err),
 		})
 	}
-	os.RemoveAll(filepath.Join("/tmp", file.Filename))
-	err = ctx.SaveFile(file, filepath.Join("/tmp", file.Filename))
+	//os.RemoveAll(filepath.Join("/tmp", file.Filename))
+	uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
+	err = os.MkdirAll(filepath.Join("/tmp", uniqueId), 0655)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Save tmp file error: %v", err),
+		})
+	}
+
+	err = ctx.SaveFile(file, filepath.Join("/tmp", uniqueId, file.Filename))
 	if err != nil {
 		klog.Error("save tmp file error, ", err)
 		return ctx.JSON(fiber.Map{
@@ -690,8 +708,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 		})
 	}
 
-	//uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
-	err = UnArchive(filepath.Join("/tmp", file.Filename), filepath.Join("/tmp", username))
+	err = UnArchive(filepath.Join("/tmp", uniqueId, file.Filename), filepath.Join("/tmp", uniqueId))
 	if err != nil {
 		klog.Errorf("failed to unarchive file %s, err=%v", filepath.Join("/tmp", file.Filename), err)
 		return ctx.JSON(fiber.Map{
@@ -700,7 +717,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 		})
 	}
 
-	cfg, err := readCfgFromFile(username, filepath.Join("/tmp", username))
+	cfg, err := readCfgFromFile(username, filepath.Join("/tmp", uniqueId))
 	if err != nil {
 		klog.Errorf("failed to read cfg from file %v", err)
 		return ctx.JSON(fiber.Map{
@@ -709,13 +726,13 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 		})
 	}
 	klog.Infof("readCfgFromFile cfg: %#v\n", cfg)
-	chartDir := filepath.Dir(findAppCfgFile(filepath.Join("/tmp", username)))
+	chartDir := filepath.Dir(findAppCfgFile(filepath.Join("/tmp", uniqueId)))
 	klog.Infof("chartDir: %s\n", chartDir)
 
 	klog.Infof("WithDir: %s\n", filepath.Dir(chartDir))
 	klog.Infof("chart Base : %s\n", filepath.Base(chartDir))
 
-	err = command.Lint().WithDir("/tmp").Run(context.TODO(), username, filepath.Base(chartDir))
+	err = command.Lint().WithDir("/tmp").Run(context.TODO(), uniqueId, filepath.Base(chartDir))
 	if err != nil {
 		klog.Errorf("lint failed %v", err)
 		return ctx.JSON(fiber.Map{
@@ -775,7 +792,7 @@ func (h *handlers) createAppByArchive(ctx *fiber.Ctx) error {
 	}
 	// copy chart to /charts
 	//chartDir := filepath.Dir(findAppCfgFile(filepath.Join("/tmp", uniqueId)))
-	err = command.CopyApp().WithDir(BaseDir).WithUser(username).Run(filepath.Join("/tmp", username, cfg.Metadata.Name), cfg.Metadata.Name)
+	err = command.CopyApp().WithDir(BaseDir).WithUser(username).Run(filepath.Join("/tmp", uniqueId, cfg.Metadata.Name), cfg.Metadata.Name)
 	if err != nil {
 		e := h.db.DB.Where("id = ?", appID).Delete(&model.DevApp{}).Error
 		if err != nil {
@@ -932,13 +949,13 @@ func WaitForUninstall(owner, name, token string, kubeConfig *rest.Config) error 
 		if err != nil {
 			return false, err
 		}
-		_, err = client.CoreV1().Namespaces().Get(ctx, devNamespace, metav1.GetOptions{})
+		deleted, err := checkIfAppIsUninstalled(name, token, owner)
+		klog.Infof("app: %s is deleted: %v", name, deleted)
 		if err != nil {
-			if apierrors.IsNotFound(err) {
-				return true, nil
-			}
-
 			return false, err
+		}
+		if deleted {
+			return true, nil
 		}
 
 		return false, nil
