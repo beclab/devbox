@@ -1108,8 +1108,9 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 	username := ctx.Locals("username").(string)
 	name := ctx.Params("name")
 
-	var app App
-	err := ctx.BodyParser(&app)
+	var cfg command.CreateWithHelloConfig
+
+	err := ctx.BodyParser(&cfg)
 	if err != nil {
 		klog.Errorf("failed to parse body %v", err)
 		return ctx.JSON(fiber.Map{
@@ -1118,7 +1119,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = command.CreateAppWithHelloWorldConfig(username, name, app.Title)
+	err = command.CreateAppWithHelloWorldConfig(username, name, &cfg)
 	if err != nil {
 		klog.Errorf("write docker file err %v", err)
 		e := os.RemoveAll(filepath.Join(BaseDir, username, name))

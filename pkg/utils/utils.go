@@ -3,10 +3,12 @@ package utils
 import (
 	"context"
 	"github.com/beclab/oachecker"
+	"github.com/containerd/containerd/reference/docker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/klog/v2"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -126,4 +128,14 @@ func IsAdmin(ctx context.Context, owner string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func GetDefaultHelloImage() string {
+	helloImage := "beclab/studio-app:1.0.0"
+	envHelloImage := os.Getenv("OLARES_STUDIO_HELLO_IMAGE")
+	_, err := docker.ParseDockerRef(envHelloImage)
+	if err != nil {
+		return helloImage
+	}
+	return envHelloImage
 }
