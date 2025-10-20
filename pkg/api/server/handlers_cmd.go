@@ -247,13 +247,13 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 	}
 	defer func() {
 		if err != nil {
-			err = UpdateDevAppState(username, name, abnormal)
+			err = UpdateDevAppState(username, name, abnormal, err.Error())
 			if err != nil {
 				klog.Errorf("update app state to abnormal err %v", err)
 			}
 		}
 	}()
-	err = UpdateDevAppState(username, name, deploying)
+	err = UpdateDevAppState(username, name, deploying, "deploying")
 	if err != nil {
 		klog.Errorf("failed to update dev app state name=%s,err=%v", name, err)
 		return ctx.JSON(fiber.Map{
@@ -281,7 +281,11 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 	err = helm.GetRelease(h.kubeConfig, devNamespace, devName)
 	if err != nil {
 		if !errors.Is(err, driver.ErrReleaseNotFound) {
-			return err
+			klog.Errorf("failed to get release %s %v", devName, err)
+			return ctx.JSON(fiber.Map{
+				"code":    http.StatusBadRequest,
+				"message": err.Error(),
+			})
 		}
 		releaseNotExist = true
 	}
@@ -327,7 +331,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = UpdateDevAppState(username, name, deployed)
+	err = UpdateDevAppState(username, name, deployed, "deployed")
 	if err != nil {
 		klog.Errorf("failed to update app=%s state to deployed %v", name, err)
 		return ctx.JSON(fiber.Map{
@@ -664,7 +668,7 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Uninstall Failed: %v", err),
 		})
 	}
-	err = UpdateDevAppState(username, name, undeploy)
+	err = UpdateDevAppState(username, name, undeploy, "undeploy")
 	if err != nil {
 		klog.Errorf("update dev app state to undeploy err %v", err)
 	}
@@ -863,9 +867,10 @@ func UpdateDevApp(owner, name string, updates map[string]interface{}) (appId int
 	return appId, nil
 }
 
-func UpdateDevAppState(owner, name string, state string) error {
+func UpdateDevAppState(owner, name string, state, reason string) error {
 	updates := map[string]interface{}{
-		"state": state,
+		"state":  state,
+		"reason": reason,
 	}
 	_, err := UpdateDevApp(owner, name, updates)
 	if err != nil {

@@ -210,7 +210,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 	//if cfg.OSVersion != "" {
 	//	appcfg.Options.Dependencies = []application.Dependency{
 	//		{
-	//			Name:    "terminus",
+	//			Name:    "olares",
 	//			Type:    "system",
 	//			Version: cfg.OSVersion,
 	//		},

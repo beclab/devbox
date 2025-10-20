@@ -256,7 +256,7 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 		}
 		*appcfg.Options.Dependencies = []oachecker.Dependency{
 			{
-				Name:    "terminus",
+				Name:    "olares",
 				Type:    "system",
 				Version: cfg.OSVersion,
 			},

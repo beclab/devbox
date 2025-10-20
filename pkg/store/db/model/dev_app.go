@@ -13,6 +13,7 @@ type DevApp struct {
 	UpdateTime  time.Time `gorm:"default:CURRENT_TIMESTAMP;column:update_time;index:update_time" json:"updateTime"`
 	State       string    `gorm:"type:varchar(20);column:state" json:"state"`
 	Owner       string    `gorm:"type:varchar(20);column:owner" json:"owner"`
+	Reason      string    `gorm:"type:text;column:reason" json:"reason"`
 
 	AppID         string                         `gorm:"-" json:"appID"`
 	Chart         string                         `gorm:"-" json:"chart"`
