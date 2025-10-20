@@ -56,6 +56,13 @@ type CreateWithOneDockerContainer struct {
 	Port         int    `json:"port"`
 }
 
+type CreateWithHelloConfig struct {
+	Title          string                       `json:"title"`
+	Container      CreateWithOneDockerContainer `json:"container"`
+	RequiredCpu    string                       `json:"requiredCpu"`
+	RequiredMemory string                       `json:"requiredMemory"`
+}
+
 type createWithOneDocker struct {
 	baseCommand
 }

@@ -14,11 +14,11 @@ type CreateDevContainerConfig struct {
 
 var createConfigDev = &CreateWithOneDockerConfig{
 	Container: CreateWithOneDockerContainer{
-		Image: "beclab/studio-app:0.0.1",
+		Image: utils.GetDefaultHelloImage(),
 		Port:  80,
 	},
 	RequiredCpu:    "50m",
-	RequiredMemory: "100Mi",
+	RequiredMemory: "256Mi",
 	RequiredDisk:   "50Mi",
 	RequiredGpu:    false,
 	NeedPg:         false,
