@@ -2,8 +2,9 @@ package command
 
 import (
 	"context"
-	"k8s.io/klog/v2"
 	"path/filepath"
+
+	"k8s.io/klog/v2"
 
 	"github.com/beclab/oachecker"
 )

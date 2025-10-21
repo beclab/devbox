@@ -66,7 +66,7 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	appName := pathParts[0]
 	file, err := WriteFileAndLint(ctx.Context(), username, path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
 	if err != nil {
-		klog.Errorf("failed to write app=%s file path=%s", appName, path)
+		klog.Errorf("failed to write app=%s file path=%s %v", appName, path, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": err.Error(),
