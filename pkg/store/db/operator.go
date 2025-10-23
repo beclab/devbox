@@ -10,19 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//
-//const (
-//	DefaultDBFile = "./data/message.db"
-//)
-//
-//var (
-//	dbFile = ""
-//)
-//
-//func init() {
-//	flag.StringVar(&dbFile, "db", DefaultDBFile, "default message db file")
-//}
-
 type DbOperator struct {
 	DB *gorm.DB
 }
@@ -39,7 +26,6 @@ func init() {
 		os.Getenv("DB_NAME"))
 
 	var err error
-	//source := fmt.Sprintf("file:%s?cache=shared", dbFile)
 	db, err = gorm.Open(postgres.New(
 		postgres.Config{
 			DSN:                  dsn,
@@ -88,6 +74,12 @@ func createTableIfNotExists() (err error) {
 		}
 		if !db.Migrator().HasColumn(&model.DevApp{}, "Reason") {
 			err = db.Migrator().AddColumn(&model.DevApp{}, "Reason")
+			if err != nil {
+				return err
+			}
+		}
+		if !db.Migrator().HasColumn(&model.DevApp{}, "ChartVersion") {
+			err = db.Migrator().AddColumn(&model.DevApp{}, "ChartVersion")
 			if err != nil {
 				return err
 			}

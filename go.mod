@@ -18,6 +18,7 @@ require (
 	github.com/maruel/natural v1.1.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/nats-io/nats.go v1.36.0
+	github.com/otiai10/copy v1.14.1
 	github.com/spf13/afero v1.10.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
@@ -48,6 +49,7 @@ require (
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nyaruka/phonenumbers v1.0.55 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

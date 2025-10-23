@@ -98,7 +98,7 @@ func (c *createApp) Run(ctx context.Context, cfg *CreateConfig, owner string) er
 type AppTemplate struct {
 	appCfg        *oachecker.AppConfiguration
 	deployment    *appsv1.Deployment
-	service       *corev1.Service
+	services      []*corev1.Service
 	chartMetadata *chart.Metadata
 	traefik       *Traefik
 	owner         *Owner
@@ -500,7 +500,7 @@ func (at *AppTemplate) WithService(cfg *CreateConfig) *AppTemplate {
 	if len(ports) > 0 {
 		service.Spec.Ports = ports
 	}
-	at.service = &service
+	at.services = append(at.services, &service)
 	return at
 }
 
@@ -948,15 +948,17 @@ func (at *AppTemplate) WriteFile(cfg *CreateConfig, owner string) (err error) {
 
 	}
 	var sep = []byte("\n---\n")
-	if at.service != nil {
-		serviceYml, err := ToYaml(at.service)
+	for _, svc := range at.services {
+		serviceYml, err := ToYaml(svc)
 		if err != nil {
 			klog.Errorf("failed to convert service to yaml %v", err)
 			return err
 		}
 		yml = append(yml, sep...)
 		yml = append(yml, serviceYml...)
+
 	}
+
 	filename := filepath.Join(path, "templates", "deployment.yaml")
 	err = ioutil.WriteFile(filename, yml, 0644)
 	if err != nil {

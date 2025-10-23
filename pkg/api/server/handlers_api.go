@@ -53,11 +53,6 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 		})
 	}
 
-	//appcfg, err := oachecker.GetAppConfiguration()
-	//
-	//var appcfg application.AppConfiguration
-	//err = yaml.Unmarshal(data, &appcfg)
-
 	appcfg, err := utils.GetAppConfig(username, data)
 	if err != nil {
 		klog.Error("parse app cfg error, ", err)
@@ -75,7 +70,6 @@ func (h *handlers) getAppConfig(ctx *fiber.Ctx) error {
 }
 
 func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
-
 	app := ctx.Query("app")
 	if app == "" {
 		return ctx.JSON(fiber.Map{

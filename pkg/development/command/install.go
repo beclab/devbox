@@ -3,21 +3,15 @@ package command
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
-	"net/http/httputil"
+	"github.com/beclab/devbox/pkg/services"
+	"github.com/beclab/devbox/pkg/utils"
 	"os"
 	"time"
 
-	"github.com/emicklei/go-restful/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/nats-io/nats.go"
-	"github.com/thoas/go-funk"
 	"k8s.io/klog/v2"
 )
-
-const marketSourceStudio = "studio"
 
 type install struct {
 }
@@ -26,128 +20,21 @@ func Install() *install {
 	return &install{}
 }
 
-type ChartVersions struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    VersionData `json:"data"`
-}
-type VersionData struct {
-	ChartName string   `json:"chart_name"`
-	Versions  []string `json:"versions"`
-	Total     int      `json:"total_count"`
-}
-
-func (c *install) Run(ctx context.Context, owner, app string, token string, version string) (string, error) {
-	klog.Infof("run appname: %s", app)
-
-	isChartVersionExist, err := c.checkChartVersionExists(owner, app, version)
+func (c *install) Run(ctx context.Context, owner, name string, token string, version string) error {
+	// update chartVersion in dev-app
+	_, err := utils.UpdateDevApp(owner, name, map[string]interface{}{
+		"chart_version": version,
+	})
 	if err != nil {
-		return "", err
+		klog.Errorf("failed to update chart version %v", err)
+		return err
 	}
-	if !isChartVersionExist {
-		err := c.UploadChartToMarket(ctx, owner, app, token, version)
-		if err != nil {
-			klog.Errorf("failed to upload app=%s chart to market chart repo %v", app, err)
-			return "", err
-		}
-		//err = c.waitForMarketUpdate(ctx, owner, app, version)
-		//if err != nil {
-		//	klog.Errorf("wait market ready app: %s failed, err=%v", app, err)
-		//	return "", err
-		//}
-	}
-
-	// get chart tgz file from storage and push to market
-	// if more than one user upload same name tgz file to market what would happen
-
-	url := fmt.Sprintf("http://app-service.os-framework:6755/app-service/v1/apps/%s/install", app)
-	client := resty.New().SetTimeout(30 * time.Second)
-	body := map[string]interface{}{
-		"source":  "devbox",
-		"repoUrl": "http://chart-repo-service:82/",
-	}
-	klog.Infof("install request body: %v", body)
-	resp, err := client.R().SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
-		SetHeader("X-Market-Source", marketSourceStudio).
-		SetHeader("X-Authorization", token).
-		SetHeader("X-Bfl-User", owner).
-		SetBody(body).Post(url)
+	appOp := services.NewAppOp()
+	err = appOp.Install(ctx, owner, utils.DevName(name), token)
 	if err != nil {
-		klog.Errorf("send install request failed : %v", err)
-		return "", err
+		return err
 	}
-	klog.Infof("install: statusCode: %d", resp.StatusCode())
-	if resp.StatusCode() != http.StatusOK {
-		klog.Errorf("get response from url=%s, with statusCode=%d,err=%v", url, resp.StatusCode(), resp.String())
-		return "", errors.New(string(resp.Body()))
-	}
-
-	return "", nil
-
-}
-
-func (c *install) UploadChartToMarket(ctx context.Context, owner, app string, token string, version string) error {
-	client := resty.New().SetTimeout(5 * time.Minute)
-	chartFilePath := fmt.Sprintf("/storage/%s/%s-%s.tgz", owner, app, version)
-
-	klog.Infof("chartFilePath: %s", chartFilePath)
-	resp, err := client.R().
-		SetHeader("X-Authorization", token).
-		SetHeader("X-Bfl-User", owner).
-		SetFile("chart", chartFilePath).
-		SetFormData(map[string]string{
-			"source": marketSourceStudio,
-		}).Post("http://chart-repo-service.os-framework:82/chart-repo/api/v2/apps/upload")
-	if err != nil {
-		klog.Errorf("upload app %s chart to market failed %v", app, err)
-		return fmt.Errorf("upload app %s chart to market failed %w", app, err)
-	}
-	if resp.StatusCode() != http.StatusOK {
-		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
-		if e != nil {
-			klog.Error("request /app-store/api/v2/apps/upload", string(dump))
-		}
-		klog.Errorf("status code not = 200, err=%v", string(resp.Body()))
-		return errors.New(string(resp.Body()))
-	}
-	klog.Infof("update app %s chart to market success", app)
 	return nil
-}
-
-func (c *install) checkChartVersionExists(owner, app, version string) (bool, error) {
-	client := resty.New()
-	klog.Infof("checking chart %s versions.....", app)
-	resp, err := client.R().
-		SetHeader("X-Market-Source", marketSourceStudio).
-		SetHeader("X-Market-User", owner).
-		Get(fmt.Sprintf("http://chart-repo-service.os-framework:82/api/v1/charts/%s/versions", app))
-	if err != nil {
-		klog.Errorf("check chart %s version failed %v", app, err)
-		return false, err
-	}
-	if resp.StatusCode() == http.StatusNotFound {
-		return false, nil
-	}
-	if resp.StatusCode() != http.StatusOK {
-		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
-		if e != nil {
-			klog.Error("request /api/v1/charts/%s/versions", string(dump))
-		}
-		klog.Errorf("status code not = 200, err=%v", string(resp.Body()))
-		return false, errors.New(string(resp.Body()))
-	}
-	var ret ChartVersions
-	klog.Infof("checkapiversion: BOdy: %s", string(resp.Body()))
-	err = json.Unmarshal(resp.Body(), &ret)
-	if err != nil {
-		klog.Errorf("unmarshal data to chartVersion failed %v", err)
-		return false, nil
-	}
-	klog.Infof("ret: %#v", ret)
-	t := funk.Contains(ret.Data.Versions, version)
-	klog.Infof("ret.data.version, %v, version: %v", ret.Data.Versions, version)
-	klog.Infof("t: %v", t)
-	return t, nil
 }
 
 func (c *install) waitForMarketUpdate(ctx context.Context, owner, app, version string) error {

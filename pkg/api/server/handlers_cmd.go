@@ -5,12 +5,10 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,92 +18,21 @@ import (
 	"github.com/beclab/devbox/pkg/development/command"
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/helm"
+	"github.com/beclab/devbox/pkg/services"
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/emicklei/go-restful/v3"
-	"github.com/go-resty/resty/v2"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/storage/driver"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
 var regxPattern = "^[a-zA-Z][a-zA-Z0-9 ._-]{0,30}$"
-
-func (h *handlers) createDevApp(ctx *fiber.Ctx) error {
-
-	username := ctx.Locals("username").(string)
-
-	var config command.CreateConfig
-	err := ctx.BodyParser(&config)
-	if err != nil {
-		klog.Error("parse create config error, ", err)
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Bad Request: %v", err),
-		})
-	}
-
-	klog.Info("create app in db with config, ", config)
-	if config.DevEnv == "" {
-		config.DevEnv = "default"
-	}
-
-	// create app via command cli
-	err = command.CreateApp().WithDir(BaseDir).Run(ctx.Context(), &config, username)
-	if err != nil {
-		klog.Error("create app chart error, ", err, ", ", config)
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("Create chart failed: %v", err),
-		})
-	}
-
-	err = command.CheckCfg().WithDir(BaseDir).Run(ctx.Context(), username, config.Name)
-	if err != nil {
-		e := os.RemoveAll(filepath.Join(BaseDir, config.Name))
-		if e != nil {
-			klog.Errorf("remove dir %s error", config.Name)
-		}
-		klog.Error("check OlaresManifest.yaml error, ", err, ", ", config)
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("OlaresManifest.yaml has error: %v", err),
-		})
-	}
-
-	// create app in db
-	appData := model.DevApp{
-		AppName: config.Name,
-		DevEnv:  config.DevEnv,
-		AppType: db.CommunityApp,
-		Owner:   username,
-	}
-	appId, err := InsertDevApp(&appData)
-	if err != nil {
-		if errors.Is(err, ErrAppIsExist) {
-			klog.Error("app already exists, ", appData.AppName)
-			return ctx.JSON(fiber.Map{
-				"code":    http.StatusBadRequest,
-				"message": "Application already exists",
-			})
-		}
-		return err
-	}
-
-	return ctx.JSON(fiber.Map{
-		"code": http.StatusOK,
-		"data": map[string]interface{}{
-			"appId": appId,
-		},
-	})
-}
 
 func (h *handlers) listDevApps(ctx *fiber.Ctx) error {
 	username := ctx.Locals("username").(string)
@@ -245,6 +172,25 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("App name is empty"),
 		})
 	}
+
+	devName := utils.DevName(name)
+	devNamespace := fmt.Sprintf("%s-%s", devName, username)
+
+	canOp, err := h.appOp.IsAllowedDeploy(ctx.Context(), username, devName, token)
+	if err != nil {
+		klog.Errorf("failed to check %s can deploy %v", name, err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+		})
+	}
+	if !canOp {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("app %s operation is already running", name),
+		})
+	}
+
 	defer func() {
 		if err != nil {
 			err = UpdateDevAppState(username, name, abnormal, err.Error())
@@ -262,10 +208,6 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	source := app["source"]
-	devName := fmt.Sprintf("%s-%s", name, "dev")
-	devNamespace := fmt.Sprintf("%s-%s", devName, username)
-
 	err = command.Lint().WithDir(BaseDir).Run(context.TODO(), username, name)
 	if err != nil {
 		klog.Errorf("failed to lint app=%s, err=%v", name, err)
@@ -275,7 +217,6 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	klog.Info("uninstall prev app or not")
 	var releaseNotExist bool
 
 	err = helm.GetRelease(h.kubeConfig, devNamespace, devName)
@@ -290,7 +231,7 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		releaseNotExist = true
 	}
 	if !releaseNotExist {
-		err = WaitForUninstall(username, devName, token, h.kubeConfig)
+		err = waitForUninstall(username, name, token)
 		if err != nil {
 			return ctx.JSON(fiber.Map{
 				"code":    http.StatusBadRequest,
@@ -309,19 +250,35 @@ func (h *handlers) installDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 	version := "0.0.1"
-	if source != "cli" {
-		klog.Info("auto update repo")
-		version, err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), username, name, releaseNotExist)
+
+	klog.Infof("auto update repo, name %s", name)
+	version, err = command.UpdateRepo().WithDir(BaseDir).Run(ctx.Context(), username, name, false)
+	if err != nil {
+		klog.Errorf("command upgrade repo error name %s %v ", name, err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Update repo failed: %v", err),
+		})
+	}
+
+	isChartVersionExist, err := h.chartOp.CheckVersion(ctx.Context(), username, devName, version)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("check chart veresion failed: %v", err),
+		})
+	}
+	if !isChartVersionExist {
+		err = h.chartOp.Upload(context.TODO(), username, devName, token, version)
 		if err != nil {
-			klog.Error("command upgraderepo error, ", err, ", ", name)
 			return ctx.JSON(fiber.Map{
 				"code":    http.StatusBadRequest,
-				"message": fmt.Sprintf("Update repo failed: %v", err),
+				"message": fmt.Sprintf("upload chart failed: %v", err),
 			})
 		}
 	}
 
-	_, err = command.Install().Run(ctx.Context(), username, devName, token, version)
+	err = command.Install().Run(ctx.Context(), username, name, token, version)
 
 	if err != nil {
 		klog.Error("command install error, ", err, ", ", name)
@@ -474,6 +431,7 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 		})
 	}
 	username := ctx.Locals("username").(string)
+	devName := utils.DevName(name)
 
 	var devApp *model.DevApp
 	err = h.db.DB.Where("owner = ?", username).Where("app_name = ?", name).First(&devApp).Error
@@ -528,6 +486,13 @@ func (h *handlers) deleteDevApp(ctx *fiber.Ctx) error {
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("Delete Chart Failed: %v", err),
 		})
+	}
+	token := ctx.Locals("auth_token").(string)
+
+	// also delete chart on market chart repo
+	err = h.chartOp.Delete(context.TODO(), username, devName, token, devApp.ChartVersion)
+	if err != nil {
+		klog.Errorf("failed to delete app %s chart in market %v", name, err)
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -660,7 +625,8 @@ func (h *handlers) uninstall(ctx *fiber.Ctx) error {
 		})
 	}
 	devName := fmt.Sprintf("%s-%s", name, "dev")
-	res, err := uninstall(devName, token, username)
+	//res, err := uninstall(devName, token, username)
+	res, err := h.appOp.Uninstall(ctx.Context(), username, devName, token)
 	if err != nil {
 		klog.Errorf("failed to uninstall %s, err=%v", devName, err)
 		return ctx.JSON(fiber.Map{
@@ -850,104 +816,34 @@ func InsertDevApp(app *model.DevApp) (appId int64, err error) {
 	return appId, nil
 }
 
-func UpdateDevApp(owner, name string, updates map[string]interface{}) (appId int64, err error) {
-	op := db.NewDbOperator()
-	var exists *model.DevApp
-	err = op.DB.Where("owner = ?", owner).Where("app_name = ?", name).First(&exists).Error
-	if err != nil {
-		return 0, err
-	}
-
-	err = op.DB.Model(&exists).Updates(updates).Error
-	if err != nil {
-		klog.Errorf("update dev_app err %v", err)
-		return 0, err
-	}
-	appId = int64(exists.ID)
-	return appId, nil
-}
-
 func UpdateDevAppState(owner, name string, state, reason string) error {
 	updates := map[string]interface{}{
 		"state":  state,
 		"reason": reason,
 	}
-	_, err := UpdateDevApp(owner, name, updates)
+	_, err := utils.UpdateDevApp(owner, name, updates)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-type InstallationResponseData struct {
-	UID string `json:"uid"`
-}
-type Response struct {
-	Code int32 `json:"code"`
-}
+func waitForUninstall(owner, name, token string) error {
+	appOp := services.NewAppOp()
+	devName := utils.DevName(name)
 
-type InstallationResponse struct {
-	Response
-	Data InstallationResponseData `json:"data"`
-}
-
-type SystemServerWrap struct {
-	Code    int32                `json:"code"`
-	Message string               `json:"message"`
-	Data    InstallationResponse `json:"data"`
-}
-
-func uninstall(name, token, owner string) (data map[string]interface{}, err error) {
-	uninstalled, err := checkIfAppIsUninstalled(name, token, owner)
-	if err != nil {
-		return data, err
-	}
-	if uninstalled {
-		return data, nil
-	}
-	url := fmt.Sprintf("http://app-service.os-framework:6755/app-service/v1/apps/%s/uninstall", name)
-
-	client := resty.New().SetTimeout(5 * time.Second)
-	resp, err := client.R().
-		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
-		SetHeader("X-Authorization", token).
-		SetHeader("X-Bfl-User", owner).
-		Post(url)
-	if err != nil {
-		klog.Errorf("failed to send request to uninstall app %s, err=%v", name, err)
-		return data, err
-	}
-	klog.Info("request uninstall resp.StatusCode: ", resp.StatusCode())
-	if resp.StatusCode() != http.StatusOK {
-		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
-		if e == nil {
-			klog.Error("request error, ", string(dump))
-		}
-		return nil, errors.New(string(resp.Body()))
-	}
-	klog.Info("resp.Body: ", string(resp.Body()))
-	err = json.Unmarshal(resp.Body(), &data)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func WaitForUninstall(owner, name, token string, kubeConfig *rest.Config) error {
-	_, err := uninstall(name, token, owner)
+	_, err := appOp.Uninstall(context.TODO(), owner, devName, token)
 	if err != nil {
 		return err
 	}
-
-	devNamespace := fmt.Sprintf("%s-%s", name, owner)
+	devNamespace := fmt.Sprintf("%s-%s", devName, owner)
 	klog.Infof("wait for uninstall: %s", devNamespace)
 	return wait.PollUntilContextTimeout(context.TODO(), time.Second, 5*time.Minute, true, func(ctx context.Context) (done bool, err error) {
 		if err != nil {
 			return false, err
 		}
-		deleted, err := checkIfAppIsUninstalled(name, token, owner)
-		klog.Infof("app: %s is deleted: %v", name, deleted)
+		deleted, err := appOp.CheckIfAppIsUninstalled(owner, devName, token)
+		klog.Infof("app: %s is deleted: %v", devName, deleted)
 		if err != nil {
 			return false, err
 		}
@@ -957,10 +853,6 @@ func WaitForUninstall(owner, name, token string, kubeConfig *rest.Config) error 
 
 		return false, nil
 	})
-}
-
-type App struct {
-	Title string `json:"title"`
 }
 
 func (h *handlers) createApp(ctx *fiber.Ctx) error {
@@ -976,13 +868,6 @@ func (h *handlers) createApp(ctx *fiber.Ctx) error {
 		})
 	}
 	appName := removeSpecialCharsMap(strings.ToLower(app.Title))
-
-	if app.Title == "tmp" || appName == "tmp" {
-		return ctx.JSON(fiber.Map{
-			"code":    http.StatusBadRequest,
-			"message": fmt.Sprintf("name %s is reserved word", app.Title),
-		})
-	}
 
 	regex := regexp.MustCompile(regxPattern)
 	if !regex.MatchString(app.Title) {
@@ -1071,7 +956,7 @@ func (h *handlers) fillApp(ctx *fiber.Ctx) error {
 		"dev_env":  "default",
 		"state":    undeploy,
 	}
-	appId, err := UpdateDevApp(username, cfg.Name, updates)
+	appId, err := utils.UpdateDevApp(username, cfg.Name, updates)
 	if err != nil {
 		klog.Errorf("failed to update dev app %s, err=%v", cfg.Name, err)
 		return ctx.JSON(fiber.Map{
@@ -1143,7 +1028,7 @@ func (h *handlers) fillAppWithExample(ctx *fiber.Ctx) error {
 		"state":    undeploy,
 	}
 
-	appId, err := UpdateDevApp(username, name, updates)
+	appId, err := utils.UpdateDevApp(username, name, updates)
 	if err != nil {
 		klog.Errorf("failed to update app %s, err=%v", name, err)
 		return ctx.JSON(fiber.Map{
@@ -1220,7 +1105,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 		"state":    undeploy,
 	}
 
-	appId, err := UpdateDevApp(username, name, updates)
+	appId, err := utils.UpdateDevApp(username, name, updates)
 	if err != nil {
 		klog.Errorf("failed to update dev app %w,err=%v", name, err)
 		return ctx.JSON(fiber.Map{
@@ -1268,51 +1153,43 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 	})
 }
 
-func checkIfAppIsUninstalled(name, token, owner string) (bool, error) {
-	url := fmt.Sprintf("http://app-service.os-framework:6755/app-service/v1/apps/%s/status", name)
-	data := make(map[string]interface{})
+func (h *handlers) updateAppTitle(ctx *fiber.Ctx) error {
+	username := ctx.Locals("username").(string)
+	name := ctx.Params("name")
 
-	client := resty.New().SetTimeout(5 * time.Second)
-	resp, err := client.R().
-		SetHeader(restful.HEADER_ContentType, restful.MIME_JSON).
-		SetHeader("X-Authorization", token).
-		SetHeader("X-Bfl-User", owner).
-		Get(url)
+	var app App
+	err := ctx.BodyParser(&app)
 	if err != nil {
-		klog.Errorf("failed to send request to get app status %s, err=%v", name, err)
-		return false, err
+		klog.Errorf("parse rename app info error %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
 	}
-	klog.Info("request app %s status resp.StatusCode: %d", name, resp.StatusCode())
-	if resp.StatusCode() == http.StatusNotFound {
-		return true, nil
-	}
-	if resp.StatusCode() != http.StatusOK {
-		dump, e := httputil.DumpRequest(resp.Request.RawRequest, true)
-		if e == nil {
-			klog.Error("request error, ", string(dump))
+	err = h.db.DB.Where("owner = ?", username).Where("app_name = ?", name).First(&model.DevApp{}).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ctx.JSON(fiber.Map{
+				"code":    http.StatusBadRequest,
+				"message": fmt.Sprintf("app %s is not found", name),
+			})
 		}
-		return false, errors.New(string(resp.Body()))
-	}
-	klog.Info("resp.Body: ", string(resp.Body()))
-	err = json.Unmarshal(resp.Body(), &data)
-	if err != nil {
-		return false, err
-	}
-	appStatus, ok := data["status"]
-	if !ok {
-		return false, fmt.Errorf("status filed not found")
-	}
-	statusMap, ok := appStatus.(map[string]interface{})
-	if !ok {
-		return false, fmt.Errorf("status is not a map")
-	}
-	state, ok := statusMap["state"].(string)
-	if !ok {
-		return false, fmt.Errorf("state is not a string")
-	}
-	if state != "uninstalled" {
-		return false, nil
+		return err
 	}
 
-	return true, nil
+	appId, err := h.appOp.UpdateAppTitle(ctx.Context(), username, name, app.Title)
+	if err != nil {
+		klog.Errorf("update app title err %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("update app %s err %v", name, err),
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
+	})
 }

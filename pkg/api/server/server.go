@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/beclab/devbox/pkg/middlewares"
+	"github.com/beclab/devbox/pkg/services"
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/webhook"
 
@@ -32,6 +33,7 @@ var (
 
 func NewServer(db *db.DbOperator) *server {
 	config := ctrl.GetConfigOrDie()
+	// wire services here if needed in future
 	webhook := &webhook.Webhook{
 		KubeClient: kubernetes.NewForConfigOrDie(config),
 		DB:         db,
@@ -40,8 +42,15 @@ func NewServer(db *db.DbOperator) *server {
 	utilruntime.Must(webhook.CreateOrUpdateImageManagerMutatingWebhook())
 
 	return &server{
-		handlers: &handlers{db: db, kubeConfig: config},
-		webhooks: &webhooks{webhook: webhook},
+		handlers: &handlers{
+			db:         db,
+			kubeConfig: config,
+			appOp:      services.NewAppOp(),
+			chartOp:    services.NewChartOp(),
+		},
+		webhooks: &webhooks{
+			webhook: webhook,
+		},
 	}
 }
 
@@ -83,6 +92,8 @@ func (s *server) Start() {
 	command.Post("/apps/:name/create", s.handlers.fillApp)
 	command.Post("/apps/:name/example/create", s.handlers.fillAppWithExample)
 	command.Post("/apps/:name/vscode/create", s.handlers.fillAppWithDevContainer)
+
+	command.Put("/apps/title/:name", s.handlers.updateAppTitle)
 
 	// files /api/files
 	files := api.Group("files")

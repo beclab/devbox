@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"github.com/beclab/oachecker"
 	"github.com/containerd/containerd/reference/docker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -138,4 +139,8 @@ func GetDefaultHelloImage() string {
 		return helloImage
 	}
 	return envHelloImage
+}
+
+func DevName(name string) string {
+	return fmt.Sprintf("%s-dev", name)
 }
