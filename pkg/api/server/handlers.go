@@ -1,6 +1,8 @@
 package server
 
 import (
+	"github.com/beclab/devbox/pkg/services"
+
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/webhook"
 
@@ -10,6 +12,8 @@ import (
 type handlers struct {
 	db         *db.DbOperator
 	kubeConfig *rest.Config
+	appOp      services.AppOp
+	chartOp    services.ChartOp
 }
 
 type webhooks struct {

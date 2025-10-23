@@ -5,12 +5,12 @@ import "os"
 const (
 	UUIDAnnotation             = "sidecar.bytetrade.io/proxy-uuid"
 	SidecarConfigMapVolumeName = "devbox-sidecar-configs"
-	SidecarInitContainerName   = "terminus-sidecar-init"
+	SidecarInitContainerName   = "olares-sidecar-init"
 
 	EnvoyUID                      int64 = 1000
 	DefaultEnvoyLogLevel                = "debug"
 	EnvoyImageVersion                   = "envoyproxy/envoy-distroless:v1.25.2"
-	EnvoyContainerName                  = "terminus-envoy-sidecar"
+	EnvoyContainerName                  = "olares-envoy-sidecar"
 	EnvoyAdminPort                      = 15000
 	EnvoyAdminPortName                  = "proxy-admin"
 	EnvoyInboundListenerPort            = 15003
@@ -21,7 +21,7 @@ const (
 	EnvoyConfigFileName                 = "envoy.yaml"
 	EnvoyConfigFilePath                 = "/etc/envoy"
 
-	WsContainerName = "terminus-ws-sidecar"
+	WsContainerName = "olares-ws-sidecar"
 )
 
 var (

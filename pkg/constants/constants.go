@@ -1,30 +1,24 @@
 package constants
 
 import (
-	"fmt"
 	"os"
 )
 
 const (
-	DevOwnerLabel  = "dev.bytetrade.io/dev-owner"
-	AppCfgFileName = "OlaresManifest.yaml"
+	DevOwnerLabel           = "dev.bytetrade.io/dev-owner"
+	AppCfgFileName          = "OlaresManifest.yaml"
+	OwnerLabel              = "applications.app.bytetrade.io/owner"
+	ExposePortsLabel        = "applications.app.bytetrade.io/studio-expose-ports"
+	XAuthorization          = "X-Authorization"
+	XBflUser                = "X-Bfl-User"
+	ApplicationGpuInjectKey = "applications.app.bytetrade.io/gpu-inject"
 )
 
 var (
-	Namespace    = ""
-	Owner        = ""
-	RepoURL      = ""
-	ApiKey       = ""
-	ApiSecret    = ""
-	SystemServer = ""
+	Namespace = ""
 )
 
 func init() {
 	Namespace = os.Getenv("NAME_SPACE")
-	Owner = os.Getenv("OWNER")
-	RepoURL = fmt.Sprintf("http://chartmuseum-studio.%s.svc.cluster.local:8080/", Namespace)
-	ApiKey = os.Getenv("OS_API_KEY")
-	ApiSecret = os.Getenv("OS_API_SECRET")
-	SystemServer = os.Getenv("OS_SYSTEM_SERVER")
 
 }

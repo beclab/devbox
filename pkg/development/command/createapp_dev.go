@@ -10,6 +10,9 @@ type CreateDevContainerConfig struct {
 	RequiredCpu    string `json:"requiredCpu"`
 	RequiredMemory string `json:"requiredMemory"`
 	RequiredDisk   string `json:"requiredDisk"`
+	RequiredGpu    bool   `json:"requiredGpu"`
+	ExposePorts    string `json:"exposePorts"`
+	GpuVendor      string `json:"gpuVendor"`
 }
 
 var createConfigDev = &CreateWithOneDockerConfig{
@@ -39,6 +42,15 @@ func CreateAppWithDevConfig(cfg *CreateDevContainerConfig, owner, name string) e
 		}
 		if cfg.RequiredDisk != "" {
 			createConfigDev.RequiredDisk = cfg.RequiredDisk
+		}
+		if cfg.RequiredGpu {
+			createConfigDev.RequiredGpu = true
+		}
+		if cfg.GpuVendor != "" {
+			createConfigDev.GpuVendor = cfg.GpuVendor
+		}
+		if len(cfg.ExposePorts) > 0 {
+			createConfigDev.ExposePorts = cfg.ExposePorts
 		}
 	}
 	at := AppTemplate{}

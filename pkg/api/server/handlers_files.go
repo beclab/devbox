@@ -13,9 +13,8 @@ import (
 	"github.com/beclab/devbox/pkg/development/command"
 	"github.com/beclab/devbox/pkg/files"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/otiai10/copy"
 	"github.com/spf13/afero"
 	"k8s.io/klog/v2"
 )
@@ -66,7 +65,7 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 	appName := pathParts[0]
 	file, err := WriteFileAndLint(ctx.Context(), username, path, appName, bytes.NewReader(content), command.Lint().WithDir(BaseDir).Run)
 	if err != nil {
-		klog.Errorf("failed to write app=%s file path=%s", appName, path)
+		klog.Errorf("failed to write app=%s file path=%s %v", appName, path, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": err.Error(),
@@ -80,16 +79,16 @@ func (h *handlers) saveFile(ctx *fiber.Ctx) error {
 }
 
 func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, content io.Reader, lintFunc func(context.Context, string, string) error) (os.FileInfo, error) {
-	exists := PathExists("/charts/tmp")
+	exists := PathExists("/tmp")
 	if !exists {
-		err := os.MkdirAll("/charts/tmp", 0755)
+		err := os.MkdirAll("/tmp", 0755)
 		if err != nil {
-			klog.Errorf("failed to mkdir dir=%s,err=%v", "/charts/tmp", err)
+			klog.Errorf("failed to mkdir dir=%s,err=%v", "/tmp", err)
 			return nil, err
 		}
 	}
 
-	tempFile, err := os.CreateTemp("/charts/tmp", "bak-*"+filepath.Base(originFilePath))
+	tempFile, err := os.CreateTemp("/tmp", "bak-*"+filepath.Base(originFilePath))
 	if err != nil {
 		klog.Infof("failed to crate temp file %v", err)
 		return nil, fmt.Errorf("create bak temp file failed %v", tempFile)
@@ -116,7 +115,7 @@ func WriteFileAndLint(ctx context.Context, owner, originFilePath, name string, c
 	}
 
 	if err = lintFunc(ctx, owner, name); err != nil {
-		if restoreErr := os.Rename(tempFile.Name(), fullOriginFilePath); restoreErr != nil {
+		if restoreErr := copy.Copy(tempFile.Name(), fullOriginFilePath); restoreErr != nil {
 			klog.Errorf("failed to lint and restore, path=%s,err=%v", fullOriginFilePath, restoreErr)
 			return nil, fmt.Errorf("lint failed: %v, and restore bak failed: %v", err, restoreErr)
 		}
@@ -260,16 +259,3 @@ type noCheck struct {
 }
 
 func (*noCheck) Check(path string) bool { return true }
-
-func ManifestLint(content []byte) error {
-	err := oachecker.CheckManifestFromContent(content)
-	if err != nil {
-		return err
-	}
-	err = oachecker.CheckManifestFromContent(content, oachecker.WithOwner("owner"),
-		oachecker.WithAdmin("admin"))
-	if err != nil {
-		return err
-	}
-	return nil
-}

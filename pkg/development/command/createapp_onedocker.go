@@ -47,6 +47,7 @@ type CreateWithOneDockerConfig struct {
 	NeedRedis      bool                         `json:"needRedis"`
 	Env            map[string]string            `json:"env"`
 	Mounts         map[string]string            `json:"mounts"`
+	ExposePorts    string                       `json:"exposePorts"`
 }
 
 type CreateWithOneDockerContainer struct {
@@ -210,7 +211,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 	//if cfg.OSVersion != "" {
 	//	appcfg.Options.Dependencies = []application.Dependency{
 	//		{
-	//			Name:    "terminus",
+	//			Name:    "olares",
 	//			Type:    "system",
 	//			Version: cfg.OSVersion,
 	//		},
@@ -251,6 +252,9 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 					Labels: map[string]string{
 						"io.kompose.network/chrome-default": "true",
 						"io.kompose.service":                config.Name,
+					},
+					Annotations: map[string]string{
+						constants.ExposePortsLabel: config.ExposePorts,
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -436,7 +440,7 @@ func (at *AppTemplate) WithDockerService(config *CreateWithOneDockerConfig) *App
 	if len(ports) > 0 {
 		service.Spec.Ports = ports
 	}
-	at.service = &service
+	at.services = append(at.services, &service)
 	return at
 }
 
@@ -505,8 +509,8 @@ func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, path stri
 
 	}
 	var sep = []byte("\n---\n")
-	if at.service != nil {
-		serviceYml, err := ToYaml(at.service)
+	for _, svc := range at.services {
+		serviceYml, err := ToYaml(svc)
 		if err != nil {
 			return err
 		}
@@ -524,6 +528,47 @@ func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, path stri
 
 	return err
 }
+
+//func (at *AppTemplate) WithDockerDevService(config *CreateWithOneDockerConfig) *AppTemplate {
+//	if len(config.ExposePorts) > 0 {
+//		service := corev1.Service{
+//			TypeMeta: metav1.TypeMeta{
+//				Kind:       "Service",
+//				APIVersion: "v1",
+//			},
+//			ObjectMeta: metav1.ObjectMeta{
+//				Labels: map[string]string{
+//					"io.kompose.service": fmt.Sprintf("%s-dev", config.Name),
+//				},
+//				Name:      fmt.Sprintf("%s-dev", config.Name),
+//				Namespace: "{{ .Release.Namespace }}",
+//			},
+//			Spec: corev1.ServiceSpec{
+//				Selector: map[string]string{
+//					"io.kompose.service": config.Name,
+//				},
+//			},
+//			Status: corev1.ServiceStatus{
+//				LoadBalancer: corev1.LoadBalancerStatus{},
+//			},
+//		}
+//		ports := make([]corev1.ServicePort, 0)
+//		for _, port := range config.ExposePorts {
+//			ports = append(ports, corev1.ServicePort{
+//				Name:       strconv.Itoa(port),
+//				Port:       int32(port),
+//				TargetPort: intstr.Parse(strconv.Itoa(port)),
+//			})
+//		}
+//
+//		if len(ports) > 0 {
+//			service.Spec.Ports = ports
+//		}
+//		at.services = append(at.services, &service)
+//	}
+//
+//	return at
+//}
 
 func ParseCommand(cmd string) []string {
 	if cmd == "" {

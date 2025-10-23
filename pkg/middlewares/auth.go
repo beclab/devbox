@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/beclab/devbox/pkg/constants"
 	"net/http"
 	"time"
 
@@ -41,8 +42,6 @@ func TokenAuth() fiber.Handler {
 				"message": "token not found in request",
 			})
 		}
-		klog.Infof("userInfo.Usernaeme: %s", userInfo.Username)
-
 		c.Locals("username", userInfo.Username)
 		c.Locals("auth_token", token)
 		return c.Next()
@@ -50,7 +49,7 @@ func TokenAuth() fiber.Handler {
 }
 
 func extractToken(c *fiber.Ctx) string {
-	authToken := c.Get("X-Authorization")
+	authToken := c.Get(constants.XAuthorization)
 	if authToken != "" {
 		return authToken
 	}

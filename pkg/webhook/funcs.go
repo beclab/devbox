@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
+	"github.com/beclab/devbox/pkg/constants"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -46,7 +46,7 @@ func (wh *Webhook) AdmissionError(err error) *admissionv1.AdmissionResponse {
 	}
 }
 
-// mutate the developing app's name to "<app name>-dev"
+// MutateAppName mutate the developing app's name to "<app name>-dev"
 func (wh *Webhook) MutateAppName(ctx context.Context, req *admissionv1.AdmissionRequest) (patch []byte, err error) {
 	raw := req.Object.Raw
 	obj, _, err := scheme.Codecs.UniversalDeserializer().Decode(raw, nil, nil)
@@ -70,9 +70,9 @@ func (wh *Webhook) MutateAppName(ctx context.Context, req *admissionv1.Admission
 
 // check the deployment is the app main workload or not
 // just the app main workload must to be mutated
-func (wh *Webhook) mustMutateApp(ctx context.Context, releaseName string) (bool, error) {
+func (wh *Webhook) mustMutateApp(ctx context.Context, releaseName, owner string) (bool, error) {
 	var devApps []*model.DevApp
-	if err := wh.DB.DB.Where("app_name = ?", appName(releaseName)).Find(&devApps).Error; err != nil {
+	if err := wh.DB.DB.Where("owner = ?", owner).Where("app_name = ?", appName(releaseName)).Find(&devApps).Error; err != nil {
 		klog.Error("exec sql error, ", err)
 		return false, err
 	}
@@ -133,9 +133,13 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 
 	// helm release namespace is <appname>-dev-<owner>
 	releaseNamespace := workload.GetObjectMeta().GetAnnotations()[helmReleaseNamespace]
+	owner, err := getOwnerFromNamespace(releaseNamespace)
+	if err != nil {
+		return nil, err
+	}
 
 	klog.Info("start to mutate workload name if necessary, ", workloadName)
-	ok, err := wh.mustMutateApp(ctx, releaseName)
+	ok, err := wh.mustMutateApp(ctx, releaseName, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +163,7 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 	workload.GetPodTemplate().Annotations[helmReleaseNamespace] = releaseNamespace
 
 	var app *model.DevApp
-	err = wh.DB.DB.Where("app_name = ?", appName(releaseName)).First(&app).Error
+	err = wh.DB.DB.Where("owner = ?", owner).Where("app_name = ?", appName(releaseName)).First(&app).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		klog.Error("exec sql error, ", err)
 		return nil, err
@@ -188,7 +192,7 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 	return makePatches(raw, workload, workloadName)
 }
 
-// mutate the pod in a developing app which has some containers that need to be replaced with a dev-container
+// MutatePodContainers mutate the pod in a developing app which has some containers that need to be replaced with a dev-container
 func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, raw []byte, proxyUUID uuid.UUID, baseDir string) (patch []byte, err error) {
 	var pod corev1.Pod
 	if err := json.Unmarshal(raw, &pod); err != nil {
@@ -196,7 +200,7 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 		return nil, err
 	}
 
-	app, matches, err := wh.mustMutatePod(ctx, &pod)
+	app, owner, matches, err := wh.mustMutatePod(ctx, &pod)
 	if err != nil {
 		klog.Error("Error checking pod, ", err)
 		return nil, err
@@ -210,7 +214,7 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 	devPort := 5000
 	firstMutateContainer := true
 	for _, m := range matches {
-		ep, err := wh.mutateContainerToDevContainer(ctx, &pod, m, devPort, firstMutateContainer)
+		ep, err := wh.mutateContainerToDevContainer(ctx, &pod, m, devPort, firstMutateContainer, owner)
 		if err != nil {
 			return nil, err
 		}
@@ -220,6 +224,22 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 			devPort++
 			firstMutateContainer = false
 		}
+	}
+
+	proxyPortsStr := pod.Annotations[constants.ExposePortsLabel]
+
+	proxyPorts := strings.Split(proxyPortsStr, ",")
+	for _, p := range proxyPorts {
+		port, err := strconv.Atoi(p)
+		if err != nil {
+			continue
+		}
+		endpoints = append(endpoints, &envoy.DevcontainerEndpoint{
+			Host: "localhost",
+			Port: port,
+			Name: p,
+			Path: fmt.Sprintf("/proxy/%s/", p),
+		})
 	}
 
 	if len(endpoints) > 0 {
@@ -244,23 +264,27 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 	return makePatches(raw, &pod, pod.Name)
 }
 
-func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, []*model.DevAppContainers, error) {
+func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, string, []*model.DevAppContainers, error) {
 	releaseName, ok := pod.Annotations[helmRelease]
 	if !ok {
-		return "", nil, nil
+		return "", "", nil, nil
+	}
+	owner, ok := pod.Labels[constants.OwnerLabel]
+	if !ok {
+		return "", "", nil, nil
 	}
 
-	klog.Info("try to find release, ", releaseName)
+	klog.Infof("try to find release %s", releaseName)
 
 	var app *model.DevApp
-	err := wh.DB.DB.Where("app_name = ?", appName(releaseName)).First(&app).Error
+	err := wh.DB.DB.Where("owner = ?", owner).Where("app_name = ?", appName(releaseName)).First(&app).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		klog.Error("exec sql error, ", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return "", nil, nil
+		return "", "", nil, nil
 	}
 
 	klog.Info("try to find app bind containers, ", app.ID)
@@ -269,11 +293,11 @@ func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, 
 	err = wh.DB.DB.Where("app_id = ?", app.ID).Find(&containers).Error
 	if err != nil {
 		klog.Error("exec sql error, ", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if len(containers) == 0 {
-		return "", nil, nil
+		return "", "", nil, nil
 	}
 
 	matches := make([]*model.DevAppContainers, 0)
@@ -281,7 +305,7 @@ func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, 
 		selector, err := labels.Parse(c.PodSelector)
 		if err != nil {
 			klog.Error("containers in dev_app_containers has an invalid pod selector, ", err, ", ", c.PodSelector, ", ", c.ID)
-			return "", nil, err
+			return "", "", nil, err
 		}
 
 		klog.Info("try to match pod selector, ", c.PodSelector)
@@ -290,10 +314,10 @@ func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, 
 		}
 	}
 
-	return releaseName, matches, nil
+	return releaseName, owner, matches, nil
 }
 
-func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev1.Pod, devcontainer *model.DevAppContainers, devPort int, firstMutateContainer bool) (*envoy.DevcontainerEndpoint, error) {
+func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev1.Pod, devcontainer *model.DevAppContainers, devPort int, firstMutateContainer bool, owner string) (*envoy.DevcontainerEndpoint, error) {
 	for i, c := range pod.Spec.Containers {
 		if c.Name == devcontainer.ContainerName {
 			klog.Info("mutating container, ", c.Name, ", ", pod.Name, ", ", pod.Namespace)
@@ -384,7 +408,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 			volumeMounts = newVolMnts
 			directoryOrCreateType := corev1.HostPathDirectoryOrCreate
 
-			//userCacheDir, err := wh.getUserCacheDir(ctx)
+			userSpaceDir, err := wh.getUserspaceDir(ctx, owner)
 			if err != nil {
 				return nil, err
 			}
@@ -394,7 +418,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 				VolumeSource: corev1.VolumeSource{
 					HostPath: &corev1.HostPathVolumeSource{
 						Type: &directoryOrCreateType,
-						Path: filepath.Join(os.Getenv("ROOTFS_DIR"), "studio", devcontainer.AppName),
+						Path: filepath.Join(userSpaceDir, "Data", "studio", devcontainer.AppName),
 					},
 				},
 			})
@@ -414,22 +438,22 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 	return nil, nil
 }
 
-//func (wh *Webhook) getUserspaceDir(ctx context.Context) (string, error) {
-//	namespace := "user-space-" + constants.Owner
-//	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
-//	if err != nil {
-//		klog.Error("get user's bfl error, ", err)
-//		return "", err
-//	}
-//
-//	dir, ok := bfl.Annotations["userspace_hostpath"]
-//	if !ok {
-//		klog.Error("user's space not found, ", err)
-//		return "", errors.New("userspace not found")
-//	}
-//
-//	return dir, nil
-//}
+func (wh *Webhook) getUserspaceDir(ctx context.Context, owner string) (string, error) {
+	namespace := "user-space-" + owner
+	bfl, err := wh.KubeClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
+	if err != nil {
+		klog.Error("get user's bfl error, ", err)
+		return "", err
+	}
+
+	dir, ok := bfl.Annotations["userspace_hostpath"]
+	if !ok {
+		klog.Error("user's space not found, ", err)
+		return "", errors.New("userspace not found")
+	}
+
+	return dir, nil
+}
 
 //func (wh *Webhook) getUserCacheDir(ctx context.Context) (string, error) {
 //	namespace := "user-space-" + constants.Owner
@@ -516,4 +540,12 @@ func (wh *Webhook) MutateIm(ctx context.Context, raw []byte, proxyUUID uuid.UUID
 	}
 	klog.Infof("pathc: %v", string(patch))
 	return patch, err
+}
+
+func getOwnerFromNamespace(ns string) (string, error) {
+	lastIndex := strings.LastIndex(ns, "-")
+	if lastIndex != -1 {
+		return ns[lastIndex+1:], nil
+	}
+	return "", fmt.Errorf("invalid release namespace")
 }
