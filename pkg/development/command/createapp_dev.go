@@ -5,7 +5,7 @@ import (
 )
 
 type CreateDevContainerConfig struct {
-	DevEnv         string `json:"devEnv"`
+	DevEnv         string `json:"devEnv" validate:"required,devEnv"`
 	Title          string `json:"title"`
 	RequiredCpu    string `json:"requiredCpu"`
 	RequiredMemory string `json:"requiredMemory"`

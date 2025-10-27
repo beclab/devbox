@@ -103,6 +103,8 @@ func init() {
 	validate.RegisterValidation("limitedDisk", validateLimitedDisk)
 	validate.RegisterValidation("name", validateName)
 	validate.RegisterValidation("image", validateImage)
+	validate.RegisterValidation("devEnv", validateImage)
+
 	validate.RegisterValidation("gpuVendor", validateGpuVendor)
 }
 
