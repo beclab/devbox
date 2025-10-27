@@ -1074,6 +1074,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad Request: %v", errs),
 		})
 	}
+
 	if cfg.RequiredMemory != "" {
 		memoryQuantity, _ := resource.ParseQuantity(cfg.RequiredMemory)
 
