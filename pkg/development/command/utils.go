@@ -37,7 +37,7 @@ func copyDir(src string, dest string) error {
 		return fmt.Errorf("Source " + file.Name() + " is not a directory!")
 	}
 
-	err = os.Mkdir(dest, 0755)
+	err = os.MkdirAll(dest, 0755)
 	if err != nil {
 		klog.Errorf("failed to mkdir path=%v,err=%v", dest, err)
 		return err
