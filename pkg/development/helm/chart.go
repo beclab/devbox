@@ -14,8 +14,6 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/beclab/devbox/pkg/appcfg"
-	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/utils"
 	"gopkg.in/yaml.v2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -118,75 +116,37 @@ func UpdateChartName(chart *chart.Chart, name, path string) error {
 }
 
 func UpdateAppCfgVersion(owner, path string, version *semver.Version) error {
-	appCfgYaml := filepath.Join(path, constants.AppCfgFileName)
-	data, err := os.ReadFile(appCfgYaml)
+	err := appcfg.UpdateMetadataField(path, "version", version.String())
 	if err != nil {
-		klog.Error("read app cfg error, ", err, ", ", appCfgYaml)
+		klog.Infof("failed to update metadata version %v", err)
 		return err
 	}
-	//var appCfg application.AppConfiguration
-	//err = yaml.Unmarshal(data, &appCfg)
-
-	appCfg, err := utils.GetAppConfig(owner, data)
-	if err != nil {
-		klog.Error("parse appcfg error, ", err)
-		return err
-	}
-	if version != nil {
-		appCfg.Metadata.Version = version.String()
-	}
-	data, err = yaml.Marshal(&appCfg)
-	if err != nil {
-		klog.Error("encode appcfg error, ", err)
-		return err
-	}
-	err = os.WriteFile(appCfgYaml, data, 0644)
-	if err != nil {
-		klog.Error("write file OlaresManifest.yaml error, ", err)
-		return err
-	}
-
 	return nil
 }
 
 func UpdateAppCfgName(owner, name, path string) error {
 	appDevName := name + "-dev"
-	appCfgYaml := filepath.Join(path, constants.AppCfgFileName)
-	data, err := os.ReadFile(appCfgYaml)
-	if err != nil {
-		klog.Error("read app cfg error, ", err, ", ", appCfgYaml)
+
+	// update metadata fields directly using in-place updater
+	if err := appcfg.UpdateMetadataField(path, "name", appDevName); err != nil {
+		klog.Infof("failed to update metadata name %v", err)
+
+		return err
+	}
+	if err := appcfg.UpdateMetadataField(path, "appid", appDevName); err != nil {
+		klog.Infof("failed to update metadata appid %v", err)
+
+		return err
+	}
+	if err := appcfg.UpdateMetadataField(path, "title", appDevName); err != nil {
+		klog.Infof("failed to update metadata title %v", err)
+
 		return err
 	}
 
-	//var appCfg application.AppConfiguration
-	//err = yaml.Unmarshal(data, &appCfg)
-	appCfg, err := utils.GetAppConfig(owner, data)
-	if err != nil {
-		klog.Error("parse OlaresManifest.yaml error, ", err)
-		return err
-	}
+	if err := appcfg.UpdateEntrancesTitleAddDev(path); err != nil {
+		klog.Infof("failed to update entrances title %v", err)
 
-	appCfg.Metadata.Name = appDevName
-	appCfg.Metadata.AppID = appDevName
-	appCfg.Metadata.Title = appDevName
-
-	//if version != nil {
-	//	appCfg.Metadata.Version = version.String()
-	//}
-
-	for i, e := range appCfg.Entrances {
-		appCfg.Entrances[i].Title = e.Title + "-dev"
-	}
-
-	data, err = yaml.Marshal(&appCfg)
-	if err != nil {
-		klog.Error("encode appcfg error, ", err)
-		return err
-	}
-
-	err = os.WriteFile(appCfgYaml, data, 0644)
-	if err != nil {
-		klog.Error("write file OlaresManifest.yaml error, ", err)
 		return err
 	}
 
@@ -197,7 +157,7 @@ func UpgradeChartVersion(chart *chart.Chart, name, path string, version *semver.
 	return UpdateChartVersion(chart, name, path, version)
 }
 
-// try to render the helm chart, and return the rendered manifest or error
+// DryRun try to render the helm chart, and return the rendered manifest or error
 func DryRun(ctx context.Context, kubeConfig *rest.Config, namespace, app, path string, vals map[string]interface{}) (string, error) {
 	settings := cli.New()
 	settings.KubeAPIServer = kubeConfig.Host
