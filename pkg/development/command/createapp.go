@@ -28,9 +28,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// const defaultIcon = "https://file.bttcdn.com/appstore/accounts/icon.png"
 const (
-	defaultIcon           = "https://file.bttcdn.com/appstore/default/defaulticon.webp"
+	defaultIcon           = "https://app.cdn.olares.com/appstore/default/defaulticon.webp"
 	traefik               = "traefik"
 	appKubernetesName     = "app.kubernetes.io/name"
 	appKubernetesInstance = "app.kubernetes.io/instance"
