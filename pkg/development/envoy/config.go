@@ -3,6 +3,7 @@ package envoy
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	envoy_config_bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	clusterv3 "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
@@ -50,6 +51,39 @@ func (cb *ConfigBuilder) Build() (string, error) {
 			Match: &routev3.RouteMatch{
 				PathSpecifier: &routev3.RouteMatch_Prefix{
 					Prefix: c.Path,
+				},
+			},
+			Action: &routev3.Route_Route{
+				Route: &routev3.RouteAction{
+					ClusterSpecifier: &routev3.RouteAction_Cluster{
+						Cluster: c.Name,
+					},
+					Timeout: &duration.Duration{
+						Seconds: 300,
+					},
+				},
+			},
+		})
+	}
+	for _, c := range cb.containers {
+		if c.Port <= 0 || c.Port == 5000 {
+			continue
+		}
+		routes = append(routes, &routev3.Route{
+			Match: &routev3.RouteMatch{
+				PathSpecifier: &routev3.RouteMatch_Prefix{
+					Prefix: "/",
+				},
+				Headers: []*routev3.HeaderMatcher{
+					{
+						Name: ":authority",
+						HeaderMatchSpecifier: &routev3.HeaderMatcher_SafeRegexMatch{
+							SafeRegexMatch: &matcherv3.RegexMatcher{
+								EngineType: &matcherv3.RegexMatcher_GoogleRe2{GoogleRe2: &matcherv3.RegexMatcher_GoogleRE2{}},
+								Regex: fmt.Sprintf("^[^.]+-%d\\.[^.]+\\..*$", c.Port),
+							},
+						},
+					},
 				},
 			},
 			Action: &routev3.Route_Route{
@@ -346,7 +380,8 @@ func (cb *ConfigBuilder) Build() (string, error) {
 		klog.Error("JSONToYAML: ", err)
 	}
 
-	return string(config), err
+	cfgStr := strings.ReplaceAll(string(config), "google_re_2:", "google_re2:")
+	return cfgStr, err
 }
 
 func authFilter(owner string) *http_connection_manager_v3.HttpFilter {

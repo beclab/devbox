@@ -2,11 +2,17 @@ package utils
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/oachecker"
 	"github.com/containerd/containerd/reference/docker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	runtimeSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/klog/v2"
 	"os"
@@ -143,4 +149,43 @@ func GetDefaultHelloImage() string {
 
 func DevName(name string) string {
 	return fmt.Sprintf("%s-dev", name)
+}
+
+func GetAppID(appName string) string {
+	hash := md5.Sum([]byte(appName))
+	hashString := hex.EncodeToString(hash[:])
+	return hashString[:8]
+}
+
+func GetAppCfg(appManagerName string) (*appcfg.ApplicationConfig, error) {
+	config, err := ctrl.GetConfig()
+	if err != nil {
+		klog.Errorf("failed to get kubeconfig %v", err)
+		return nil, err
+	}
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		klog.Errorf("failed to creat dynamic client %v", err)
+		return nil, err
+	}
+	gvr := runtimeSchema.GroupVersionResource{
+		Group:    "app.bytetrade.io",
+		Version:  "v1alpha1",
+		Resource: "applicationmanagers",
+	}
+	am, err := dynamicClient.Resource(gvr).Namespace("").Get(context.TODO(), appManagerName, metav1.GetOptions{})
+	if am == nil || err != nil {
+		klog.Errorf("failed to get app manager name=%s, err=%v", appManagerName, err)
+		return nil, err
+	}
+
+	data, _, _ := unstructured.NestedString(am.Object, "spec", "config")
+	var applicationConfig appcfg.ApplicationConfig
+	err = json.Unmarshal([]byte(data), &applicationConfig)
+	if err != nil {
+		klog.Errorf("failed to unmarshal application manager config err=%v", err)
+		return nil, err
+	}
+	return &applicationConfig, nil
+
 }

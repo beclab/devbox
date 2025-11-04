@@ -81,8 +81,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPd
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 h1:4daAzAu0S6Vi7/lbWECcX0j45yZReDZ56BQsrVBOEEY=
 github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
-github.com/beclab/oachecker v0.0.11 h1:MF8TNd3buR3aNwVjhyKQ8Qa/JdSqjk33MDAWVfzlNKI=
-github.com/beclab/oachecker v0.0.11/go.mod h1:zf+RkTQr83uCoOQ+9wtXVfvL7V+Ae/6wTXLwVo/6DPo=
+github.com/beclab/oachecker v0.0.12 h1:NajwJF87rgqHsliTpE3Bc1YRY3bTlnPRm/l4bEY1MNs=
+github.com/beclab/oachecker v0.0.12/go.mod h1:zf+RkTQr83uCoOQ+9wtXVfvL7V+Ae/6wTXLwVo/6DPo=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
 github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=

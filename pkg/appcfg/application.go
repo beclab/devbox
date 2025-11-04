@@ -78,3 +78,9 @@ type ApplicationConfig struct {
 	AllowedOutboundPorts []int
 	RequiredGPU          string
 }
+
+type DefaultThirdLevelDomainConfig struct {
+	AppName          string `json:"appName"`
+	EntranceName     string `json:"entranceName"`
+	ThirdLevelDomain string `json:"thirdLevelDomain"`
+}

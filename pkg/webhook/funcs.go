@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/devbox/pkg/constants"
+	"github.com/beclab/devbox/pkg/utils"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -13,7 +16,6 @@ import (
 
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/envoy"
-	"github.com/beclab/devbox/pkg/development/helm"
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
 
@@ -162,6 +164,32 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 	workload.GetPodTemplate().Annotations[helmRelease] = releaseName
 	workload.GetPodTemplate().Annotations[helmReleaseNamespace] = releaseNamespace
 
+	thirdLevelDomainConfigStr, ok := workload.GetObjectMeta().Annotations[constants.ApplicationDefaultThirdLevelDomain]
+	if ok {
+		var thirdLevelDomainConfig []*appcfg.DefaultThirdLevelDomainConfig
+		err = json.Unmarshal([]byte(thirdLevelDomainConfigStr), &thirdLevelDomainConfig)
+		if err != nil {
+			klog.Errorf("invalid thirdLevelDomainConfig %s, %v", thirdLevelDomainConfigStr, err)
+		}
+		for i := range thirdLevelDomainConfig {
+			thirdLevelDomainConfig[i].AppName = releaseName
+			ports := strings.Split(thirdLevelDomainConfig[i].ThirdLevelDomain, "-")
+			if len(ports) != 2 {
+				continue
+			}
+			thirdLevelDomainConfig[i].ThirdLevelDomain = fmt.Sprintf("%s-%s", utils.GetAppID(releaseName), ports[1])
+		}
+		thirdLevelDomainConfigByte, err := json.Marshal(thirdLevelDomainConfig)
+		if err != nil {
+			klog.Errorf("failed to marshal thirdLevelDomainConfig %s, %v", thirdLevelDomainConfigStr, err)
+		} else {
+			if workload.GetObjectMeta().Annotations == nil {
+				workload.GetObjectMeta().Annotations = make(map[string]string)
+			}
+			workload.GetObjectMeta().Annotations[constants.ApplicationDefaultThirdLevelDomain] = string(thirdLevelDomainConfigByte)
+		}
+	}
+
 	var app *model.DevApp
 	err = wh.DB.DB.Where("owner = ?", owner).Where("app_name = ?", appName(releaseName)).First(&app).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -251,7 +279,7 @@ func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, ra
 		appManagerName := fmt.Sprintf("%s-%s", namespace, app)
 
 		//realapp := strings.TrimSuffix(app, "-dev")
-		appcfg, err := helm.GetAppCfg(appManagerName)
+		appcfg, err := utils.GetAppCfg(appManagerName)
 		if err != nil {
 			return nil, err
 		}
@@ -318,6 +346,8 @@ func (wh *Webhook) mustMutatePod(ctx context.Context, pod *corev1.Pod) (string, 
 }
 
 func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev1.Pod, devcontainer *model.DevAppContainers, devPort int, firstMutateContainer bool, owner string) (*envoy.DevcontainerEndpoint, error) {
+	releaseName, _ := pod.Annotations[helmRelease]
+
 	for i, c := range pod.Spec.Containers {
 		if c.Name == devcontainer.ContainerName {
 			klog.Info("mutating container, ", c.Name, ", ", pod.Name, ", ", pod.Namespace)
@@ -377,6 +407,10 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 
 			// add container port to env
 			addToEnv(container.DevContainerPortEnv, strconv.Itoa(devPort))
+			userZone := os.Getenv("USER_ZONE")
+			baseDomain := getBaseDomain(userZone)
+
+			addToEnv(container.DevContainerVscodeProxyURI, fmt.Sprintf("https://%s-{{port}}.%s.%s", utils.GetAppID(releaseName), owner, baseDomain))
 
 			// volume mount for dev container
 			volumes := pod.Spec.Volumes
@@ -548,4 +582,14 @@ func getOwnerFromNamespace(ns string) (string, error) {
 		return ns[lastIndex+1:], nil
 	}
 	return "", fmt.Errorf("invalid release namespace")
+}
+
+func getBaseDomain(domain string) string {
+	parts := strings.Split(domain, ".")
+
+	if len(parts) < 2 {
+		return domain
+	}
+
+	return strings.Join(parts[len(parts)-2:], ".")
 }

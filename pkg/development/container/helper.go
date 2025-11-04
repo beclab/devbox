@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	UnknownStatus       = "unknown"
-	DevContainerEnv     = "DEV_CONTAINER"
-	DevContainerPortEnv = "DEV_CONTAINER_PORT"
+	UnknownStatus              = "unknown"
+	DevContainerEnv            = "DEV_CONTAINER"
+	DevContainerPortEnv        = "DEV_CONTAINER_PORT"
+	DevContainerVscodeProxyURI = "VSCODE_PROXY_URI"
 )
 
 // DevEnvImage return env image
