@@ -57,8 +57,18 @@ func (h *handlers) listDevApps(ctx *fiber.Ctx) error {
 	for i, l := range list {
 		appId := appid(l.AppName)
 		list[i].Chart = "/" + l.AppName       // TODO: save app chart dir into db
-		list[i].Entrance = appId + "." + zone // TODO:
+		list[i].Entrance = appId + "." + zone // keep default entrance
 		list[i].AppID = appId
+
+		appCfg, err := utils.GetAppCfg(fmt.Sprintf("%s-dev-%s-%s-dev", l.AppName, l.Owner, l.AppName))
+		if err != nil {
+			continue
+		}
+		if appCfg != nil {
+			if len(appCfg.Entrances) > 1 {
+				list[i].Entrance = fmt.Sprintf("%s%s.%s", appId, "0", zone)
+			}
+		}
 	}
 
 	return ctx.JSON(fiber.Map{

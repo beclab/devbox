@@ -1,6 +1,7 @@
 package command
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
 	"github.com/beclab/oachecker"
@@ -159,17 +161,33 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 
 	entrances := make([]oachecker.Entrance, 0)
 	name := config.Name
-	port := config.Container.Port
+	//port := config.Container.Port
 
 	entrances = append(entrances, oachecker.Entrance{
 		Name:       name,
 		Host:       name,
-		Port:       int32(port),
+		Port:       int32(config.Container.Port),
 		Title:      config.Name,
 		Icon:       defaultIcon,
 		AuthLevel:  "private",
 		OpenMethod: "default",
 	})
+	exposePorts := strings.Split(config.ExposePorts, ",")
+	for _, portStr := range exposePorts {
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			continue
+		}
+		entrances = append(entrances, oachecker.Entrance{
+			Name:      fmt.Sprintf("%s-dev-%s", name, portStr),
+			Host:      name,
+			Port:      int32(port),
+			Title:     fmt.Sprintf("%s-dev-%s", name, portStr),
+			Icon:      defaultIcon,
+			AuthLevel: "private",
+			Skip:      true,
+		})
+	}
 
 	appcfg.Entrances = entrances
 
@@ -234,8 +252,9 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      config.Name,
-			Namespace: "{{ .Release.Namespace }}",
+			Name:        config.Name,
+			Namespace:   "{{ .Release.Namespace }}",
+			Annotations: map[string]string{},
 			Labels: map[string]string{
 				"io.kompose.service": config.Name,
 			},
@@ -294,12 +313,31 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			return gpu
 		}()
 	}
+	if config.ExposePorts != "" {
+		exposePorts := strings.Split(config.ExposePorts, ",")
+		allDomainConfigs := make([]appcfg.DefaultThirdLevelDomainConfig, 0)
+		for _, portStr := range exposePorts {
+			_, err := strconv.Atoi(portStr)
+			if err != nil {
+				continue
+			}
+			allDomainConfigs = append(allDomainConfigs, appcfg.DefaultThirdLevelDomainConfig{
+				AppName:          config.Name,
+				EntranceName:     fmt.Sprintf("%s-dev-%s", config.Name, portStr),
+				ThirdLevelDomain: fmt.Sprintf("%s-%s", utils.GetAppID(config.Name), portStr),
+			})
+		}
+		if len(allDomainConfigs) > 0 {
+			allDomainConfigStr, _ := json.Marshal(allDomainConfigs)
+			deployment.Annotations[constants.ApplicationDefaultThirdLevelDomain] = string(allDomainConfigStr)
+		}
+	}
 
 	ports := make([]corev1.ContainerPort, 0)
 	ports = append(ports, corev1.ContainerPort{
 		ContainerPort: int32(config.Container.Port),
 	})
-	//}
+
 	deployment.Spec.Template.Spec.Containers[0].Ports = ports
 
 	env := []corev1.EnvVar{
@@ -437,6 +475,19 @@ func (at *AppTemplate) WithDockerService(config *CreateWithOneDockerConfig) *App
 		Port:       int32(config.Container.Port),
 		TargetPort: intstr.Parse(strconv.Itoa(config.Container.Port)),
 	})
+
+	for _, portStr := range strings.Split(config.ExposePorts, ",") {
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			continue
+		}
+		ports = append(ports, corev1.ServicePort{
+			Name:       fmt.Sprintf("%s-dev-%s", config.Name, portStr),
+			Port:       int32(port),
+			TargetPort: intstr.Parse(portStr),
+		})
+	}
+
 	if len(ports) > 0 {
 		service.Spec.Ports = ports
 	}
