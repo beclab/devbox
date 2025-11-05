@@ -186,6 +186,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 			Icon:      defaultIcon,
 			AuthLevel: "private",
 			Skip:      true,
+			Invisible: true,
 		})
 	}
 
