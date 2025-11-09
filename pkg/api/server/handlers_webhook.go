@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	
+
 	"github.com/beclab/devbox/pkg/webhook"
 
 	"github.com/gofiber/fiber/v2"

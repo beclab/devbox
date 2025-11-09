@@ -90,7 +90,16 @@ func (wh *Webhook) CreateOrUpdateDevContainerMutatingWebhook() error {
 				Rule: admissionregv1.Rule{
 					APIGroups:   []string{"*"},
 					APIVersions: []string{"*"},
-					Resources:   []string{"pods", "deployments", "statefulsets", "daemonsets"},
+					Resources:   []string{"deployments", "statefulsets", "daemonsets"},
+					Scope:       &scoped,
+				},
+			},
+			{
+				Operations: []admissionregv1.OperationType{admissionregv1.Create},
+				Rule: admissionregv1.Rule{
+					APIGroups:   []string{"*"},
+					APIVersions: []string{"v1"},
+					Resources:   []string{"pods"},
 					Scope:       &scoped,
 				},
 			},
