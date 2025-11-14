@@ -226,16 +226,14 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 	if requiredMemory.Cmp(limitedMemory) > 0 {
 		appcfg.Spec.LimitedMemory = appcfg.Spec.RequiredMemory
 	}
-
-	//if cfg.OSVersion != "" {
-	//	appcfg.Options.Dependencies = []application.Dependency{
-	//		{
-	//			Name:    "olares",
-	//			Type:    "system",
-	//			Version: cfg.OSVersion,
-	//		},
-	//	}
-	//}
+	deps := []oachecker.Dependency{
+		{
+			Name:    "olares",
+			Type:    "system",
+			Version: constants.SupportOsVersion,
+		},
+	}
+	appcfg.Options.Dependencies = &deps
 	at.appCfg = &appcfg
 	return at
 }

@@ -13,6 +13,7 @@ const (
 	XBflUser                           = "X-Bfl-User"
 	ApplicationGpuInjectKey            = "applications.app.bytetrade.io/gpu-inject"
 	ApplicationDefaultThirdLevelDomain = "applications.app.bytetrade.io/default-thirdlevel-domains"
+	SupportOsVersion                   = ">=1.12.1-0"
 )
 
 var (
