@@ -173,11 +173,13 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 		}
 		for i := range thirdLevelDomainConfig {
 			thirdLevelDomainConfig[i].AppName = releaseName
-			ports := strings.Split(thirdLevelDomainConfig[i].ThirdLevelDomain, "-")
-			if len(ports) != 2 {
-				continue
+			port, err := getEntrancePort(fmt.Sprintf("%s-%s", releaseNamespace, releaseName), thirdLevelDomainConfig[i].EntranceName)
+			if err != nil {
+				klog.Errorf("failed to get app %s entrance %s port", releaseName, thirdLevelDomainConfig[i].EntranceName)
+				return nil, err
 			}
-			thirdLevelDomainConfig[i].ThirdLevelDomain = fmt.Sprintf("%s-%s", utils.GetAppID(releaseName), ports[1])
+
+			thirdLevelDomainConfig[i].ThirdLevelDomain = fmt.Sprintf("%s-%d", utils.GetAppID(releaseName), port)
 		}
 		thirdLevelDomainConfigByte, err := json.Marshal(thirdLevelDomainConfig)
 		if err != nil {
@@ -218,6 +220,19 @@ func mutateName[T workloadInterface](ctx context.Context, wh *Webhook, workload 
 	}
 
 	return makePatches(raw, workload, workloadName)
+}
+
+func getEntrancePort(appManagerName string, entranceName string) (int32, error) {
+	am, err := utils.GetAppCfg(appManagerName)
+	if err != nil {
+		return 0, err
+	}
+	for _, e := range am.Entrances {
+		if entranceName == e.Name {
+			return e.Port, nil
+		}
+	}
+	return 0, fmt.Errorf("entrance %s not found", entranceName)
 }
 
 // MutatePodContainers mutate the pod in a developing app which has some containers that need to be replaced with a dev-container
