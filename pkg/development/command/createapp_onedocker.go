@@ -321,9 +321,9 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 				continue
 			}
 			allDomainConfigs = append(allDomainConfigs, appcfg.DefaultThirdLevelDomainConfig{
-				AppName:          config.Name,
-				EntranceName:     fmt.Sprintf("%s-dev-%s", config.Name, portStr),
-				ThirdLevelDomain: fmt.Sprintf("%s-%s", utils.GetAppID(config.Name), portStr),
+				AppName:      config.Name,
+				EntranceName: fmt.Sprintf("%s-dev-%s", config.Name, portStr),
+				//ThirdLevelDomain: fmt.Sprintf("%s-%s", utils.GetAppID(config.Name), portStr),
 			})
 		}
 		if len(allDomainConfigs) > 0 {

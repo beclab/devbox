@@ -82,5 +82,5 @@ type ApplicationConfig struct {
 type DefaultThirdLevelDomainConfig struct {
 	AppName          string `json:"appName"`
 	EntranceName     string `json:"entranceName"`
-	ThirdLevelDomain string `json:"thirdLevelDomain"`
+	ThirdLevelDomain string `json:"thirdLevelDomain,omitempty"`
 }
