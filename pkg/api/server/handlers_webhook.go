@@ -29,7 +29,7 @@ func (h *webhooks) devcontainer(ctx *fiber.Ctx) error {
 	proxyUUID := uuid.New()
 	if _, _, err := webhook.Deserializer.Decode(admissionRequestBody, nil, &admissionReq); err != nil {
 		klog.Error("Error decoding admission request body, ", err)
-		admissionResp.Response = h.webhook.AdmissionError(err)
+		admissionResp.Response = h.webhook.AdmissionError("", err)
 	} else {
 		admissionResp.Response = h.mutate(ctx.Context(), admissionReq.Request, proxyUUID)
 	}
@@ -49,7 +49,7 @@ func (h *webhooks) devcontainer(ctx *fiber.Ctx) error {
 func (h *webhooks) mutate(ctx context.Context, req *admissionv1.AdmissionRequest, proxyUUID uuid.UUID) *admissionv1.AdmissionResponse {
 	if req == nil {
 		klog.Error("nil admission Request")
-		return h.webhook.AdmissionError(errNilAdmissionRequest)
+		return h.webhook.AdmissionError("", errNilAdmissionRequest)
 	}
 
 	// Start building the response
@@ -69,13 +69,13 @@ func (h *webhooks) mutate(ctx context.Context, req *admissionv1.AdmissionRequest
 		patchBytes, err = h.webhook.MutateAppName(ctx, req)
 		if err != nil {
 			klog.Errorf("Failed to create patch for pod with UUID %s in namespace %s", proxyUUID, req.Namespace)
-			return h.webhook.AdmissionError(err)
+			return h.webhook.AdmissionError(req.UID, err)
 		}
 	case "pods":
 		patchBytes, err = h.webhook.MutatePodContainers(ctx, req.Namespace, req.Object.Raw, proxyUUID, BaseDir)
 		if err != nil {
 			klog.Errorf("Failed to create patch for pod with UUID %s in namespace %s, %s", proxyUUID, req.Namespace, err.Error())
-			return h.webhook.AdmissionError(err)
+			return h.webhook.AdmissionError(req.UID, err)
 		}
 	}
 
@@ -99,7 +99,7 @@ func (h *webhooks) imageManager(ctx *fiber.Ctx) error {
 	proxyUUID := uuid.New()
 	if _, _, err := webhook.Deserializer.Decode(admissionRequestBody, nil, &admissionReq); err != nil {
 		klog.Error("Error decoding admission request body, ", err)
-		admissionResp.Response = h.webhook.AdmissionError(err)
+		admissionResp.Response = h.webhook.AdmissionError("", err)
 	} else {
 		admissionResp.Response = h.imageManagerMutate(ctx.Context(), admissionReq.Request, proxyUUID)
 	}
@@ -113,7 +113,7 @@ func (h *webhooks) imageManager(ctx *fiber.Ctx) error {
 func (h *webhooks) imageManagerMutate(ctx context.Context, req *admissionv1.AdmissionRequest, proxyUUID uuid.UUID) *admissionv1.AdmissionResponse {
 	if req == nil {
 		klog.Error("nil admission Request")
-		return h.webhook.AdmissionError(errNilAdmissionRequest)
+		return h.webhook.AdmissionError("", errNilAdmissionRequest)
 	}
 	resp := &admissionv1.AdmissionResponse{
 		Allowed: true,
@@ -123,7 +123,7 @@ func (h *webhooks) imageManagerMutate(ctx context.Context, req *admissionv1.Admi
 	klog.Info("Creating patch for resource ", req.Resource)
 	patchBytes, err := h.webhook.MutateIm(ctx, req.Object.Raw, proxyUUID)
 	if err != nil {
-		return h.webhook.AdmissionError(err)
+		return h.webhook.AdmissionError(req.UID, err)
 	}
 	if len(patchBytes) > 0 {
 		h.webhook.PatchAdmissionResponse(resp, patchBytes)

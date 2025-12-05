@@ -47,25 +47,6 @@ func (cb *ConfigBuilder) Build() (string, error) {
 	routes := []*routev3.Route{}
 
 	for _, c := range cb.containers {
-		routes = append(routes, &routev3.Route{
-			Match: &routev3.RouteMatch{
-				PathSpecifier: &routev3.RouteMatch_Prefix{
-					Prefix: c.Path,
-				},
-			},
-			Action: &routev3.Route_Route{
-				Route: &routev3.RouteAction{
-					ClusterSpecifier: &routev3.RouteAction_Cluster{
-						Cluster: c.Name,
-					},
-					Timeout: &duration.Duration{
-						Seconds: 300,
-					},
-				},
-			},
-		})
-	}
-	for _, c := range cb.containers {
 		if c.Port <= 0 || c.Port == 5000 {
 			continue
 		}
@@ -80,7 +61,7 @@ func (cb *ConfigBuilder) Build() (string, error) {
 						HeaderMatchSpecifier: &routev3.HeaderMatcher_SafeRegexMatch{
 							SafeRegexMatch: &matcherv3.RegexMatcher{
 								EngineType: &matcherv3.RegexMatcher_GoogleRe2{GoogleRe2: &matcherv3.RegexMatcher_GoogleRE2{}},
-								Regex: fmt.Sprintf("^[^.]+-%d\\.[^.]+\\..*$", c.Port),
+								Regex:      fmt.Sprintf("^[^.]+-%d\\.[^.]+\\..*$", c.Port),
 							},
 						},
 					},
@@ -99,25 +80,45 @@ func (cb *ConfigBuilder) Build() (string, error) {
 		})
 	}
 
-	routes = append(routes,
-		&routev3.Route{
+	for _, c := range cb.containers {
+		routes = append(routes, &routev3.Route{
 			Match: &routev3.RouteMatch{
 				PathSpecifier: &routev3.RouteMatch_Prefix{
-					Prefix: "/",
+					Prefix: c.Path,
 				},
 			},
 			Action: &routev3.Route_Route{
 				Route: &routev3.RouteAction{
 					ClusterSpecifier: &routev3.RouteAction_Cluster{
-						Cluster: "original_dst",
+						Cluster: c.Name,
 					},
 					Timeout: &duration.Duration{
 						Seconds: 300,
 					},
 				},
 			},
-		},
-	)
+		})
+	}
+
+	//routes = append(routes,
+	//	&routev3.Route{
+	//		Match: &routev3.RouteMatch{
+	//			PathSpecifier: &routev3.RouteMatch_Prefix{
+	//				Prefix: "/",
+	//			},
+	//		},
+	//		Action: &routev3.Route_Route{
+	//			Route: &routev3.RouteAction{
+	//				ClusterSpecifier: &routev3.RouteAction_Cluster{
+	//					Cluster: "original_dst",
+	//				},
+	//				Timeout: &duration.Duration{
+	//					Seconds: 300,
+	//				},
+	//			},
+	//		},
+	//	},
+	//)
 
 	lisenters := []*listenerv3.Listener{
 		{
