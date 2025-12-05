@@ -110,6 +110,14 @@ func (a *appOp) IsAllowedDeploy(ctx context.Context, owner, devAppName, token st
 		}
 		return false, errors.New(string(resp.Body()))
 	}
+	uninstalled, err := a.CheckIfAppIsUninstalled(owner, devAppName, token)
+	if err != nil {
+		return false, err
+	}
+	if uninstalled {
+		return true, nil
+	}
+
 	klog.Infof("resp:xxx: %v", string(resp.Body()))
 	data := CanDeployResponse{}
 	err = json.Unmarshal(resp.Body(), &data)
@@ -191,9 +199,13 @@ func (a *appOp) CheckIfAppIsUninstalled(owner, devAppName, token string) (bool, 
 	if !ok {
 		return false, fmt.Errorf("state is not a string")
 	}
-	if state != "uninstalled" {
-		return false, nil
+	if state == "uninstalled" || state == "installFailed" ||
+		state == "pendingCanceled" || state == "downloadingCanceled" ||
+		state == "installingCanceled" || state == "downloadFailed" ||
+		state == "pendingCancelFailed" || state == "downloadingCancelFailed" ||
+		state == "installingCancelFailed" {
+		return true, nil
 	}
 
-	return true, nil
+	return false, nil
 }

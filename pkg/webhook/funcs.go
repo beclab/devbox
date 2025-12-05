@@ -8,6 +8,7 @@ import (
 	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
+	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"path/filepath"
 	"sort"
@@ -40,8 +41,9 @@ func (wh *Webhook) PatchAdmissionResponse(resp *admissionv1.AdmissionResponse, p
 }
 
 // AdmissionError wraps error as AdmissionResponse
-func (wh *Webhook) AdmissionError(err error) *admissionv1.AdmissionResponse {
+func (wh *Webhook) AdmissionError(uid types.UID, err error) *admissionv1.AdmissionResponse {
 	return &admissionv1.AdmissionResponse{
+		UID: uid,
 		Result: &metav1.Status{
 			Message: err.Error(),
 		},
@@ -232,7 +234,7 @@ func getEntrancePort(appManagerName string, entranceName string) (int32, error) 
 			return e.Port, nil
 		}
 	}
-	return 0, fmt.Errorf("entrance %s not found", entranceName)
+	return 0, fmt.Errorf("entrance %s in annotation[applications.app.bytetrade.io/default-thirdlevel-domains] not found", entranceName)
 }
 
 // MutatePodContainers mutate the pod in a developing app which has some containers that need to be replaced with a dev-container
@@ -397,7 +399,7 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 				Host: "localhost",
 				Port: devPort,
 				Name: pod.Spec.Containers[i].Name,
-				Path: "/proxy/" + strconv.Itoa(devPort) + "/",
+				Path: "/",
 			}
 
 			addToEnv := func(key, value string) {
