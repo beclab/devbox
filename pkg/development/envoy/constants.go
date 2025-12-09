@@ -9,7 +9,7 @@ const (
 
 	EnvoyUID                      int64 = 1000
 	DefaultEnvoyLogLevel                = "debug"
-	EnvoyImageVersion                   = "envoyproxy/envoy-distroless:v1.25.2"
+	EnvoyImageVersion                   = "beclab/envoy:v1.25.11.1"
 	EnvoyContainerName                  = "olares-envoy-sidecar"
 	EnvoyAdminPort                      = 15000
 	EnvoyAdminPortName                  = "proxy-admin"

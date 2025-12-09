@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/oachecker"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/beclab/devbox/pkg/appcfg"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/pointer"
@@ -125,7 +125,7 @@ func getInitContainerSpec() corev1.Container {
 
 	return corev1.Container{
 		Name:            SidecarInitContainerName,
-		Image:           "openservicemesh/init:v1.2.3",
+		Image:           "beclab/init:v1.2.3",
 		ImagePullPolicy: corev1.PullIfNotPresent,
 		SecurityContext: &corev1.SecurityContext{
 			Privileged: &enablePrivilegedInitContainer,
