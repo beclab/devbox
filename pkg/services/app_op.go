@@ -11,6 +11,7 @@ import (
 	"k8s.io/klog/v2"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -59,8 +60,11 @@ func (a *appOp) UpdateAppTitle(ctx context.Context, owner, name, title string) (
 		return 0, err
 	}
 	appDir := filepath.Join(utils.GetUserBaseDir(owner), name)
-	if err := appcfg.UpdateMetadataField(appDir, "title", title); err != nil {
-		return 0, err
+	_, err = os.Stat(filepath.Join(appDir, constants.AppCfgFileName))
+	if os.IsExist(err) {
+		if err := appcfg.UpdateMetadataField(appDir, "title", title); err != nil {
+			return 0, err
+		}
 	}
 	return appId, nil
 }
