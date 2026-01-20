@@ -13,9 +13,10 @@ type CreateDevContainerConfig struct {
 	RequiredGpu    bool   `json:"requiredGpu"`
 	ExposePorts    string `json:"exposePorts"`
 	GpuVendor      string `json:"gpuVendor"`
+	SshEnable      bool   `json:"sshEnable"`
 }
 
-var createConfigDev = &CreateWithOneDockerConfig{
+var createConfigDev = CreateWithOneDockerConfig{
 	Container: CreateWithOneDockerContainer{
 		Image: utils.GetDefaultHelloImage(),
 		Port:  80,
@@ -26,37 +27,40 @@ var createConfigDev = &CreateWithOneDockerConfig{
 	RequiredGpu:    false,
 	NeedPg:         false,
 	NeedRedis:      false,
+	SshEnable:      false,
 }
 
 func CreateAppWithDevConfig(cfg *CreateDevContainerConfig, owner, name string) error {
 	appPath := utils.GetAppPath(owner, name)
+	localConfig := createConfigDev
 
-	createConfigDev.Name = name
-	createConfigDev.Title = cfg.Title
+	localConfig.Name = name
+	localConfig.Title = cfg.Title
 	if cfg != nil {
 		if cfg.RequiredCpu != "" {
-			createConfigDev.RequiredCpu = cfg.RequiredCpu
+			localConfig.RequiredCpu = cfg.RequiredCpu
 		}
 		if cfg.RequiredMemory != "" {
-			createConfigDev.RequiredMemory = cfg.RequiredMemory
+			localConfig.RequiredMemory = cfg.RequiredMemory
 		}
 		if cfg.RequiredDisk != "" {
-			createConfigDev.RequiredDisk = cfg.RequiredDisk
+			localConfig.RequiredDisk = cfg.RequiredDisk
 		}
 		if cfg.RequiredGpu {
-			createConfigDev.RequiredGpu = true
+			localConfig.RequiredGpu = true
 		}
 		if cfg.GpuVendor != "" {
-			createConfigDev.GpuVendor = cfg.GpuVendor
+			localConfig.GpuVendor = cfg.GpuVendor
 		}
 		if len(cfg.ExposePorts) > 0 {
-			createConfigDev.ExposePorts = cfg.ExposePorts
+			localConfig.ExposePorts = cfg.ExposePorts
 		}
+		localConfig.SshEnable = cfg.SshEnable
 	}
 	at := AppTemplate{}
-	at.WithDockerCfg(createConfigDev).WithDockerDeployment(createConfigDev).
-		WithDockerService(createConfigDev).WithDockerChartMetadata(createConfigDev).WithDockerOwner(createConfigDev)
-	err := at.WriteDockerFile(createConfigDev, appPath)
+	at.WithDockerCfg(&localConfig).WithDockerDeployment(&localConfig).
+		WithDockerService(&localConfig).WithDockerChartMetadata(&localConfig).WithDockerOwner(&localConfig)
+	err := at.WriteDockerFile(&localConfig, appPath)
 	if err != nil {
 		return err
 	}

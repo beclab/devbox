@@ -92,6 +92,7 @@ func (s *server) Start() {
 	command.Post("/apps/:name/create", s.handlers.fillApp)
 	command.Post("/apps/:name/example/create", s.handlers.fillAppWithExample)
 	command.Post("/apps/:name/vscode/create", s.handlers.fillAppWithDevContainer)
+	command.Post("/apps/kompose", s.handlers.createAppFromComposeFile)
 
 	command.Put("/apps/title/:name", s.handlers.updateAppTitle)
 

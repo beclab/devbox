@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,9 +26,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/kubernetes/kompose/pkg/kobject"
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
 )
@@ -75,6 +80,64 @@ func (h *handlers) listDevApps(ctx *fiber.Ctx) error {
 		"code": http.StatusOK,
 		"data": list,
 	})
+}
+
+// findWorkloadInKomposeResult scans kompose resources, finds each workload named 'name',
+// and via its labels locates a matching Service and the first port. Returns serviceName, port, error.
+func findWorkloadInKomposeResult(resources []runtime.Object, name string) (string, int32, error) {
+	services := make([]*corev1.Service, 0)
+	for _, res := range resources {
+		if s, ok := res.(*corev1.Service); ok {
+			services = append(services, s)
+		}
+	}
+
+	for _, res := range resources {
+		switch obj := res.(type) {
+		case *appsv1.Deployment:
+			if obj.Annotations["olares.service.type"] != "Entrance" {
+				continue
+			}
+
+			labels := obj.Spec.Template.Labels
+			for _, s := range services {
+				if isSelectorMatch(labels, s.Spec.Selector) {
+					if len(s.Spec.Ports) > 0 && s.Spec.Ports[0].Port > 0 {
+						port := s.Spec.Ports[0].Port
+						return s.Name, port, nil
+					}
+				}
+			}
+			return "", 0, fmt.Errorf("service not found for %s", name)
+		case *appsv1.StatefulSet:
+			if obj.Annotations["olares.service.type"] != "Entrance" {
+				continue
+			}
+			labels := obj.Spec.Template.Labels
+			for _, s := range services {
+				if isSelectorMatch(labels, s.Spec.Selector) {
+					if len(s.Spec.Ports) > 0 && s.Spec.Ports[0].Port > 0 {
+						port := s.Spec.Ports[0].Port
+						return s.Name, port, nil
+					}
+				}
+			}
+			return "", 0, fmt.Errorf("service not found for %s", name)
+		}
+	}
+	return "", 0, fmt.Errorf("no service with labels,[olares.service.type: Entrance]")
+}
+
+func isSelectorMatch(podLabels, selector map[string]string) bool {
+	if len(selector) == 0 {
+		return false
+	}
+	for k, v := range selector {
+		if podLabels[k] != v {
+			return false
+		}
+	}
+	return true
 }
 
 func (h *handlers) getDevApp(ctx *fiber.Ctx) error {
@@ -1197,6 +1260,180 @@ func (h *handlers) updateAppTitle(ctx *fiber.Ctx) error {
 		})
 	}
 
+	return ctx.JSON(fiber.Map{
+		"code": http.StatusOK,
+		"data": map[string]interface{}{
+			"appId": appId,
+		},
+	})
+}
+
+func (h *handlers) createAppFromComposeFile(ctx *fiber.Ctx) error {
+	username := ctx.Locals("username").(string)
+
+	var cfg command.CreateFromDockerCompose
+	err := ctx.BodyParser(&cfg)
+	if err != nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: %v", err),
+		})
+	}
+	klog.Errorf("CreateFromDockerCompose: %v", cfg)
+
+	appName := removeSpecialCharsMap(strings.ToLower(cfg.Title))
+	regex := regexp.MustCompile(regxPattern)
+	if !regex.MatchString(cfg.Title) {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Bad Request: this field must conform to the pattern ^[a-zA-Z][a-zA-Z0-9 ._-]{0,29}$"),
+		})
+	}
+
+	err = h.db.DB.Where("owner = ?", username).Where("title = ?", cfg.Title).First(&model.DevApp{}).Error
+	if err == nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app failed, app ID %s already exists", appName),
+		})
+	}
+	err = h.db.DB.Where("owner = ?", username).Where("app_name = ?", appName).First(&model.DevApp{}).Error
+	if err == nil {
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app failed, app ID %s already exists", appName),
+		})
+	}
+
+	// read uploaded file (field: file)
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		klog.Error("read compose file from request error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Read file from request failed: %v", err),
+		})
+	}
+	var appId int64
+
+	// prepare temp dir
+	uniqueId := strings.ReplaceAll(uuid.NewString(), "-", "")
+	tempDir := filepath.Join("/tmp", uniqueId)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		klog.Error("create temp dir error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Create temp dir failed: %v", err),
+		})
+	}
+	cleanup := func() {
+		if err := os.RemoveAll(utils.GetAppPath(username, appName)); err != nil {
+			klog.Errorf("failed to remove app %v dir, err %v", appName, err)
+		}
+		if err := os.RemoveAll(tempDir); err != nil {
+			klog.Errorf("failed to remove tempDir: %v dir, err %v", tempDir, err)
+		}
+	}
+	composePath := filepath.Join(tempDir, fmt.Sprintf("%s.yml", appName))
+	if err := ctx.SaveFile(fileHeader, composePath); err != nil {
+		cleanup()
+		klog.Error("save compose file error, ", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Save compose file failed: %v", err),
+		})
+	}
+	_, err = ioutil.ReadFile(composePath)
+	if err != nil {
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("read compose file failed: %v", err),
+		})
+	}
+
+	// convert via kompose to helm chart
+	outputDir := filepath.Join(tempDir, appName)
+	_ = os.MkdirAll(outputDir, 0755)
+	opts := kobject.ConvertOptions{
+		InputFiles:            []string{composePath},
+		OutFile:               outputDir,
+		CreateD:               true,
+		CreateChart:           true,
+		WithKomposeAnnotation: true,
+		Replicas:              1,
+		ToStdout:              true,
+	}
+	resources, err := utils.Convert(opts)
+	if err != nil {
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Kompose convert failed: %v", err),
+		})
+	}
+	chartPath := outputDir
+	templatesDir := filepath.Join(chartPath, "templates")
+	err = os.MkdirAll(templatesDir, 0755)
+	if err != nil {
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("make templates dir failed: %v", err),
+		})
+	}
+	// find service via workload labels; if missing, synthesize using workload labels/port
+	svcName, svcPort, err := findWorkloadInKomposeResult(resources, appName)
+	if err != nil {
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": err.Error(),
+		})
+	}
+	// copy chart into user workspace
+	if err := command.CopyApp().WithDir(BaseDir).Run(chartPath, filepath.Join(username, appName)); err != nil {
+		klog.Errorf("copy chart error %v", err)
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("Copy chart failed: %v", err),
+		})
+	}
+
+	err = command.WriteKomposeFile(&command.KomposeFileOpts{
+		Cfg:          &cfg,
+		Owner:        username,
+		Name:         appName,
+		EntranceHost: svcName,
+		EntrancePort: svcPort,
+		Resources:    resources,
+	})
+	if err != nil {
+		cleanup()
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create olares manifest failed: %v", err),
+		})
+	}
+
+	appData := model.DevApp{
+		Title:   cfg.Title,
+		AppName: appName,
+		AppType: db.CommunityApp,
+		State:   undeploy,
+		Owner:   username,
+		DevEnv:  "default",
+	}
+	appId, err = InsertDevApp(&appData)
+	if err != nil {
+		cleanup()
+		klog.Errorf("create app err %v", err)
+		return ctx.JSON(fiber.Map{
+			"code":    http.StatusBadRequest,
+			"message": fmt.Sprintf("create app err %v", err),
+		})
+	}
 	return ctx.JSON(fiber.Map{
 		"code": http.StatusOK,
 		"data": map[string]interface{}{

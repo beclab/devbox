@@ -50,6 +50,7 @@ type CreateWithOneDockerConfig struct {
 	Env            map[string]string            `json:"env"`
 	Mounts         map[string]string            `json:"mounts"`
 	ExposePorts    string                       `json:"exposePorts"`
+	SshEnable      bool                         `json:"sshEnable"`
 }
 
 type CreateWithOneDockerContainer struct {
@@ -194,6 +195,14 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 
 	if config.RequiredGpu {
 		appcfg.Spec.RequiredGPU = "1"
+	}
+	if config.SshEnable {
+		appcfg.Ports = append(appcfg.Ports, oachecker.ServicePort{
+			Name:              "ssh",
+			Host:              name,
+			Port:              22,
+			AddToTailscaleAcl: true,
+		})
 	}
 
 	appcfg.Spec.RequiredCPU = config.RequiredCpu
@@ -484,6 +493,13 @@ func (at *AppTemplate) WithDockerService(config *CreateWithOneDockerConfig) *App
 			Name:       fmt.Sprintf("%s-dev-%s", config.Name, portStr),
 			Port:       int32(port),
 			TargetPort: intstr.Parse(portStr),
+		})
+	}
+	if config.SshEnable {
+		ports = append(ports, corev1.ServicePort{
+			Name:       "ssh",
+			Port:       22,
+			TargetPort: intstr.Parse("22"),
 		})
 	}
 

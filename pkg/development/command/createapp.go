@@ -36,8 +36,9 @@ const (
 )
 
 type CreateConfig struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Title string `json:"title"`
+	Name  string `json:"name"`
+	Type  string `json:"type"`
 
 	SystemDB   bool `json:"systemDB,omitempty"`
 	Redis      bool `json:"redis,omitempty"`
@@ -52,6 +53,7 @@ type CreateConfig struct {
 	IngressRouter bool   `json:"ingressRouter,omitempty"`
 	Traefik       bool   `json:"traefik,omitempty"`
 	WebsitePort   string `json:"websitePort,omitempty"`
+	EntranceHost  string `json:"entranceHost,omitempty"`
 
 	AppData  bool     `json:"appData,omitempty"`
 	AppCache bool     `json:"appCache,omitempty"`
@@ -160,8 +162,13 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 		}
 	}
 	entrances = append(entrances, oachecker.Entrance{
-		Name:       name,
-		Host:       name,
+		Name: name,
+		Host: func() string {
+			if cfg.EntranceHost != "" {
+				return cfg.EntranceHost
+			}
+			return name
+		}(),
 		Port:       int32(port),
 		Title:      cfg.Name,
 		Icon:       defaultIcon,
@@ -552,7 +559,7 @@ func (at *AppTemplate) WithTraefik(cfg *CreateConfig) *AppTemplate {
 		},
 		Spec: corev1.PersistentVolumeClaimSpec{
 			AccessModes: []corev1.PersistentVolumeAccessMode{"ReadWriteOnce"},
-			Resources: corev1.ResourceRequirements{
+			Resources: corev1.VolumeResourceRequirements{
 				Requests: map[corev1.ResourceName]resource.Quantity{
 					corev1.ResourceStorage: storage,
 				},

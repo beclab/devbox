@@ -389,6 +389,8 @@ func (wh *Webhook) mutateContainerToDevContainer(ctx context.Context, pod *corev
 				"-c",
 				`
 					echo "Starting code-server..."
+					[ -f /sshconfig.sh ] && /sshconfig.sh
+					service ssh restart
 					exec /usr/bin/code-server \
   					--bind-addr "0.0.0.0:` + strconv.Itoa(devPort) + `" \
   					--auth=none \
