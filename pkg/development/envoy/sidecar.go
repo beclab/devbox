@@ -166,6 +166,7 @@ func generateIptablesCommands() string {
 -A PROXY_IN_REDIRECT -p tcp -j REDIRECT --to-port %d
 -A PREROUTING -p tcp -j PROXY_INBOUND
 -A PROXY_INBOUND -p tcp --dport %d -j RETURN
+-A PROXY_INBOUND -p tcp --dport 22 -j RETURN
 -A PROXY_INBOUND -p tcp -j PROXY_IN_REDIRECT
 COMMIT
 EOF
