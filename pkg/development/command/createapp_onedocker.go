@@ -124,7 +124,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 			LimitedMemory:  config.LimitedMemory,
 			LimitedCPU:     config.LimitedCpu,
 			VersionName:    "0.0.1",
-			SupportArch:    []string{"amd64"},
+			SupportArch:    []string{"amd64", "arm64"},
 		},
 	}
 

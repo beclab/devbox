@@ -142,7 +142,7 @@ func (at *AppTemplate) WithAppCfg(cfg *CreateConfig) *AppTemplate {
 			LimitedMemory:  "1000Mi",
 			LimitedCPU:     "1000m",
 			VersionName:    "0.0.1",
-			SupportArch:    []string{"amd64"},
+			SupportArch:    []string{"amd64", "arm64"},
 		},
 		Options: oachecker.Options{
 			AppScope: &oachecker.AppScope{
