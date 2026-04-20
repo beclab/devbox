@@ -84,6 +84,12 @@ func createTableIfNotExists() (err error) {
 				return err
 			}
 		}
+		if db.Migrator().HasColumn(&model.DevApp{}, "Owner") {
+			err = db.Migrator().AlterColumn(&model.DevApp{}, "Owner")
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if !db.Migrator().HasTable(model.DevContainers{}) {
