@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/go-resty/resty/v2"
 	"github.com/thoas/go-funk"
 	"k8s.io/klog/v2"
-	"net/http"
-	"time"
 )
 
 const (
@@ -105,7 +106,7 @@ func (c *chartOp) CheckVersion(ctx context.Context, owner, devAppName, version s
 		return false, nil
 	}
 	if resp.StatusCode() != http.StatusOK {
-		klog.Errorf("/api/v1/charts/%s/versions status code not = 200, err=%v", string(resp.Body()))
+		klog.Errorf("/api/v1/charts/%s/versions status code not = 200, err=%v", devAppName,string(resp.Body()))
 		return false, errors.New(string(resp.Body()))
 	}
 	var ret ChartVersions

@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,9 +11,11 @@ import (
 	"strings"
 	"sync"
 
+	oac "github.com/beclab/Olares/framework/oac"
+	appv1 "github.com/beclab/api/api/app.bytetrade.io/v1alpha1"
+	"github.com/beclab/api/manifest"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
 
 	"helm.sh/helm/v3/pkg/chart"
 	appsv1 "k8s.io/api/apps/v1"
@@ -57,10 +60,11 @@ func writeManifest(opts *KomposeFileOpts, totalRequests, totalLimits corev1.Reso
 	if configType == "" {
 		configType = "app"
 	}
-	appcfg := oachecker.AppConfiguration{
-		ConfigVersion: "0.8.0",
+	useNewSchema := detectNewSchema(context.Background())
+	appcfg := oac.AppConfiguration{
+		ConfigVersion: configVersionFor(useNewSchema),
 		ConfigType:    configType,
-		Metadata: oachecker.AppMetaData{
+		Metadata: manifest.AppMetaData{
 			Name:        opts.Name,
 			Icon:        defaultIcon,
 			Description: fmt.Sprintf("app %s", opts.Name),
@@ -69,35 +73,30 @@ func writeManifest(opts *KomposeFileOpts, totalRequests, totalLimits corev1.Reso
 			Title:       opts.Cfg.Title,
 			Categories:  []string{"dev"},
 		},
-		Spec: oachecker.AppSpec{
-			RequiredMemory: func() string {
-				q := totalRequests[corev1.ResourceMemory]
-				return q.String()
-			}(),
-			RequiredCPU: func() string {
-				q := totalRequests[corev1.ResourceCPU]
-				return q.String()
-			}(),
-			RequiredDisk: "50Mi",
-			LimitedMemory: func() string {
-				q := totalLimits[corev1.ResourceMemory]
-				return q.String()
-			}(),
-			LimitedCPU: func() string {
-				q := totalLimits[corev1.ResourceCPU]
-				return q.String()
-			}(),
+		Spec: manifest.AppSpec{
 			VersionName: "0.0.1",
 			SupportArch: []string{"amd64", "arm64"},
 		},
-		Options: oachecker.Options{
-			AppScope: &oachecker.AppScope{
+		Options: manifest.Options{
+			AppScope: manifest.AppScope{
 				AppRef: appRef,
 			},
 		},
 	}
-	entrances := make([]oachecker.Entrance, 0)
-	entrances = append(entrances, oachecker.Entrance{
+	cpuReq := totalRequests[corev1.ResourceCPU]
+	memReq := totalRequests[corev1.ResourceMemory]
+	cpuLim := totalLimits[corev1.ResourceCPU]
+	memLim := totalLimits[corev1.ResourceMemory]
+	applyAppResources(&appcfg.Spec, useNewSchema, oac.ManifestResourceLimits{
+		RequiredCPU:    cpuReq.String(),
+		RequiredMemory: memReq.String(),
+		RequiredDisk:   "50Mi",
+		LimitedDisk:    "5Gi",
+		LimitedCPU:     cpuLim.String(),
+		LimitedMemory:  memLim.String(),
+	})
+	entrances := make([]appv1.Entrance, 0)
+	entrances = append(entrances, appv1.Entrance{
 		Name:       opts.Name,
 		Host:       opts.EntranceHost,
 		Port:       opts.EntrancePort,

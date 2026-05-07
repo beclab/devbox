@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	oac "github.com/beclab/Olares/framework/oac"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
 
 	"github.com/mholt/archiver/v3"
 	"k8s.io/klog/v2"
@@ -43,7 +43,7 @@ func CheckDir(dirname string) error {
 	return err
 }
 
-func readCfgFromFile(owner, chartDir string) (*oachecker.AppConfiguration, error) {
+func readCfgFromFile(owner, chartDir string) (*oac.AppConfiguration, error) {
 	cfgFile := findAppCfgFile(chartDir)
 	klog.Infof("readCfgFromFile: %s", cfgFile)
 	if len(cfgFile) == 0 {
@@ -56,7 +56,7 @@ func readCfgFromFile(owner, chartDir string) (*oachecker.AppConfiguration, error
 	return appcfg, nil
 }
 
-func readAppInfo(owner, cfgFile string) (*oachecker.AppConfiguration, error) {
+func readAppInfo(owner, cfgFile string) (*oac.AppConfiguration, error) {
 	f, err := os.Open(cfgFile)
 	if err != nil {
 		return nil, err
@@ -73,13 +73,13 @@ func readAppInfo(owner, cfgFile string) (*oachecker.AppConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
-	opts := []func(map[string]interface{}){
-		oachecker.WithAdmin(admin),
-		oachecker.WithOwner(owner),
+	opts := []oac.Option{
+		oac.WithAdmin(admin),
+		oac.WithOwner(owner),
 		utils.WithIsAdmin(isAdmin),
 	}
-	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
-	return appcfg, nil
+	appcfg, err := oac.LoadAppConfigurationContent(data, opts...)
+	return appcfg, err
 }
 
 // findAppCfgFile find app.cfg path in untar path

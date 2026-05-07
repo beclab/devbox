@@ -1,19 +1,23 @@
 package command
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
 
+	oac "github.com/beclab/Olares/framework/oac"
+	appv1 "github.com/beclab/api/api/app.bytetrade.io/v1alpha1"
+	"github.com/beclab/api/manifest"
 	"github.com/beclab/devbox/pkg/appcfg"
 	"github.com/beclab/devbox/pkg/constants"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
 
 	jvalidator "github.com/go-playground/validator/v10"
 	"helm.sh/helm/v3/pkg/chart"
@@ -24,11 +28,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var vendorGpuMap = map[string]string{
-	"nvidia": "nvidia.com/gpu",
-	"amd":    "amd.com/gpu",
-	"intel":  "gpu.intel.com/i915",
-}
+//var vendorGpuMap = map[string]string{
+//	"nvidia": "nvidia.com/gpu",
+//	"amd":    "amd.com/gpu",
+//	"intel":  "gpu.intel.com/i915",
+//}
 
 var validate = jvalidator.New()
 
@@ -83,7 +87,7 @@ func (c *createWithOneDocker) WithDir(dir string) *createWithOneDocker {
 }
 
 func (c *createWithOneDocker) Run(cfg *CreateWithOneDockerConfig, owner string) error {
-	at := AppTemplate{}
+	at := NewAppTemplate(context.Background())
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
 
 	appPath := utils.GetAppPath(owner, cfg.Name)
@@ -105,10 +109,11 @@ func (at *AppTemplate) checkMountPath(mounts map[string]string, prefix string) b
 func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemplate {
 	configType := "app"
 
-	appcfg := oachecker.AppConfiguration{
-		ConfigVersion: "0.8.0",
+	appcfg := oac.AppConfiguration{
+		APIVersion:    "v1",
+		ConfigVersion: configVersionFor(at.useNewSchema),
 		ConfigType:    configType,
-		Metadata: oachecker.AppMetaData{
+		Metadata: manifest.AppMetaData{
 			Name:        config.Name,
 			Icon:        defaultIcon,
 			Description: fmt.Sprintf("app %s", config.Name),
@@ -117,14 +122,9 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 			Title:       config.Title,
 			Categories:  []string{"Utilities"},
 		},
-		Spec: oachecker.AppSpec{
-			RequiredMemory: config.RequiredMemory,
-			RequiredCPU:    config.RequiredCpu,
-			RequiredDisk:   "50Mi",
-			LimitedMemory:  config.LimitedMemory,
-			LimitedCPU:     config.LimitedCpu,
-			VersionName:    "0.0.1",
-			SupportArch:    []string{"amd64", "arm64"},
+		Spec: manifest.AppSpec{
+			VersionName: "0.0.1",
+			SupportArch: []string{"amd64", "arm64"},
 		},
 	}
 
@@ -140,18 +140,18 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 		}
 	}
 
-	//middleware := oachecker.Middleware{}
-	appcfg.Middleware = &oachecker.Middleware{}
+	//middleware := manifest.Middleware{}
+	appcfg.Middleware = &manifest.Middleware{}
 	if config.NeedRedis {
-		appcfg.Middleware.Redis = &oachecker.RedisConfig{
+		appcfg.Middleware.Redis = &manifest.RedisConfig{
 			Namespace: "redis",
 		}
 	}
 
 	if config.NeedPg {
-		appcfg.Middleware.Postgres = &oachecker.PostgresConfig{
+		appcfg.Middleware.Postgres = &manifest.PostgresConfig{
 			Username: "postgres",
-			Databases: []oachecker.Database{
+			Databases: []manifest.Database{
 				{
 					Name:        config.Name,
 					Distributed: true,
@@ -160,11 +160,11 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 		}
 	}
 
-	entrances := make([]oachecker.Entrance, 0)
+	entrances := make([]appv1.Entrance, 0)
 	name := config.Name
 	//port := config.Container.Port
 
-	entrances = append(entrances, oachecker.Entrance{
+	entrances = append(entrances, appv1.Entrance{
 		Name:       name,
 		Host:       name,
 		Port:       int32(config.Container.Port),
@@ -179,7 +179,7 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 		if err != nil {
 			continue
 		}
-		entrances = append(entrances, oachecker.Entrance{
+		entrances = append(entrances, appv1.Entrance{
 			Name:      fmt.Sprintf("%s-dev-%s", name, portStr),
 			Host:      name,
 			Port:      int32(port),
@@ -193,11 +193,8 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 
 	appcfg.Entrances = entrances
 
-	if config.RequiredGpu {
-		appcfg.Spec.RequiredGPU = "1"
-	}
 	if config.SshEnable {
-		appcfg.Ports = append(appcfg.Ports, oachecker.ServicePort{
+		appcfg.Ports = append(appcfg.Ports, appv1.ServicePort{
 			Name:              "ssh",
 			Host:              name,
 			Port:              22,
@@ -205,54 +202,65 @@ func (at *AppTemplate) WithDockerCfg(config *CreateWithOneDockerConfig) *AppTemp
 		})
 	}
 
-	appcfg.Spec.RequiredCPU = config.RequiredCpu
-	appcfg.Spec.RequiredMemory = config.RequiredMemory
-	if config.LimitedCpu == "" {
-		appcfg.Spec.LimitedCPU = config.RequiredCpu
-	} else {
-		appcfg.Spec.LimitedCPU = config.LimitedCpu
-
+	res := oac.ManifestResourceLimits{
+		RequiredCPU:    config.RequiredCpu,
+		RequiredMemory: config.RequiredMemory,
+		RequiredDisk:   "50Mi",
+		LimitedDisk:    "5Gi",
+		LimitedCPU:     config.LimitedCpu,
+		LimitedMemory:  config.LimitedMemory,
 	}
-	if config.LimitedMemory == "" {
-		appcfg.Spec.LimitedMemory = config.RequiredMemory
-	} else {
-		appcfg.Spec.LimitedMemory = config.LimitedMemory
+	if res.LimitedCPU == "" {
+		res.LimitedCPU = res.RequiredCPU
 	}
-
-	requiredCPU, _ := resource.ParseQuantity(appcfg.Spec.RequiredCPU)
-	requiredMemory, _ := resource.ParseQuantity(appcfg.Spec.RequiredMemory)
-	limitedCPU, _ := resource.ParseQuantity(appcfg.Spec.LimitedCPU)
-	limitedMemory, _ := resource.ParseQuantity(appcfg.Spec.LimitedMemory)
+	if res.LimitedMemory == "" {
+		res.LimitedMemory = res.RequiredMemory
+	}
 	if config.RequiredDisk != "" {
-		//requiredDisk, _ := resource.ParseQuantity(config.RequiredDisk)
-		appcfg.Spec.RequiredDisk = config.RequiredDisk
+		res.RequiredDisk = config.RequiredDisk
 	}
+
+	requiredCPU, _ := resource.ParseQuantity(res.RequiredCPU)
+	requiredMemory, _ := resource.ParseQuantity(res.RequiredMemory)
+	limitedCPU, _ := resource.ParseQuantity(res.LimitedCPU)
+	limitedMemory, _ := resource.ParseQuantity(res.LimitedMemory)
 
 	if requiredCPU.Cmp(limitedCPU) > 0 {
-		appcfg.Spec.LimitedCPU = appcfg.Spec.RequiredCPU
+		res.LimitedCPU = res.RequiredCPU
+	}
+	if requiredMemory.Cmp(limitedMemory) > 0 {
+		res.LimitedMemory = res.RequiredMemory
 	}
 
-	if requiredMemory.Cmp(limitedMemory) > 0 {
-		appcfg.Spec.LimitedMemory = appcfg.Spec.RequiredMemory
+	if config.RequiredGpu {
+		res.RequiredGPU = "1Gi"
+		gpuType, _ := utils.GetFirstClusterGpuType(context.Background())
+		applyAppGpuMode(&appcfg.Spec, at.useNewSchema, gpuType, res)
+	} else {
+		applyAppResources(&appcfg.Spec, at.useNewSchema, res)
 	}
-	deps := []oachecker.Dependency{
+	appcfg.Options.Dependencies = []manifest.Dependency{
 		{
 			Name:    "olares",
 			Type:    "system",
 			Version: constants.SupportOsVersion,
 		},
 	}
-	appcfg.Options.Dependencies = &deps
 	at.appCfg = &appcfg
 	return at
 }
 
 func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *AppTemplate {
 	replicas := int32(1)
-	requestCPU, _ := resource.ParseQuantity(at.appCfg.Spec.RequiredCPU)
-	requestMemory, _ := resource.ParseQuantity(at.appCfg.Spec.RequiredMemory)
-	limitedCPU, _ := resource.ParseQuantity(at.appCfg.Spec.LimitedCPU)
-	limitedMemory, _ := resource.ParseQuantity(at.appCfg.Spec.LimitedMemory)
+	gpuType, _ := utils.GetFirstClusterGpuType(context.Background())
+	res := extractAppResources(at.appCfg.Spec, gpuType)
+	requestCPU, _ := resource.ParseQuantity(res.RequiredCPU)
+	requestMemory, _ := resource.ParseQuantity(res.RequiredMemory)
+	limitedCPU, _ := resource.ParseQuantity(res.LimitedCPU)
+	limitedMemory, _ := resource.ParseQuantity(res.LimitedMemory)
+
+	klog.Infof("WithDockerDeployment: requestCPU: %v", requestCPU.String())
+	klog.Infof("WithDockerDeployment: limitedCPU: %v", limitedCPU.String())
 
 	deployment := appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -260,12 +268,18 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        config.Name,
-			Namespace:   "{{ .Release.Namespace }}",
-			Annotations: map[string]string{},
+			Name:      config.Name,
+			Namespace: "{{ .Release.Namespace }}",
 			Labels: map[string]string{
 				"io.kompose.service": config.Name,
 			},
+			Annotations: func() map[string]string {
+				anno := map[string]string{}
+				if gpuType != "" && config.RequiredGpu {
+					anno[constants.ApplicationGpuInjectKey] = "true"
+				}
+				return anno
+			}(),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -314,13 +328,7 @@ func (at *AppTemplate) WithDockerDeployment(config *CreateWithOneDockerConfig) *
 	if len(config.Container.StartCmdArgs) > 0 {
 		deployment.Spec.Template.Spec.Containers[0].Args = []string{config.Container.StartCmdArgs}
 	}
-	if config.RequiredGpu && len(config.GpuVendor) > 0 {
-		limitKey := corev1.ResourceName(vendorGpuMap[config.GpuVendor])
-		deployment.Spec.Template.Spec.Containers[0].Resources.Limits[limitKey] = func() resource.Quantity {
-			gpu, _ := resource.ParseQuantity("1")
-			return gpu
-		}()
-	}
+
 	if config.ExposePorts != "" {
 		exposePorts := strings.Split(config.ExposePorts, ",")
 		allDomainConfigs := make([]appcfg.DefaultThirdLevelDomainConfig, 0)
@@ -594,47 +602,6 @@ func (at *AppTemplate) WriteDockerFile(cfg *CreateWithOneDockerConfig, path stri
 
 	return err
 }
-
-//func (at *AppTemplate) WithDockerDevService(config *CreateWithOneDockerConfig) *AppTemplate {
-//	if len(config.ExposePorts) > 0 {
-//		service := corev1.Service{
-//			TypeMeta: metav1.TypeMeta{
-//				Kind:       "Service",
-//				APIVersion: "v1",
-//			},
-//			ObjectMeta: metav1.ObjectMeta{
-//				Labels: map[string]string{
-//					"io.kompose.service": fmt.Sprintf("%s-dev", config.Name),
-//				},
-//				Name:      fmt.Sprintf("%s-dev", config.Name),
-//				Namespace: "{{ .Release.Namespace }}",
-//			},
-//			Spec: corev1.ServiceSpec{
-//				Selector: map[string]string{
-//					"io.kompose.service": config.Name,
-//				},
-//			},
-//			Status: corev1.ServiceStatus{
-//				LoadBalancer: corev1.LoadBalancerStatus{},
-//			},
-//		}
-//		ports := make([]corev1.ServicePort, 0)
-//		for _, port := range config.ExposePorts {
-//			ports = append(ports, corev1.ServicePort{
-//				Name:       strconv.Itoa(port),
-//				Port:       int32(port),
-//				TargetPort: intstr.Parse(strconv.Itoa(port)),
-//			})
-//		}
-//
-//		if len(ports) > 0 {
-//			service.Spec.Ports = ports
-//		}
-//		at.services = append(at.services, &service)
-//	}
-//
-//	return at
-//}
 
 func ParseCommand(cmd string) []string {
 	if cmd == "" {

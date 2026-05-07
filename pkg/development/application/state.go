@@ -1,6 +1,7 @@
 package application
 
 import (
+	appv1 "github.com/beclab/api/api/app.bytetrade.io/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,32 +17,6 @@ type Operate struct {
 	Source            string                  `json:"source"`
 }
 
-type ApplicationManagerState string
+type ApplicationManagerState = appv1.ApplicationManagerState
 
-var (
-	Pending      ApplicationManagerState = "pending"
-	Installing   ApplicationManagerState = "installing"
-	Upgrading    ApplicationManagerState = "upgrading"
-	Uninstalling ApplicationManagerState = "uninstalling"
-	Canceled     ApplicationManagerState = "canceled"
-	Failed       ApplicationManagerState = "failed"
-	Completed    ApplicationManagerState = "completed"
-	Suspend      ApplicationManagerState = "suspend"
-
-	Processing ApplicationManagerState = "processing"
-)
-
-func (a ApplicationManagerState) String() string {
-	return string(a)
-}
-
-type OpType string
-
-var (
-	Install    OpType = "install"
-	Uninstall  OpType = "uninstall"
-	Upgrade    OpType = "upgrade"
-	SuspendApp OpType = "suspend"
-	ResumeApp  OpType = "resume"
-	Cancel     OpType = "cancel"
-)
+type OpType = appv1.OpType

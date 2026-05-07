@@ -6,7 +6,7 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/beclab/oachecker"
+	oac "github.com/beclab/Olares/framework/oac"
 )
 
 type lint struct {
@@ -25,14 +25,8 @@ func (l *lint) WithDir(dir string) *lint {
 func (l *lint) Run(ctx context.Context, owner, chart string) error {
 	chartPath := filepath.Join(l.baseCommand.dir, owner, chart)
 
-	err := oachecker.Lint(chartPath, oachecker.DefaultLintOptions().SkipSameVersion().WithOwner("owner").WithAdmin("admin"))
-	if err != nil {
-		klog.Errorf("failed to lint chart path=%s with different owner and admin %v", chartPath, err)
-		return err
-	}
-	err = oachecker.Lint(chartPath, oachecker.DefaultLintOptions().SkipSameVersion().WithOwner("admin").WithAdmin("admin"))
-	if err != nil {
-		klog.Errorf("failed to lint chart path=%s with same owner and admin %v", chartPath, err)
+	if err := oac.LintBothOwnerScenarios(chartPath, oac.SkipSameVersionCheck()); err != nil {
+		klog.Errorf("failed to lint chart path=%s: %v", chartPath, err)
 		return err
 	}
 	return nil

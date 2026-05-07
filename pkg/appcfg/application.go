@@ -3,7 +3,8 @@ package appcfg
 import (
 	"time"
 
-	"github.com/beclab/oachecker"
+	appv1 "github.com/beclab/api/api/app.bytetrade.io/v1alpha1"
+	"github.com/beclab/api/manifest"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -58,19 +59,19 @@ type ApplicationConfig struct {
 	Target               string
 	AppName              string // name of application displayed on shortcut
 	OwnerName            string // name of owner who installed application
-	Entrances            []oachecker.Entrance
-	Ports                []oachecker.ServicePort
+	Entrances            []appv1.Entrance
+	Ports                []appv1.ServicePort
 	Icon                 string          // base64 icon data
 	Permission           []AppPermission // app permission requests
 	Requirement          AppRequirement
 	Policies             []AppPolicy
-	Middleware           *oachecker.Middleware
+	Middleware           *manifest.Middleware
 	AnalyticsEnabled     bool
 	ResetCookieEnabled   bool
-	Dependencies         []oachecker.Dependency
-	AppScope             oachecker.AppScope
-	WsConfig             oachecker.WsConfig
-	Upload               oachecker.Upload
+	Dependencies         []manifest.Dependency
+	AppScope             manifest.AppScope
+	WsConfig             manifest.WsConfig
+	Upload               manifest.Upload
 	OnlyAdmin            bool
 	MobileSupported      bool
 	ApiTimeout           *int64

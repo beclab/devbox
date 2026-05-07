@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/beclab/devbox/pkg/utils"
@@ -9,7 +10,7 @@ import (
 )
 
 func CreateAppWithHelloWorldConfig(owner, name string, cfg *CreateWithHelloConfig) error {
-	at := &AppTemplate{}
+	at := NewAppTemplate(context.Background())
 	createConfigExample := &CreateWithOneDockerConfig{
 		Title:          cfg.Title,
 		Name:           name,

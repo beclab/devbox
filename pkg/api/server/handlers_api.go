@@ -16,8 +16,8 @@ import (
 	"github.com/beclab/devbox/pkg/development/helm"
 	"github.com/beclab/devbox/pkg/store/db"
 	"github.com/beclab/devbox/pkg/store/db/model"
+	oac "github.com/beclab/Olares/framework/oac"
 	"github.com/beclab/devbox/pkg/utils"
-	"github.com/beclab/oachecker"
 
 	"github.com/emicklei/go-restful/v3"
 	"github.com/go-resty/resty/v2"
@@ -82,7 +82,7 @@ func (h *handlers) updateAppConfig(ctx *fiber.Ctx) error {
 	path := getAppPath(username, app)
 	appCfgPath := filepath.Join(path, constants.AppCfgFileName)
 
-	var appcfg oachecker.AppConfiguration
+	var appcfg oac.AppConfiguration
 	err := ctx.BodyParser(&appcfg)
 	if err != nil {
 		klog.Error("read app cfg post data error, ", err)

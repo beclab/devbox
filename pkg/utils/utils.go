@@ -6,8 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"os"
+
+	oac "github.com/beclab/Olares/framework/oac"
 	"github.com/beclab/devbox/pkg/appcfg"
-	"github.com/beclab/oachecker"
 	"github.com/containerd/containerd/reference/docker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,7 +17,6 @@ import (
 	runtimeSchema "k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/klog/v2"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -57,7 +58,7 @@ func GetAdminUsername(ctx context.Context) (string, error) {
 	return admin, nil
 }
 
-func GetAppConfig(owner string, data []byte) (*oachecker.AppConfiguration, error) {
+func GetAppConfig(owner string, data []byte) (*oac.AppConfiguration, error) {
 	admin, err := GetAdminUsername(context.TODO())
 	if err != nil {
 		klog.Errorf("failed to get admin %v", err)
@@ -69,19 +70,17 @@ func GetAppConfig(owner string, data []byte) (*oachecker.AppConfiguration, error
 		return nil, err
 	}
 
-	opts := []func(map[string]interface{}){
-		oachecker.WithAdmin(admin),
-		oachecker.WithOwner(owner),
+	opts := []oac.Option{
+		oac.WithAdmin(admin),
+		oac.WithOwner(owner),
 		WithIsAdmin(isAdmin),
 	}
-	appcfg, err := oachecker.GetAppConfigurationFromContent(data, opts...)
-	return appcfg, nil
+	appcfg, err := oac.LoadAppConfigurationContent(data, opts...)
+	return appcfg, err
 }
-func WithIsAdmin(isAdmin bool) func(map[string]interface{}) {
-	return func(values map[string]interface{}) {
-		values["isAdmin"] = isAdmin
 
-	}
+func WithIsAdmin(isAdmin bool) oac.Option {
+	return oac.WithValues(map[string]interface{}{"isAdmin": isAdmin})
 }
 
 // GetAdminUserList returns admin list, an error if there is any.
