@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/beclab/devbox/pkg/appcfg"
-	"github.com/beclab/devbox/pkg/constants"
-	"github.com/beclab/devbox/pkg/utils"
-	"k8s.io/apimachinery/pkg/types"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/beclab/devbox/pkg/appcfg"
+	"github.com/beclab/devbox/pkg/constants"
+	"github.com/beclab/devbox/pkg/utils"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/beclab/devbox/pkg/development/container"
 	"github.com/beclab/devbox/pkg/development/envoy"
@@ -241,7 +242,7 @@ func getEntrancePort(appManagerName string, entranceName string) (int32, error) 
 func (wh *Webhook) MutatePodContainers(ctx context.Context, namespace string, raw []byte, proxyUUID uuid.UUID, baseDir string) (patch []byte, err error) {
 	var pod corev1.Pod
 	if err := json.Unmarshal(raw, &pod); err != nil {
-		klog.Errorf("Error unmarshaling request to pod, ", err)
+		klog.Errorf("Error unmarshaling request to pod %v", err)
 		return nil, err
 	}
 

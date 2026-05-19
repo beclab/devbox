@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/beclab/api/manifest"
 	"github.com/beclab/devbox/pkg/appcfg"
-	"github.com/beclab/oachecker"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,7 +178,7 @@ EOF
 	return cmd
 }
 
-func getWebSocketSideCarContainerSpec(wsConfig *oachecker.WsConfig) corev1.Container {
+func getWebSocketSideCarContainerSpec(wsConfig *manifest.WsConfig) corev1.Container {
 	return corev1.Container{
 		Name:            WsContainerName,
 		Image:           WsContainerImage,

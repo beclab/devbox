@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -29,7 +30,7 @@ func TestWithDockerAppCfg(t *testing.T) {
 		Env:            map[string]string{},
 		Mounts:         map[string]string{"/app/data/aaa": "/aaa", "/app/cache/bbb": "/bbb", "/Home/ccc": "/ccc", "/app/data/aaa2": "/aaa2"},
 	}
-	at := AppTemplate{}
+	at := NewAppTemplate(context.Background())
 	at.WithDockerCfg(cfg).WithDockerDeployment(cfg).WithDockerDeployment(cfg).WithDockerService(cfg).WithDockerChartMetadata(cfg).WithDockerOwner(cfg)
 	b, _ := json.Marshal(at.appCfg)
 	yml, _ := yaml.JSONToYAML(b)

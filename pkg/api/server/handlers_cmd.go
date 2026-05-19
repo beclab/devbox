@@ -1008,7 +1008,7 @@ func (h *handlers) fillApp(ctx *fiber.Ctx) error {
 			"message": fmt.Sprintf("Bad Request: %v", errs),
 		})
 	}
-	at := command.AppTemplate{}
+	at := command.NewAppTemplate(ctx.Context())
 	at.WithDockerCfg(&cfg).WithDockerDeployment(&cfg).
 		WithDockerService(&cfg).WithDockerChartMetadata(&cfg).WithDockerOwner(&cfg)
 	err = at.WriteDockerFile(&cfg, utils.GetAppPath(username, cfg.Name))
@@ -1181,7 +1181,7 @@ func (h *handlers) fillAppWithDevContainer(ctx *fiber.Ctx) error {
 
 	appId, err := utils.UpdateDevApp(username, name, updates)
 	if err != nil {
-		klog.Errorf("failed to update dev app %w,err=%v", name, err)
+		klog.Errorf("failed to update dev app %s,err=%v", name, err)
 		return ctx.JSON(fiber.Map{
 			"code":    http.StatusBadRequest,
 			"message": fmt.Sprintf("update app err %v", err),

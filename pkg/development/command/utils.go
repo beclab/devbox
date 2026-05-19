@@ -34,7 +34,7 @@ func copyDir(src string, dest string) error {
 		return err
 	}
 	if !file.IsDir() {
-		return fmt.Errorf("Source " + file.Name() + " is not a directory!")
+		return errors.New("Source " + file.Name() + " is not a directory!")
 	}
 
 	err = os.MkdirAll(dest, 0755)
@@ -55,7 +55,7 @@ func copyDir(src string, dest string) error {
 
 			err = copyDir(src+"/"+f.Name(), dest+"/"+f.Name())
 			if err != nil {
-				klog.Errorf("failed to copy dir from %s to %s, err=%v", src+"/"+f.Name(), dest+"/"+f.Name())
+				klog.Errorf("failed to copy dir from %s to %s, err=%v", src+"/"+f.Name(), dest+"/"+f.Name(), err)
 				return err
 			}
 

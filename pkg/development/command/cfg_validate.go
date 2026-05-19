@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/beclab/oachecker"
+	oac "github.com/beclab/Olares/framework/oac"
 )
 
 type checkCfg struct {
@@ -21,6 +21,6 @@ func (c *checkCfg) WithDir(dir string) *checkCfg {
 }
 
 func (c *checkCfg) Run(ctx context.Context, owner, chart string) error {
-	err := oachecker.CheckChart(filepath.Join(c.baseCommand.dir, owner, chart))
-	return err
+	chartPath := filepath.Join(c.baseCommand.dir, owner, chart)
+	return oac.Lint(chartPath)
 }

@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/beclab/devbox/pkg/store/db/model"
 
@@ -15,30 +16,36 @@ type DbOperator struct {
 }
 
 var (
-	db *gorm.DB
+	db       *gorm.DB
+	initOnce sync.Once
+	initErr  error
 )
 
-func init() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=allow",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USERNAME"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"))
+// ensureDB lazily opens the postgres connection and runs migrations on first
+// use. Doing this in init() would panic any binary (or test binary) that just
+// transitively imports this package without ever touching the DB; lazy init
+// keeps that case quiet while preserving the original "fail fast at first
+// use" behavior for real callers.
+func ensureDB() (*gorm.DB, error) {
+	initOnce.Do(func() {
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=allow",
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_USERNAME"),
+			os.Getenv("DB_PASSWORD"),
+			os.Getenv("DB_NAME"))
 
-	var err error
-	db, err = gorm.Open(postgres.New(
-		postgres.Config{
-			DSN:                  dsn,
-			PreferSimpleProtocol: true,
-		}),
-		&gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	err = createTableIfNotExists()
-	if err != nil {
-		panic(err)
-	}
+		db, initErr = gorm.Open(postgres.New(
+			postgres.Config{
+				DSN:                  dsn,
+				PreferSimpleProtocol: true,
+			}),
+			&gorm.Config{})
+		if initErr != nil {
+			return
+		}
+		initErr = createTableIfNotExists()
+	})
+	return db, initErr
 }
 
 func createTableIfNotExists() (err error) {
@@ -134,7 +141,11 @@ func createTableIfNotExists() (err error) {
 }
 
 func NewDbOperator() *DbOperator {
-	return &DbOperator{DB: db}
+	d, err := ensureDB()
+	if err != nil {
+		panic(err)
+	}
+	return &DbOperator{DB: d}
 }
 
 func (db *DbOperator) Close() error {

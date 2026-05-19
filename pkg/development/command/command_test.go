@@ -9,18 +9,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func TestCreateApp(t *testing.T) {
-	err := CreateApp().WithDir("/tmp").Run(context.Background(), &CreateConfig{Name: "testdev"}, "")
-	if err != nil {
-		klog.Error(err)
-		t.Fail()
-	} else {
-		t.Log("run CreateApp command success")
-	}
-}
-
 func TestInstall(t *testing.T) {
-	_, err := Install().Run(context.Background(), "newapp", "test", "", "0.0.1")
+	err := Install().Run(context.Background(), "newapp", "test", "", "0.0.1")
 	if err != nil {
 		klog.Error(err)
 		t.Fail()

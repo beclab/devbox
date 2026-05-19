@@ -1,6 +1,8 @@
 package command
 
 import (
+	"context"
+
 	"github.com/beclab/devbox/pkg/utils"
 )
 
@@ -57,7 +59,7 @@ func CreateAppWithDevConfig(cfg *CreateDevContainerConfig, owner, name string) e
 		}
 		localConfig.SshEnable = cfg.SshEnable
 	}
-	at := AppTemplate{}
+	at := NewAppTemplate(context.Background())
 	at.WithDockerCfg(&localConfig).WithDockerDeployment(&localConfig).
 		WithDockerService(&localConfig).WithDockerChartMetadata(&localConfig).WithDockerOwner(&localConfig)
 	err := at.WriteDockerFile(&localConfig, appPath)
