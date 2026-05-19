@@ -40,6 +40,8 @@ github.com/beclab/Olares/framework/oac v0.0.0-20260506141732-553492c74ed0 h1:ohM
 github.com/beclab/Olares/framework/oac v0.0.0-20260506141732-553492c74ed0/go.mod h1:AqzYNmWtzMUWJT7JHB+IQLFg3wySDxBhATEjI7b0KaY=
 github.com/beclab/Olares/framework/oac v0.0.0-20260509033324-899cba323495 h1:eie7a0VwMpIxUhR2t4JKfQSQeVQr6zRSoj0SVZhNMYs=
 github.com/beclab/Olares/framework/oac v0.0.0-20260509033324-899cba323495/go.mod h1:uCKpGAtSTN4UTgizY9DKfo7p346XXg5urs68eUJvewk=
+github.com/beclab/Olares/framework/oac v0.0.0-20260515085310-5272f62bd947 h1:tE4XWDtZujyDK2BadhIUHUMZMlV5i5a+G5mIXU08lxQ=
+github.com/beclab/Olares/framework/oac v0.0.0-20260515085310-5272f62bd947/go.mod h1:UfjGTfIdvtR6LUD+8+DiZJGV5SzlOcdFu4imDyxPSiM=
 github.com/beclab/api v0.0.4 h1:EPSMGtVorbbjpvNyW0qPNJSSHagFDErGF1H6FqxJzoo=
 github.com/beclab/api v0.0.4/go.mod h1:okd0RExsvSsuW5MsRh7v56Xex3vi5B26xHOGH3LT6yQ=
 github.com/beclab/api v0.0.5-0.20260507075751-2151a2924a84 h1:ZM3ZCRWxbeV6DDZmupX52Gwen/xc9CvFu0QNXG03ZQQ=
@@ -52,6 +54,8 @@ github.com/beclab/api v0.0.5-0.20260507153207-e0d7ef04a633 h1:KdUXcIgkB7EfMrU7y3
 github.com/beclab/api v0.0.5-0.20260507153207-e0d7ef04a633/go.mod h1:okd0RExsvSsuW5MsRh7v56Xex3vi5B26xHOGH3LT6yQ=
 github.com/beclab/api v0.0.5 h1:ulPsQIzvVP42M8GaNjRvcdAksMahdz7ItwYBaOHf19s=
 github.com/beclab/api v0.0.5/go.mod h1:okd0RExsvSsuW5MsRh7v56Xex3vi5B26xHOGH3LT6yQ=
+github.com/beclab/api v0.0.7 h1:lpeJHgWNDUv2GG1iP/kv40Ub6fKSHTNfdk4l0/8vxUM=
+github.com/beclab/api v0.0.7/go.mod h1:okd0RExsvSsuW5MsRh7v56Xex3vi5B26xHOGH3LT6yQ=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=

@@ -5,8 +5,8 @@ go 1.24.11
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/beclab/Olares/framework/oac v0.0.0-20260509033324-899cba323495
-	github.com/beclab/api v0.0.5
+	github.com/beclab/Olares/framework/oac v0.0.0-20260515085310-5272f62bd947
+	github.com/beclab/api v0.0.7
 	github.com/containerd/containerd v1.7.29
 	github.com/emicklei/go-restful/v3 v3.13.0
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0
